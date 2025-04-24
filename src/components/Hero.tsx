@@ -58,7 +58,7 @@ const Hero = () => {
         </span>
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 animate-in animate-float-2 leading-tight">
           <span className="relative">
-            Physical & Mental Wellness,
+           Healthy Living,
             <span className="absolute -bottom-2 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent"></span>
           </span>
           <br />
