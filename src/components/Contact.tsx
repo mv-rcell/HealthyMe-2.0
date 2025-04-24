@@ -167,7 +167,7 @@ const Contact = () => {
                   <Phone className="h-5 w-5 text-primary mr-3 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
                   <div>
                     <p className="font-medium">Phone</p>
-                    <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                    <p className="text-muted-foreground">+254 701 210 698</p>
                   </div>
                 </div>
                 
@@ -184,8 +184,8 @@ const Contact = () => {
                   <div>
                     <p className="font-medium">Address</p>
                     <p className="text-muted-foreground">
-                      123 Wellness Blvd, Suite 100<br />
-                      San Francisco, CA 94105
+                      354 Kimathi Street, Suite 100<br />
+                      Nairobi, CA 00-00120
                     </p>
                   </div>
                 </div>
