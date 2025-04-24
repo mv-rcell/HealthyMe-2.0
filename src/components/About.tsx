@@ -49,11 +49,11 @@ const About = () => {
             </h2>
             <div className="space-y-4 text-muted-foreground">
               <p className="transition-all duration-500 delay-200">
-                Founded in 2010, EliteFit was born from a vision to transform
-                the conventional gym experience into something extraordinary.
+                Founded in 2025, HealthyMe was born from a vision to transform
+                the conventional healthy lifestyle experience into something extraordinary.
                 What began as a small studio has evolved into a premier fitness
                 destination committed to helping individuals achieve their
-                optimal physical potential.
+                optimal physical potential and all round wellness for healthy living.
               </p>
               <p className="transition-all duration-500 delay-300">
                 Our philosophy centers on the belief that true fitness
@@ -63,7 +63,7 @@ const About = () => {
                 training principles.
               </p>
               <p className="transition-all duration-500 delay-400">
-                At EliteFit, we take pride in our community of dedicated members
+                At HealthyMe, we take pride in our community of dedicated members
                 and expert trainers who collectively create an atmosphere of
                 motivation, support, and achievement. Our success is measured by
                 the transformations we facilitate and the lasting relationships
