@@ -5,6 +5,7 @@ import ProfileCard from "@/components/ProfileCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Filter } from "lucide-react";
+import { CategorySelector, categories } from "@/components/CategorySelector";
 
 // Sample specialist data
 const specialistsData = [
@@ -87,24 +88,33 @@ const specialties = [
   "Stress Management"
 ];
 
+
 const Specialists = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialties");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("");
   
-  // Filter specialists based on search term and selected specialty
+  // Filter specialists based on search term and selected categories
   const filteredSpecialists = specialistsData.filter(specialist => {
     const matchesSearch = 
       specialist.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
       specialist.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       specialist.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesSpecialty = 
-      selectedSpecialty === "All Specialties" || 
-      specialist.specialty?.includes(selectedSpecialty) ||
-      specialist.title.includes(selectedSpecialty);
+    const matchesCategory = !selectedCategory || 
+      specialist.title.toLowerCase().includes(categories.find(cat => cat.id === selectedCategory)?.name.toLowerCase() || "");
     
-    return matchesSearch && matchesSpecialty;
+    const matchesSubcategory = !selectedSubcategory || 
+      specialist.specialty.includes(selectedSubcategory);
+    
+    return matchesSearch && matchesCategory && matchesSubcategory;
   });
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setSelectedCategory("");
+    setSelectedSubcategory("");
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -118,31 +128,23 @@ const Specialists = () => {
           </p>
           
           {/* Search and filter section */}
-          <div className="flex flex-col md:flex-row gap-4 mb-8">
-            <div className="relative flex-1">
+          <div className="space-y-4 mb-8">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name, specialty, or keywords..."
+                placeholder="Search by name or keywords..."
                 className="pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             
-            <div className="flex gap-2">
-              <Filter className="h-5 w-5 mt-2.5" />
-              <select 
-                className="bg-white border border-gray-200 rounded-md px-3 py-2 text-sm"
-                value={selectedSpecialty}
-                onChange={(e) => setSelectedSpecialty(e.target.value)}
-              >
-                {specialties.map(specialty => (
-                  <option key={specialty} value={specialty}>
-                    {specialty}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <CategorySelector
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              selectedSubcategory={selectedSubcategory}
+              onSubcategoryChange={setSelectedSubcategory}
+            />
           </div>
           
           {/* Specialists grid */}
@@ -161,10 +163,7 @@ const Specialists = () => {
               <Button 
                 variant="outline" 
                 className="mt-4"
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedSpecialty("All Specialties");
-                }}
+                onClick={handleClearFilters}
               >
                 Clear Filters
               </Button>
