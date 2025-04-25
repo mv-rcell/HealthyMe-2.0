@@ -31,7 +31,20 @@ const SCENE_DATA = [
     voiceover:
       "Experience the difference of lifelong wellbeing. Book your visit today with HealthyMe .",
   },
+  {
+    id: 4,
+    duration: 10000,
+    voiceover:
+      "Our physiotherapy experts tailor recovery plans that restore mobility, strength, and confidence—supporting your body's unique journey.",
+  },
+  {
+    id: 5,
+    duration: 10000,
+    voiceover:
+      "Nutrition is at the heart of health. At HealthyMe, our certified dietitians craft personalized, evidence-based nutrition plans to fuel your lifestyle.",
+  },
 ];
+
 
 // The visual scenes remain the same but will be paced with the voiceover
 const AdVideo = () => {
@@ -183,7 +196,54 @@ const AdVideo = () => {
         </div>
       ),
     },
-  ];
+  {
+    id: 4,
+    duration: SCENE_DATA[4].duration,
+    component: (
+      <div className="flex flex-col items-center justify-center text-center">
+        <h2 className="text-3xl md:text-5xl font-bold mb-6 animate-fade-in">
+          Personalized Physiotherapy
+        </h2>
+        <img
+          src="/pilates-2259761_1280.jpg"
+          alt="Physiotherapy Session"
+          className="w-full max-w-lg rounded-2xl mb-6 shadow-lg animate-fade-in"
+          style={{ animationDelay: "300ms" }}
+        />
+        <p className="text-lg md:text-xl text-gray-700 max-w-xl mx-auto animate-fade-in" style={{ animationDelay: "500ms" }}>
+          Empowering recovery with mobility-focused care tailored to your body’s rhythm.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 5,
+    duration: SCENE_DATA[5].duration,
+    component: (
+      <div className="flex flex-col items-center justify-center text-center">
+        <h2 className="text-3xl md:text-5xl font-bold mb-6 animate-fade-in">
+          Nutrition That Works
+        </h2>
+        <img
+          src="/vegetable-pan-8027678_1280.jpg"
+          alt="Physiotherapy Session"
+          className="w-full max-w-lg rounded-2xl mb-6 shadow-lg animate-fade-in"
+          style={{ animationDelay: "300ms" }}
+        />
+        <div className="flex justify-center gap-6 mb-6 animate-fade-in" style={{ animationDelay: "300ms" }}>
+          <Apple className="h-10 w-10 text-green-500" />
+          <Salad className="h-10 w-10 text-green-600" />
+          <Carrot className="h-10 w-10 text-orange-500" />
+          <Egg className="h-10 w-10 text-yellow-500" />
+          <Nut className="h-10 w-10 text-brown-500" />
+        </div>
+        <p className="text-lg md:text-xl text-gray-700 max-w-xl mx-auto animate-fade-in" style={{ animationDelay: "500ms" }}>
+          From metabolism to mindfulness—your wellness journey is nourished by tailored diet strategies and sustainable eating habits.
+        </p>
+      </div>
+    ),
+  },]
+  
 
   useEffect(() => {
     if (isPlaying && currentScene < scenes.length) {
@@ -198,7 +258,7 @@ const AdVideo = () => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [currentScene, isPlaying, scenes.length]);
+  }, [currentScene, isPlaying, scenes.length])
 
   const handlePlayPause = () => {
     setIsPlaying((prev) => !prev);

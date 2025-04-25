@@ -152,9 +152,11 @@ const Specialists = () => {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredSpecialists.map((specialist) => (
                 <ProfileCard 
-                  key={specialist.id}
-                  {...specialist}
-                />
+                key={specialist.id}
+                {...specialist}
+              />
+                
+                
               ))}
             </div>
           ) : (
