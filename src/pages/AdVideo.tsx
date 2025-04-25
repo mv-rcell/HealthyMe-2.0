@@ -25,23 +25,24 @@ const SCENE_DATA = [
     voiceover:
       "From specialist consultations, and top notch workout equipment,to advanced technology, and world-class safety—your journey to healthy living is supported at every step.",
   },
+  
   {
     id: 3,
-    duration: 10000,
-    voiceover:
-      "Experience the difference of lifelong wellbeing. Book your visit today with HealthyMe .",
-  },
-  {
-    id: 4,
     duration: 10000,
     voiceover:
       "Our physiotherapy experts tailor recovery plans that restore mobility, strength, and confidence—supporting your body's unique journey.",
   },
   {
-    id: 5,
+    id: 4,
     duration: 10000,
     voiceover:
       "Nutrition is at the heart of health. At HealthyMe, our certified dietitians craft personalized, evidence-based nutrition plans to fuel your lifestyle.",
+  },
+  {
+    id: 5,
+    duration: 10000,
+    voiceover:
+      "Experience the difference of lifelong wellbeing. Book your visit today with HealthyMe .",
   },
 ];
 
@@ -171,33 +172,9 @@ const AdVideo = () => {
         </div>
       ),
     },
-    {
-      id: 3,
-      duration: SCENE_DATA[3].duration,
-      component: (
-        <div className="flex flex-col items-center justify-center text-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 animate-fade-in">
-            <span className="bg-gradient-to-r from-[#1666ba] to-[#3ba8e2] bg-clip-text text-transparent">
-              Experience the Difference
-            </span>
-          </h2>
-          <p className="text-lg md:text-2xl text-gray-700 max-w-lg mx-auto mb-8 animate-fade-in" style={{ animationDelay: "300ms" }}>
-            HealthyMe – Your Partner for physical and mental wellness
-          </p>
-          <Button
-            size="lg"
-            className="animate-bounce button-glow text-white flex items-center gap-2 bg-[#1666ba] hover:bg-[#145caf]"
-            style={{ animationDelay: "600ms" }}
-            onClick={() => navigate("/")}
-          >
-            <Play className="h-5 w-5" />
-            Book Your Visit
-          </Button>
-        </div>
-      ),
-    },
+    
   {
-    id: 4,
+    id: 3,
     duration: SCENE_DATA[4].duration,
     component: (
       <div className="flex flex-col items-center justify-center text-center">
@@ -217,7 +194,7 @@ const AdVideo = () => {
     ),
   },
   {
-    id: 5,
+    id: 4,
     duration: SCENE_DATA[5].duration,
     component: (
       <div className="flex flex-col items-center justify-center text-center">
@@ -240,6 +217,31 @@ const AdVideo = () => {
         <p className="text-lg md:text-xl text-gray-700 max-w-xl mx-auto animate-fade-in" style={{ animationDelay: "500ms" }}>
           From metabolism to mindfulness—your wellness journey is nourished by tailored diet strategies and sustainable eating habits.
         </p>
+      </div>
+    ),
+  },
+  {
+    id: 5,
+    duration: SCENE_DATA[3].duration,
+    component: (
+      <div className="flex flex-col items-center justify-center text-center">
+        <h2 className="text-3xl md:text-5xl font-bold mb-6 animate-fade-in">
+          <span className="bg-gradient-to-r from-[#1666ba] to-[#3ba8e2] bg-clip-text text-transparent">
+            Experience the Difference
+          </span>
+        </h2>
+        <p className="text-lg md:text-2xl text-gray-700 max-w-lg mx-auto mb-8 animate-fade-in" style={{ animationDelay: "300ms" }}>
+          HealthyMe – Your Partner for physical and mental wellness
+        </p>
+        <Button
+          size="lg"
+          className="animate-bounce button-glow text-white flex items-center gap-2 bg-[#1666ba] hover:bg-[#145caf]"
+          style={{ animationDelay: "600ms" }}
+          onClick={() => navigate("/")}
+        >
+          <Play className="h-5 w-5" />
+          Book Your Visit
+        </Button>
       </div>
     ),
   },]
