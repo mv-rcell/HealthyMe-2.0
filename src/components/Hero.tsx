@@ -66,7 +66,7 @@ const Hero = () => {
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-in animate-float-3 leading-relaxed">
           Experience comprehensive health services for both body and mind delivered directly to you. 
-          From physical therapy to mental health counseling, preventive care to wellness coaching - we bring the experts to you.
+          From physical therapy to  preventive care to wellness coaching - we bring the experts to you.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in animate-float-3">
           <Button
