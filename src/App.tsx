@@ -10,6 +10,11 @@ import Specialists from "./pages/Specialist";
 import Clients from "./pages/Client";
 import AdVideo from "./pages/AdVideo";
 import BackgroundMusic from "./components/BackgroundMusic";
+import Home from './pages/Home';
+import NutritionPage from './pages/NutritionPage';
+import FitnessPage from './pages/FitnessPage';
+import HealthCarePage from './pages/HealthCarePage';
+import TrackingPage from './pages/TrackingPage';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -38,7 +43,11 @@ const App = () => {
               <Route path="/clients" element={<Clients />} />
               <Route path="/advideo" element={<AdVideo />} />
               <Route path="*" element={<NotFound />} />
-            </Routes>
+              <Route path="/nutrition" element={<NutritionPage />} />
+              <Route path="/fitness" element={<FitnessPage />} />
+              <Route path="/healthcare" element={<HealthCarePage />} />
+              <Route path="/tracking" element={<TrackingPage />} />
+                  </Routes>
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>

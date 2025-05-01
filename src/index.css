@@ -108,6 +108,20 @@
   }
 }
 
+.service-box {
+  border: 1px solid #ccc;
+  padding: 20px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.service-box:hover {
+  transform: scale(1.05);
+  background-color: #f0f0f0;
+}
+
+
+
 @keyframes float {
   0% {
     transform: translateY(0px);
