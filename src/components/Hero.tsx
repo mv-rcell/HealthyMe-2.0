@@ -3,6 +3,7 @@ import { ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+
 const Hero = () => {
   const heroRef = useRef<HTMLDivElement>(null);
 
@@ -40,6 +41,7 @@ const Hero = () => {
     >
       {/* Background with overlay gradient */}
       <div className="absolute inset-0 overflow-hidden">
+
         <div className="absolute inset-0 bg-gradient-to-br from-black/10 via-black/0 to-black/10" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_var(--tw-gradient-stops))] from-primary/5 via-background to-background" />
         <div

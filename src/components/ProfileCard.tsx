@@ -3,6 +3,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, MessageSquare, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 interface ProfileCardProps {
   id: string;
@@ -14,6 +16,8 @@ interface ProfileCardProps {
   imageUrl?: string;
   availability?: string;
   isSpecialist?: boolean;
+  category?: string;
+  subcategory?: string;
 }
 
 const ProfileCard = ({
@@ -26,6 +30,8 @@ const ProfileCard = ({
   imageUrl,
   availability,
   isSpecialist = false,
+  category,
+  subcategory,
 }: ProfileCardProps) => {
   // Generate initials from name for the avatar fallback
   const initials = name
@@ -36,6 +42,10 @@ const ProfileCard = ({
 
   return (
     <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+       <motion.div 
+      whileHover={{ y: -5 }}
+      className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow duration-300"
+    ></motion.div>
       <div className="p-6">
         <div className="flex items-start gap-4">
           <Avatar className="h-16 w-16 rounded-full">

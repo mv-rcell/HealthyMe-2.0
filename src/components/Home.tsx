@@ -11,7 +11,7 @@ const Home = () => {
       </div>
 
       <div onClick={() => navigate('/fitness')} className="service-box">
-        <h3>Fitness</h3>
+      <h3>Fitness</h3>
         <p>Stay active and fit...</p>
       </div>
 
@@ -24,6 +24,17 @@ const Home = () => {
         <h3>Tracking</h3>
         <p>Track your progress...</p>
       </div>
+
+      <div onClick={() => navigate('/physiotherapy')} className="service-box">...</div>
+      <div onClick={() => navigate('/nutrition')} className="service-box">...</div>
+      <div onClick={() => navigate('/massage-therapy')} className="service-box">...</div>
+      <div onClick={() => navigate('/fitness')} className="service-box">...</div>
+      <div onClick={() => navigate('/caregiving')} className="service-box">...</div>
+      <div onClick={() => navigate('/wellness')} className="service-box">...</div>
+      <div onClick={() => navigate('/doctor-reviews')} className="service-box">...</div>
+      <div onClick={() => navigate('/health-checkups')} className="service-box">...</div>
+      <div onClick={() => navigate('/test-programs')} className="service-box">...</div>
+
     </section>
   );
 };

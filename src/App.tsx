@@ -10,11 +10,13 @@ import Specialists from "./pages/Specialist";
 import Clients from "./pages/Client";
 import AdVideo from "./pages/AdVideo";
 import BackgroundMusic from "./components/BackgroundMusic";
-import Home from './pages/Home';
+import Home from './components/Home';
 import NutritionPage from './pages/NutritionPage';
-import FitnessPage from './pages/FitnessPage';
+import FitnessPage from './pages/FitnessTrainingPage';
 import HealthCarePage from './pages/HealthCarePage';
 import TrackingPage from './pages/TrackingPage';
+import ServiceDetails from "./pages/ServiceDetails";
+
 
 // Create a client
 const queryClient = new QueryClient();
@@ -38,15 +40,19 @@ const App = () => {
 
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/specialists" element={<Specialists />} />
-              <Route path="/clients" element={<Clients />} />
-              <Route path="/advideo" element={<AdVideo />} />
-              <Route path="*" element={<NotFound />} />
-              <Route path="/nutrition" element={<NutritionPage />} />
-              <Route path="/fitness" element={<FitnessPage />} />
-              <Route path="/healthcare" element={<HealthCarePage />} />
-              <Route path="/tracking" element={<TrackingPage />} />
+            <Route path="/" element={<Index />} />
+<Route path="/specialists" element={<Specialists />} />
+<Route path="/clients" element={<Clients />} />
+<Route path="/advideo" element={<AdVideo />} />
+<Route path="/home" element={<Home />} />
+<Route path="/nutrition" element={<NutritionPage />} />
+<Route path="/fitness" element={<FitnessPage />} />
+<Route path="/healthcare" element={<HealthCarePage />} />
+<Route path="/tracking" element={<TrackingPage />} />
+<Route path="/service/:serviceId" element={<ServiceDetails />} />
+
+<Route path="*" element={<NotFound />} />
+
                   </Routes>
           </BrowserRouter>
         </TooltipProvider>
