@@ -83,6 +83,54 @@ const serviceDetails: { [key: string]: ServiceDetail } = {
       }
     ]
   },
+  "fitness-training": {
+  id: "fitness-training",
+  title: "Fitness Training",
+  icon: <span className="icon">🏋️‍♂️</span>,
+  description: "Customized workout plans with qualified trainers, available through virtual sessions or in-person visits to meet your fitness goals.",
+  longDescription: "Our fitness training service is designed to help you achieve your health goals with tailored workout plans created by certified personal trainers. Whether you're aiming for weight loss, muscle gain, increased endurance, or overall fitness, we provide support and accountability through personalized coaching sessions. Choose from virtual training or in-home visits for maximum flexibility.",
+  imageUrl: "https://images.unsplash.com/photo-1594737625785-c927ec72bcb8?q=80&w=1520&auto=format&fit=crop",
+  benefits: [
+    "Personalized fitness programs",
+    "Flexible virtual or in-person sessions",
+    "Guidance from certified trainers",
+    "Improved strength, endurance, and mobility",
+    "Motivation and accountability support"
+  ],
+  specialists: [
+    {
+      id: "ft1",
+      name: "Marcus Lee",
+      title: "Certified Personal Trainer",
+      specialty: "Strength & Conditioning",
+      rating: 4.9,
+      description: "Marcus helps clients build muscle, improve strength, and stay motivated with dynamic strength and conditioning programs.",
+      imageUrl: "https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1280&auto=format&fit=crop",
+      availability: "Mon-Fri: 8AM - 4PM"
+    },
+    {
+      id: "ft2",
+      name: "Nina Patel",
+      title: "Fitness & Mobility Coach",
+      specialty: "Functional Fitness",
+      rating: 4.8,
+      description: "Nina focuses on functional movements and mobility to improve everyday performance and injury prevention.",
+      imageUrl: "https://images.unsplash.com/photo-1605296867304-46d5465a13f1?q=80&w=1280&auto=format&fit=crop",
+      availability: "Tue-Sat: 10AM - 6PM"
+    }
+  ],
+  faqs: [
+    {
+      question: "Do I need equipment for virtual sessions?",
+      answer: "Not necessarily. Many workouts can be done with bodyweight, but trainers can also incorporate your home equipment if available."
+    },
+    {
+      question: "How often should I train per week?",
+      answer: "Most clients benefit from 2-4 sessions per week depending on their goals and fitness level."
+    }
+  ]
+},
+
   "mental-health-therapy": {
     id: "mental-health-therapy",
     title: "Mental Health Therapy",
@@ -177,6 +225,54 @@ const serviceDetails: { [key: string]: ServiceDetail } = {
       }
     ]
   },
+  "massage-therapy": {
+  id: "massage-therapy",
+  title: "Massage Therapy",
+  icon: <span className="icon">💆‍♀️</span>,
+  description: "Therapeutic massage services for relaxation, pain relief, and recovery, delivered by certified professionals in your home.",
+  longDescription: "Our massage therapy service promotes relaxation, reduces muscle tension, and supports physical recovery. Whether you're experiencing stress, soreness, or simply want to unwind, our certified massage therapists provide tailored treatments in the comfort of your home. Techniques include Swedish, deep tissue, sports, and trigger point therapy, depending on your needs and preferences.",
+  imageUrl: "src/assets/massage.jpg",
+  benefits: [
+    "Reduces stress and anxiety",
+    "Relieves muscle tension and pain",
+    "Improves circulation and flexibility",
+    "Supports physical recovery and rehabilitation",
+    "Convenient in-home sessions"
+  ],
+  specialists: [
+    {
+      id: "mt1",
+      name: "Sofia Martinez",
+      title: "Certified Massage Therapist",
+      specialty: "Deep Tissue & Trigger Point Therapy",
+      rating: 4.9,
+      description: "Sofia specializes in deep tissue and trigger point therapy to relieve chronic pain and promote muscular healing.",
+      imageUrl: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1280&auto=format&fit=crop",
+      availability: "Mon-Sat: 11AM - 7PM"
+    },
+    {
+      id: "mt2",
+      name: "Liam Chen",
+      title: "Licensed Massage Practitioner",
+      specialty: "Swedish & Relaxation Massage",
+      rating: 4.8,
+      description: "Liam provides relaxing Swedish massages that promote stress relief and overall well-being.",
+      imageUrl: "https://images.unsplash.com/photo-1590080876842-df3d86f1ef6a?q=80&w=1280&auto=format&fit=crop",
+      availability: "Tue, Thu, Sun: 9AM - 5PM"
+    }
+  ],
+  faqs: [
+    {
+      question: "What types of massage are offered?",
+      answer: "We offer a variety of massage types including Swedish, deep tissue, sports, and trigger point therapy, based on your individual needs."
+    },
+    {
+      question: "Do I need to prepare anything for an in-home session?",
+      answer: "No preparation is needed. Our therapists bring all necessary equipment including a massage table, oils, and linens."
+    }
+  ]
+},
+
   "preventive-care": {
     id: "preventive-care",
     title: "Preventive Care",
@@ -318,6 +414,54 @@ const serviceDetails: { [key: string]: ServiceDetail } = {
       }
     ]
   },
+  "health-checkups": {
+  id: "health-checkups",
+  title: "Health Check-ups",
+  icon: <span className="icon">🩺</span>,
+  description: "Comprehensive health screenings delivered to your doorstep, designed to monitor your overall health and detect potential issues early.",
+  longDescription: "Our at-home health check-up service offers a convenient way to monitor key health indicators without visiting a clinic. Choose from basic to comprehensive packages including blood pressure, cholesterol, glucose levels, BMI, and more. Our trained professionals ensure accurate sample collection and partner labs handle analysis to deliver timely, reliable reports.",
+  imageUrl: "https://images.unsplash.com/photo-1588776814546-b4038c1f0ec2?q=80&w=1520&auto=format&fit=crop",
+  benefits: [
+    "Early detection of health issues",
+    "Convenient in-home testing",
+    "Fast and accurate lab results",
+    "Tailored check-up packages",
+    "Follow-up consultations available"
+  ],
+  specialists: [
+    {
+      id: "hc1",
+      name: "Elena Ruiz",
+      title: "Medical Technician",
+      specialty: "Sample Collection & Diagnostics",
+      rating: 4.9,
+      description: "Elena ensures accurate and comfortable sample collection for lab testing and guides clients through the check-up process.",
+      imageUrl: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?q=80&w=1280&auto=format&fit=crop",
+      availability: "Mon-Fri: 7AM - 1PM"
+    },
+    {
+      id: "hc2",
+      name: "Dr. Omar Singh",
+      title: "General Physician",
+      specialty: "Preventive Health",
+      rating: 4.8,
+      description: "Dr. Singh interprets check-up results and provides guidance on maintaining optimal health through preventive care.",
+      imageUrl: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?q=80&w=1280&auto=format&fit=crop",
+      availability: "Tue, Wed, Fri: 10AM - 4PM"
+    }
+  ],
+  faqs: [
+    {
+      question: "What types of tests are included?",
+      answer: "We offer packages with blood tests, blood pressure checks, cholesterol and glucose monitoring, and more based on your selection."
+    },
+    {
+      question: "How soon will I get my results?",
+      answer: "Most results are delivered digitally within 24-72 hours, depending on the test package and lab processing times."
+    }
+  ]
+},
+
   "caregiving-services": {
     id: "caregiving-services",
     title: "Caregiving Services",
