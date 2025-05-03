@@ -34,7 +34,7 @@ const BackgroundMusic: React.FC<BackgroundMusicProps> = ({
   return (
     <audio
       ref={audioRef}
-      src="public/relaxing-jazz-saxophone-music-saxophone-instruments-music-303093.mp3"
+      src="/relaxing-jazz-saxophone-music-saxophone-instruments-music-303093.mp3"
       loop
       preload="auto"
     />
