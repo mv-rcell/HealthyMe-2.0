@@ -137,7 +137,7 @@ const serviceDetails: { [key: string]: ServiceDetail } = {
   icon: <span className="icon">🏋️‍♂️</span>,
   description: "Customized workout plans with qualified trainers, available through virtual sessions or in-person visits to meet your fitness goals.",
   longDescription: "Our fitness training service is designed to help you achieve your health goals with tailored workout plans created by certified personal trainers. Whether you're aiming for weight loss, muscle gain, increased endurance, or overall fitness, we provide support and accountability through personalized coaching sessions. Choose from virtual training or in-home visits for maximum flexibility.",
-  imageUrl: "`/WhatsApp Image 2025-05-03 at 11.48.08 AM.jpeg",
+  imageUrl: "/WhatsApp Image 2025-05-03 at 11.48.08 AM.jpeg",
   benefits: [
     "Personalized fitness programs",
     "Flexible virtual or in-person sessions",
