@@ -83,13 +83,61 @@ const serviceDetails: { [key: string]: ServiceDetail } = {
       }
     ]
   },
+  "test-programs": {
+  id: "test-programs",
+  title: "Test Programs",
+  icon: <span className="icon">🧪</span>,
+  description: "Specialized diagnostic testing programs to detect and monitor key health markers, available from the comfort of your home or at partner labs.",
+  longDescription: "Our test programs provide a convenient way to access medical-grade diagnostic testing across a wide range of health areas. From routine blood work and hormone analysis to food sensitivity and allergy testing, these programs are tailored to your individual health needs. All tests are conducted by certified professionals, and results are reviewed by licensed physicians to offer clarity and next steps.",
+  imageUrl: "/test.jpg",
+  benefits: [
+    "Wide range of test categories including metabolic, hormonal, and nutritional",
+    "At-home sample collection or local lab partnerships",
+    "Physician-reviewed results and personalized insights",
+    "Early detection of underlying health issues",
+    "Secure digital delivery of reports"
+  ],
+  specialists: [
+    {
+      id: "tp1",
+      name: "Dr. Anika Desai",
+      title: "Pathologist",
+      specialty: "Diagnostic Testing & Lab Review",
+      rating: 4.9,
+      description: "Dr. Desai provides expert interpretation of diagnostic tests, helping patients understand their health metrics and next steps.",
+      imageUrl: "https://images.unsplash.com/photo-1616077167265-490abf3f06e3?q=80&w=1280&auto=format&fit=crop",
+      availability: "Mon-Fri: 10AM - 6PM"
+    },
+    {
+      id: "tp2",
+      name: "Jordan Wells",
+      title: "Lab Technician",
+      specialty: "Home Sample Collection",
+      rating: 4.8,
+      description: "Jordan ensures a smooth, sterile, and comfortable sample collection experience for all in-home test clients.",
+      imageUrl: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=1170&auto=format&fit=crop",
+      availability: "Tue-Sat: 8AM - 2PM"
+    }
+  ],
+  faqs: [
+    {
+      question: "What types of tests can I choose from?",
+      answer: "We offer a range of testing options including blood panels, hormone testing, food sensitivity, allergy screenings, and vitamin deficiency checks."
+    },
+    {
+      question: "How are the results delivered and explained?",
+      answer: "Your results are securely shared via our platform, and a licensed physician reviews them with personalized recommendations during a follow-up session."
+    }
+  ]
+},
+
   "fitness-training": {
   id: "fitness-training",
   title: "Fitness Training",
   icon: <span className="icon">🏋️‍♂️</span>,
   description: "Customized workout plans with qualified trainers, available through virtual sessions or in-person visits to meet your fitness goals.",
   longDescription: "Our fitness training service is designed to help you achieve your health goals with tailored workout plans created by certified personal trainers. Whether you're aiming for weight loss, muscle gain, increased endurance, or overall fitness, we provide support and accountability through personalized coaching sessions. Choose from virtual training or in-home visits for maximum flexibility.",
-  imageUrl: "https://images.unsplash.com/photo-1594737625785-c927ec72bcb8?q=80&w=1520&auto=format&fit=crop",
+  imageUrl: "/weight-8246973_1280.jpg",
   benefits: [
     "Personalized fitness programs",
     "Flexible virtual or in-person sessions",
@@ -231,7 +279,7 @@ const serviceDetails: { [key: string]: ServiceDetail } = {
   icon: <span className="icon">💆‍♀️</span>,
   description: "Therapeutic massage services for relaxation, pain relief, and recovery, delivered by certified professionals in your home.",
   longDescription: "Our massage therapy service promotes relaxation, reduces muscle tension, and supports physical recovery. Whether you're experiencing stress, soreness, or simply want to unwind, our certified massage therapists provide tailored treatments in the comfort of your home. Techniques include Swedish, deep tissue, sports, and trigger point therapy, depending on your needs and preferences.",
-  imageUrl: "src/assets/massage.jpg",
+  imageUrl: "/massage.jpg",
   benefits: [
     "Reduces stress and anxiety",
     "Relieves muscle tension and pain",
@@ -420,7 +468,7 @@ const serviceDetails: { [key: string]: ServiceDetail } = {
   icon: <span className="icon">🩺</span>,
   description: "Comprehensive health screenings delivered to your doorstep, designed to monitor your overall health and detect potential issues early.",
   longDescription: "Our at-home health check-up service offers a convenient way to monitor key health indicators without visiting a clinic. Choose from basic to comprehensive packages including blood pressure, cholesterol, glucose levels, BMI, and more. Our trained professionals ensure accurate sample collection and partner labs handle analysis to deliver timely, reliable reports.",
-  imageUrl: "https://images.unsplash.com/photo-1588776814546-b4038c1f0ec2?q=80&w=1520&auto=format&fit=crop",
+  imageUrl: "/checkup.jpg",
   benefits: [
     "Early detection of health issues",
     "Convenient in-home testing",
@@ -468,7 +516,7 @@ const serviceDetails: { [key: string]: ServiceDetail } = {
     icon: <span className="icon">🤲</span>,
     description: "Compassionate caregiving assistance for daily activities, post-surgical recovery, and specialized support for various needs.",
     longDescription: "Our caregiving services provide compassionate support for individuals who need assistance with daily activities or specialized care. Our trained caregivers offer personalized care that promotes independence, safety, and quality of life. Whether you need help after surgery, assistance with daily tasks, or specialized support for conditions like dementia, our caregiving team is dedicated to meeting your unique needs with dignity and respect.",
-    imageUrl: "https://images.unsplash.com/photo-1576765975429-d2d5d6a579d4?q=80&w=1287&auto=format&fit=crop",
+    imageUrl: "/caregiving.jpg",
     benefits: [
       "Personalized care plans tailored to individual needs",
       "Assistance with daily activities and personal care",
