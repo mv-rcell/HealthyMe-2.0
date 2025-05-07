@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import AdButton from "./AdButton";
 
 
+
 const Navbar = () => {
   const isMobile = useIsMobile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -57,16 +58,41 @@ const Navbar = () => {
       )}
     >
       <div className="container mx-auto px-4">
+  <div className="flex items-center justify-between">
+    {/* ... all other content ... */}
+  </div>
+</div>
         <div className="flex items-center justify-between">
-          <Link
-            to="/"
-            className="text-2xl font-bold text-primary flex items-center gap-2"
-          >
-            <span className="rounded-full bg-primary text-white w-8 h-8 flex items-center justify-center">
-              H
-            </span>
-            HealthyMe
-          </Link>
+        <Link to="/" className="flex items-center gap-2">
+  {/* Gradient Heart Icon */}
+  <svg
+    className="w-8 h-8"
+    viewBox="0 0 64 64"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M32 50s-7-5-14-12S4 18 18 10c7-4 14 4 14 4s7-8 14-4c14 8 0 24-4 28s-14 12-14 12z"
+      fill="url(#grad)"
+    />
+    <defs>
+      <linearGradient
+        id="grad"
+        x1="0"
+        y1="0"
+        x2="64"
+        y2="64"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="0%" stopColor="#00D084" />
+        <stop offset="100%" stopColor="#A6E22E" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  {/* Text */}
+  <span className="text-2xl font-bold text-gray-800">HealthyMe</span>
+</Link>
 
           {isMobile ? (
             <>
@@ -98,16 +124,12 @@ const Navbar = () => {
                       </Link>
                     ))}
                     <div className="mt-4 flex flex-col gap-4">
-                      <Button variant="outline" className="w-full">
-                        Sign In
-                      </Button>
-                      <Button className="w-full">Sign Up</Button>
                     </div>
                   </nav>
                 </div>
               )}
             </>
-          ) : (
+          ) :(
             <>
               <NavigationMenu>
                 <NavigationMenuList>
@@ -123,13 +145,10 @@ const Navbar = () => {
 
               <div className="flex items-center gap-4">
               <AdButton />
-                <Button variant="outline">Sign In</Button>
-                <Button>Sign Up</Button>
-              </div>
+                  </div>
             </>
           )}
         </div>
-      </div>
     </header>
   );
 };

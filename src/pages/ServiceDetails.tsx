@@ -89,7 +89,7 @@ const serviceDetails: { [key: string]: ServiceDetail } = {
   icon: <span className="icon">🧪</span>,
   description: "Specialized diagnostic testing programs to detect and monitor key health markers, available from the comfort of your home or at partner labs.",
   longDescription: "Our test programs provide a convenient way to access medical-grade diagnostic testing across a wide range of health areas. From routine blood work and hormone analysis to food sensitivity and allergy testing, these programs are tailored to your individual health needs. All tests are conducted by certified professionals, and results are reviewed by licensed physicians to offer clarity and next steps.",
-  imageUrl: "/test.jpg",
+  imageUrl: "/lab-2815632_1280.jpg",
   benefits: [
     "Wide range of test categories including metabolic, hormonal, and nutritional",
     "At-home sample collection or local lab partnerships",

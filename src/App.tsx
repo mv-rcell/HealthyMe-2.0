@@ -51,7 +51,7 @@ const App = () => {
 <Route path="/tracking" element={<TrackingPage />} />
 <Route path="/service/:serviceId" element={<ServiceDetails />} />
 
-<Route path="*" element={<NotFound />} />
+<Route path="/*" element={<NotFound />} />
 
                   </Routes>
           </BrowserRouter>

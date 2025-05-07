@@ -95,7 +95,7 @@ const Clients = () => {
                   name={client.name}
                   title={client.title || "Active Member"}
                   description={client.description || "No description available"}
-                  imageUrl={client.image_url}
+                  imageUrl={client.imageUrl}
                   isSpecialist={false}
                 />
               ))}
