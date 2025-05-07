@@ -5,22 +5,22 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-
-
-interface Profile {
-  id: string;
-  full_name: string | null;
-  phone_number: string | null;
-  created_at: string;
-}
+import { useAuth } from '@/hooks/useAuth'; // Make sure this exists and exports useAuth
 
 const Profile = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, profile, isSpecialist, isClient, fetchProfile } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [saving, setSaving] = useState(false);
@@ -28,42 +28,21 @@ const Profile = () => {
   useEffect(() => {
     if (!loading && !user) {
       navigate('/auth');
-    } else if (user) {
-      fetchProfile();
+    } else if (profile) {
+      setFullName(profile.full_name || '');
+      setPhoneNumber(profile.phone_number || '');
     }
-  }, [user, loading, navigate]);
-
-  async function fetchProfile() {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        setProfile(data as Profile);
-        setFullName(data.full_name || '');
-        setPhoneNumber(data.phone_number || '');
-      }
-    } catch (error: any) {
-      toast.error(`Error fetching profile: ${error.message}`);
-    }
-  }
+  }, [user, loading, navigate, profile]);
 
   async function updateProfile() {
     try {
       setSaving(true);
-      
+
       const updates = {
         id: user!.id,
         full_name: fullName,
         phone_number: phoneNumber,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
       const { error } = await supabase
@@ -75,7 +54,7 @@ const Profile = () => {
       }
 
       toast.success('Profile updated successfully');
-      await fetchProfile();
+      await fetchProfile?.(); // Optional chaining if fetchProfile exists
     } catch (error: any) {
       toast.error(`Error updating profile: ${error.message}`);
     } finally {
@@ -102,15 +81,24 @@ const Profile = () => {
         <div className="max-w-2xl mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle>Profile</CardTitle>
-              <CardDescription>Manage your personal information</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Profile</CardTitle>
+                  <CardDescription>Manage your personal information</CardDescription>
+                </div>
+                {profile?.role && (
+                  <Badge variant={isSpecialist ? 'secondary' : 'outline'}>
+                    {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
+                  </Badge>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" value={user?.email} disabled />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
                 <Input
@@ -120,7 +108,7 @@ const Profile = () => {
                   placeholder="Your full name"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="phoneNumber">Phone Number</Label>
                 <Input
@@ -130,6 +118,42 @@ const Profile = () => {
                   placeholder="Your phone number"
                 />
               </div>
+
+              {isSpecialist && (
+                <div className="border-t pt-4 mt-6">
+                  <h3 className="text-lg font-medium mb-4">Specialist Information</h3>
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      To update your specialist information, please visit the specialist dashboard.
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate('/specialist-dashboard')}
+                      className="w-full"
+                    >
+                      Go to Specialist Dashboard
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {isClient && (
+                <div className="border-t pt-4 mt-6">
+                  <h3 className="text-lg font-medium mb-4">Health Information</h3>
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      To update your health information, please visit the client dashboard.
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate('/client-dashboard')}
+                      className="w-full"
+                    >
+                      Go to Client Dashboard
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button variant="outline" onClick={() => navigate('/')}>

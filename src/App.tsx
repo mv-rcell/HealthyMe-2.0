@@ -16,6 +16,11 @@ import FitnessPage from './pages/FitnessTrainingPage';
 import HealthCarePage from './pages/HealthCarePage';
 import TrackingPage from './pages/TrackingPage';
 import ServiceDetails from "./pages/ServiceDetails";
+import SpecialistOnboarding from "./pages/SpecialistOnboarding.tsx";
+import ClientOnboarding from "./pages/ClientOnboarding.tsx";
+import SpecialistDashboard from "./pages/SpecialistDashboard.tsx";
+import ClientDashboard from "./pages/ClientDashboard.tsx";
+
 
 
 // Create a client
@@ -50,6 +55,10 @@ const App = () => {
 <Route path="/healthcare" element={<HealthCarePage />} />
 <Route path="/tracking" element={<TrackingPage />} />
 <Route path="/service/:serviceId" element={<ServiceDetails />} />
+<Route path="/specialist-onboarding" element={<SpecialistOnboarding />} />
+<Route path="/client-onboarding" element={<ClientOnboarding />} />
+<Route path="/specialist-dashboard" element={<SpecialistDashboard />} /> <Route path="/client-dashboard" element={<ClientDashboard />} />
+             
 
 <Route path="/*" element={<NotFound />} />
 

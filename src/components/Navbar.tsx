@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
@@ -94,6 +93,7 @@ const Navbar = () => {
   <span className="text-2xl font-bold text-gray-800">HealthyMe</span>
 </Link>
 
+
           {isMobile ? (
             <>
                <div className="flex items-center gap-2">
@@ -153,4 +153,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default Navbar;    
