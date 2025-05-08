@@ -83,5 +83,6 @@ export function useAuth() {
     profileLoading,
     isSpecialist: profile?.role === 'specialist',
     isClient: profile?.role === 'client',
+    fetchProfile: fetchUserProfile ,
   };
 }

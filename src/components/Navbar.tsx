@@ -7,6 +7,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import AdButton from "./AdButton";
 import Logo from "./Logo";
+import AuthButton from "./AuthButton";
+
 
 
 
@@ -96,6 +98,8 @@ const Navbar = () => {
                       </Link>
                     ))}
                     <div className="mt-4 flex flex-col gap-4">
+                    <AuthButton />
+
                     </div>
                   </nav>
                 </div>
@@ -117,6 +121,8 @@ const Navbar = () => {
 
               <div className="flex items-center gap-4">
               <AdButton />
+              <AuthButton />
+
                   </div>
             </>
           )}

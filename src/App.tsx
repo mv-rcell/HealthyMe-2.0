@@ -20,6 +20,8 @@ import SpecialistOnboarding from "./pages/SpecialistOnboarding.tsx";
 import ClientOnboarding from "./pages/ClientOnboarding.tsx";
 import SpecialistDashboard from "./pages/SpecialistDashboard.tsx";
 import ClientDashboard from "./pages/ClientDashboard.tsx";
+import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
 
 
 
@@ -55,6 +57,8 @@ const App = () => {
 <Route path="/healthcare" element={<HealthCarePage />} />
 <Route path="/tracking" element={<TrackingPage />} />
 <Route path="/service/:serviceId" element={<ServiceDetails />} />
+<Route path="/auth" element={<Auth />} />
+<Route path="/profile" element={<Profile />} />
 <Route path="/specialist-onboarding" element={<SpecialistOnboarding />} />
 <Route path="/client-onboarding" element={<ClientOnboarding />} />
 <Route path="/specialist-dashboard" element={<SpecialistDashboard />} /> <Route path="/client-dashboard" element={<ClientDashboard />} />

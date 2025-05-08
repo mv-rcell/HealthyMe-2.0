@@ -54,7 +54,7 @@ const Profile = () => {
       }
 
       toast.success('Profile updated successfully');
-      await fetchProfile?.(); // Optional chaining if fetchProfile exists
+      await fetchProfile?.(user?.id as string); // Optional chaining if fetchProfile exists
     } catch (error: any) {
       toast.error(`Error updating profile: ${error.message}`);
     } finally {
