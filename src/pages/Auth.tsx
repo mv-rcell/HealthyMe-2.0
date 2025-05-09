@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -23,11 +24,12 @@ const Auth = () => {
   const [role, setRole] = useState<'specialist' | 'client'>('client');
   const [loading, setLoading] = useState(false);
 
-  // Default tab from URL params or "signin"
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+
   const defaultTab = searchParams.get('tab') === 'signup' ? 'signup' : 'signin';
 
   useEffect(() => {
-    // Redirect to home if already logged in
     if (user && !authLoading) {
       navigate('/');
     }
@@ -74,7 +76,6 @@ const Auth = () => {
       if (data.user) {
         toast.success('Registration successful! Please check your email for confirmation.');
         
-        // Update the user's profile with phone number and role
         await supabase
           .from('profiles')
           .update({ 
@@ -83,7 +84,6 @@ const Auth = () => {
           })
           .eq('id', data.user.id);
         
-        // Redirect to role-specific onboarding page after signup
         if (role === 'specialist') {
           navigate('/specialist-onboarding');
         } else {
@@ -131,14 +131,25 @@ const Auth = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="signin-password">Password</Label>
-                <Input
-                  id="signin-password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="signin-password"
+                    type={showSignInPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSignInPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+                    tabIndex={-1}
+                  >
+                    {showSignInPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>
@@ -203,14 +214,25 @@ const Auth = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="signup-password">Password</Label>
-                <Input
-                  id="signup-password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="signup-password"
+                    type={showSignUpPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSignUpPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+                    tabIndex={-1}
+                  >
+                    {showSignUpPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>
