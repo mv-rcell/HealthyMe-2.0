@@ -61,7 +61,8 @@ const App = () => {
 <Route path="/profile" element={<Profile />} />
 <Route path="/specialist-onboarding" element={<SpecialistOnboarding />} />
 <Route path="/client-onboarding" element={<ClientOnboarding />} />
-<Route path="/specialist-dashboard" element={<SpecialistDashboard />} /> <Route path="/client-dashboard" element={<ClientDashboard />} />
+<Route path="/specialist-dashboard" element={<SpecialistDashboard />} />
+<Route path="/client-dashboard" element={<ClientDashboard />} />
              
 
 <Route path="/*" element={<NotFound />} />

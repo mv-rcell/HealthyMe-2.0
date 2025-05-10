@@ -30,26 +30,74 @@ export type Database = {
         }
         Relationships: []
       }
+      memberships: {
+        Row: {
+          created_at: string | null
+          description: string
+          features: Json
+          id: string
+          name: string
+          price: number
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          features?: Json
+          id?: string
+          name: string
+          price: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          features?: Json
+          id?: string
+          name?: string
+          price?: number
+        }
+        Relationships: []
+      }
         profiles: {
         Row: {
+          bio: string | null
           created_at: string
+          experience: string | null
           full_name: string | null
           id: string
+          membership_tier: string | null
+          payment_method: string | null
           phone_number: string | null
+          profile_picture_url: string | null
+          role: string | null
+          specialist_type: string | null
           updated_at: string
         }
         Insert: {
+          bio?: string | null
           created_at?: string
+          experience?: string | null
           full_name?: string | null
           id: string
+          membership_tier?: string | null
+          payment_method?: string | null
           phone_number?: string | null
+          profile_picture_url?: string | null
+          role?: string | null
+          specialist_type?: string | null
           updated_at?: string
         }
         Update: {
+          bio?: string | null
           created_at?: string
+          experience?: string | null
           full_name?: string | null
           id?: string
+          membership_tier?: string | null
+          payment_method?: string | null
           phone_number?: string | null
+          profile_picture_url?: string | null
+          role?: string | null
+          specialist_type?: string | null
           updated_at?: string
         }
         Relationships: []

@@ -9,16 +9,16 @@ import { CalendarIcon, ListIcon, SettingsIcon, UsersIcon } from 'lucide-react';
 
 const SpecialistDashboard = () => {
   const navigate = useNavigate();
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, profileLoading } = useAuth();
   
   // Redirect if not logged in or not a specialist
   React.useEffect(() => {
-    if (!loading && (!user || profile?.role !== 'specialist')) {
+    if (!loading && !profileLoading && (!user || profile?.role !== 'specialist')) {
       navigate('/auth');
     }
-  }, [user, profile, loading, navigate]);
+  }, [user, profile, loading, profileLoading, navigate]);
 
-  if (loading) {
+  if (loading || profileLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 

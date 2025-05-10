@@ -8,6 +8,12 @@ export interface UserProfile {
   phone_number: string | null;
   role: 'specialist' | 'client' | null;
   created_at: string;
+  specialist_type: string | null;
+  experience: string | null;
+  bio: string | null;
+  profile_picture_url: string | null;
+  membership_tier: string | null;
+  payment_method: string | null;
 }
 
 export function useAuth() {

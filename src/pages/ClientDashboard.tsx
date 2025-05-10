@@ -9,12 +9,11 @@ import { CalendarIcon, HeartIcon, SearchIcon, UserIcon } from 'lucide-react';
 
 const ClientDashboard = () => {
   const navigate = useNavigate();
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading,profileLoading } = useAuth();
   
   // Redirect if not logged in or not a client
   React.useEffect(() => {
-    if (!loading && (!user || profile?.role !== 'client')) {
-      navigate('/auth');
+    if (!loading && !profileLoading && (!user || profile?.role !== 'client')) {      navigate('/auth');
     }
   }, [user, profile, loading, navigate]);
 
