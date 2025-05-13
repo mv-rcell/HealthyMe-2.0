@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import AdButton from "./AdButton";
 import Logo from "./Logo";
 import AuthButton from "./AuthButton";
+import ThemeToggle from "./ThemeToggle.tsx";
+
 
 
 
@@ -55,8 +57,8 @@ const Navbar = () => {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         isScrolled
-          ? "bg-white/95 backdrop-blur-sm shadow-sm py-2"
-          : "bg-transparent py-4"
+        ? "bg-background/95 backdrop-blur-sm shadow-sm py-2 border-b border-border"
+        : "bg-transparent py-4"
       )}
     >
       <div className="container mx-auto px-4">
@@ -71,6 +73,7 @@ const Navbar = () => {
           {isMobile ? (
             <>
                <div className="flex items-center gap-2">
+               <ThemeToggle />
                 <AdButton />
                 <Button
                   variant="ghost"
@@ -86,7 +89,7 @@ const Navbar = () => {
                 </Button>
               </div>
               {isMenuOpen && (
-                <div className="fixed inset-0 top-16 bg-white z-40 p-6">
+                <div className="fixed inset-0 top-16 bg-background z-40 p-6">
                   <nav className="flex flex-col gap-4">
                     {navLinks.map((link) => (
                       <Link
@@ -120,6 +123,7 @@ const Navbar = () => {
               </NavigationMenu>
 
               <div className="flex items-center gap-4">
+              <ThemeToggle />
               <AdButton />
               <AuthButton />
 

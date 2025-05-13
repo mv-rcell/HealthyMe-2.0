@@ -19,9 +19,12 @@ import ServiceDetails from "./pages/ServiceDetails";
 import SpecialistOnboarding from "./pages/SpecialistOnboarding.tsx";
 import ClientOnboarding from "./pages/ClientOnboarding.tsx";
 import SpecialistDashboard from "./pages/SpecialistDashboard.tsx";
+import SpecialistProfile from "./pages/SpecialistProfile.tsx"
 import ClientDashboard from "./pages/ClientDashboard.tsx";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import { ThemeProvider } from "./hooks/use-theme";
+
 
 
 
@@ -37,40 +40,38 @@ const App = () => {
 
   return (
     <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <SonnerToaster position="top-right" richColors closeButton />
-
-          
-          <BackgroundMusic isPlaying={musicStarted} isMuted={false} volume={0.15} />
-
-          <BrowserRouter>
-            <Routes>
-            <Route path="/" element={<Index />} />
-<Route path="/specialists" element={<Specialists />} />
-<Route path="/clients" element={<Clients />} />
-<Route path="/advideo" element={<AdVideo />} />
-<Route path="/home" element={<Home />} />
-<Route path="/nutrition" element={<NutritionPage />} />
-<Route path="/fitness" element={<FitnessPage />} />
-<Route path="/healthcare" element={<HealthCarePage />} />
-<Route path="/tracking" element={<TrackingPage />} />
-<Route path="/service/:serviceId" element={<ServiceDetails />} />
-<Route path="/auth" element={<Auth />} />
-<Route path="/profile" element={<Profile />} />
-<Route path="/specialist-onboarding" element={<SpecialistOnboarding />} />
-<Route path="/client-onboarding" element={<ClientOnboarding />} />
-<Route path="/specialist-dashboard" element={<SpecialistDashboard />} />
-<Route path="/client-dashboard" element={<ClientDashboard />} />
-             
-
-<Route path="/*" element={<NotFound />} />
-
-                  </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
+       <ThemeProvider defaultTheme="system">
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <SonnerToaster position="top-right" richColors closeButton />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/specialists" element={<Specialists />} />
+                <Route path="/clients" element={<Clients />} />
+                <Route path="/specialist/:id" element={<SpecialistProfile />} />
+                <Route path="/BackgroundMusic" element={<BackgroundMusic isPlaying={false} isMuted={false} />} />
+                <Route path="/Home" element={<Home />} />                
+                <Route path="/NutritionPage" element={<NutritionPage />} />
+                <Route path="/FitnessPage" element={<FitnessPage />} />
+                <Route path="/HealthCarePage" element={<HealthCarePage />} />
+                <Route path="/TrackingPage" element={<TrackingPage />} />
+                <Route path="/ad" element={<AdVideo />} />
+                <Route path="/service/:serviceId" element={<ServiceDetails />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/specialist-onboarding" element={<SpecialistOnboarding />} />
+                <Route path="/client-onboarding" element={<ClientOnboarding />} />
+                <Route path="/specialist-dashboard" element={<SpecialistDashboard />} />
+                <Route path="/client-dashboard" element={<ClientDashboard />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
     </React.StrictMode>
   );
 };
