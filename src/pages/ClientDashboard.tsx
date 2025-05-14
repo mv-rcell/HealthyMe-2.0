@@ -10,12 +10,10 @@ const ClientDashboard = () => {
   const navigate = useNavigate();
   const { user, profile, loading, profileLoading } = useAuth();
 
-  // Debugging aid
   useEffect(() => {
     console.log({ user, profile, loading, profileLoading });
   }, [user, profile, loading, profileLoading]);
 
-  // Redirect if not logged in or not a client
   useEffect(() => {
     if (!loading && !profileLoading) {
       if (!user || profile?.role !== 'client') {
@@ -24,7 +22,6 @@ const ClientDashboard = () => {
     }
   }, [user, profile, loading, profileLoading, navigate]);
 
-  // Show loading screen
   if (loading || profileLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }

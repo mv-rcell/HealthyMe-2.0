@@ -1,136 +1,117 @@
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
-import AdButton from "./AdButton";
+import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Button } from "./ui/button";
 import Logo from "./Logo";
+import { useAuth } from "@/hooks/useAuth";
+import { Menu, X } from "lucide-react";
 import AuthButton from "./AuthButton";
-import ThemeToggle from "./ThemeToggle.tsx";
-
-
-
-
+import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
-  const isMobile = useIsMobile();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
-  // Handle scroll events
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
-  // Close menu when route changes
-  useEffect(() => {
-    setIsMenuOpen(false);
-  }, [location.pathname]);
-
-  const navLinks = [
+  const navItems = [
     { name: "Home", path: "/" },
-    { name: "Features", path: "/#features" },
-    { name: "Membership", path: "/#membership" },
     { name: "About", path: "/#about" },
-    { name: "Contact", path: "/#contact" },
+    { name: "Features", path: "/#features" },
+    { name: "Memberships", path: "/memberships" },
     { name: "Specialists", path: "/specialists" },
-    { name: "Clients", path: "/clients" },
-    { name: "Fitness", path: "/fitness" },
+    { name: "Contact", path: "/#contact" },
   ];
 
   return (
-    <header
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        isScrolled
-        ? "bg-background/95 backdrop-blur-sm shadow-sm py-2 border-b border-border"
-        : "bg-transparent py-4"
-      )}
-    >
-      <div className="container mx-auto px-4">
-  <div className="flex items-center justify-between">
-    {/* ... all other content ... */}
-  </div>
-</div>
+    <header className="bg-background/90 backdrop-blur-md border-b border-border sticky top-0 z-40">
+      <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-               <Logo size={isMobile ? "sm" : "md"} showTagline={!isScrolled && !isMobile} />
+          <div className="flex items-center">
+            <Logo />
+          </div>
 
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-6">
+            {navItems.map((item) => (
+              <Button
+                key={item.name}
+                variant="ghost"
+                onClick={() => {
+                  if (item.path.startsWith("/#")) {
+                    // Handle in-page navigation for homepage sections
+                    if (location.pathname === "/") {
+                      document
+                        .querySelector(item.path.substring(1))
+                        ?.scrollIntoView({ behavior: "smooth" });
+                    } else {
+                      navigate(item.path);
+                    }
+                  } else {
+                    navigate(item.path);
+                  }
+                }}
+                className={`${
+                  isActive(item.path) ? "bg-muted" : ""
+                } text-sm transition-colors`}
+              >
+                {item.name}
+              </Button>
+            ))}
+          </nav>
 
-          {isMobile ? (
-            <>
-               <div className="flex items-center gap-2">
-               <ThemeToggle />
-                <AdButton />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  aria-label="Toggle menu"
-                >
-                  {isMenuOpen ? (
-                    <X className="h-6 w-6" />
-                  ) : (
-                    <Menu className="h-6 w-6" />
-                  )}
-                </Button>
-              </div>
-              {isMenuOpen && (
-                <div className="fixed inset-0 top-16 bg-background z-40 p-6">
-                  <nav className="flex flex-col gap-4">
-                    {navLinks.map((link) => (
-                      <Link
-                        key={link.path}
-                        to={link.path}
-                        className="text-lg font-medium py-2 hover:text-primary transition-colors"
-                      >
-                        {link.name}
-                      </Link>
-                    ))}
-                    <div className="mt-4 flex flex-col gap-4">
-                    <AuthButton />
-
-                    </div>
-                  </nav>
-                </div>
-              )}
-            </>
-          ) :(
-            <>
-              <NavigationMenu>
-                <NavigationMenuList>
-                  {navLinks.map((link) => (
-                    <NavigationMenuItem key={link.path}>
-                      <Link to={link.path} className={navigationMenuTriggerStyle()}>
-                        {link.name}
-                      </Link>
-                    </NavigationMenuItem>
-                  ))}
-                </NavigationMenuList>
-              </NavigationMenu>
-
-              <div className="flex items-center gap-4">
-              <ThemeToggle />
-              <AdButton />
-              <AuthButton />
-
-                  </div>
-            </>
-          )}
+          {/* Right side controls */}
+          <div className="flex items-center space-x-2">
+            <ThemeToggle />
+            <AuthButton />
+            
+            {/* Mobile menu button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X /> : <Menu />}
+            </Button>
+          </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden pt-4 pb-3 border-t mt-4 space-y-2">
+            {navItems.map((item) => (
+              <Button
+                key={item.name}
+                variant="ghost"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  if (item.path.startsWith("/#")) {
+                    // Handle in-page navigation for homepage sections
+                    if (location.pathname === "/") {
+                      document
+                        .querySelector(item.path.substring(1))
+                        ?.scrollIntoView({ behavior: "smooth" });
+                    } else {
+                      navigate(item.path);
+                    }
+                  } else {
+                    navigate(item.path);
+                  }
+                }}
+                className={`${
+                  isActive(item.path) ? "bg-muted" : ""
+                } w-full justify-start text-sm`}
+              >
+                {item.name}
+              </Button>
+            ))}
+          </div>
+        )}
+      </div>
     </header>
   );
 };

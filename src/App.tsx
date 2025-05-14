@@ -8,8 +8,8 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Specialists from "./pages/Specialist";
 import Clients from "./pages/Client";
-import AdVideo from "./pages/AdVideo";
-import BackgroundMusic from "./components/BackgroundMusic";
+import AdVideo from "./pages/AdVideo.tsx";
+import BackgroundMusic from "./components/BackgroundMusic.tsx";
 import Home from './components/Home';
 import NutritionPage from './pages/NutritionPage';
 import FitnessPage from './pages/FitnessTrainingPage';
@@ -21,6 +21,7 @@ import ClientOnboarding from "./pages/ClientOnboarding.tsx";
 import SpecialistDashboard from "./pages/SpecialistDashboard.tsx";
 import SpecialistProfile from "./pages/SpecialistProfile.tsx"
 import ClientDashboard from "./pages/ClientDashboard.tsx";
+import MembershipPage from "./pages/MembershipPage.tsx";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import { ThemeProvider } from "./hooks/use-theme";
@@ -57,7 +58,7 @@ const App = () => {
                 <Route path="/FitnessPage" element={<FitnessPage />} />
                 <Route path="/HealthCarePage" element={<HealthCarePage />} />
                 <Route path="/TrackingPage" element={<TrackingPage />} />
-                <Route path="/ad" element={<AdVideo />} />
+                <Route path="/AdVideo" element={<AdVideo />} />
                 <Route path="/service/:serviceId" element={<ServiceDetails />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/profile" element={<Profile />} />
@@ -65,6 +66,9 @@ const App = () => {
                 <Route path="/client-onboarding" element={<ClientOnboarding />} />
                 <Route path="/specialist-dashboard" element={<SpecialistDashboard />} />
                 <Route path="/client-dashboard" element={<ClientDashboard />} />
+                <Route path="/memberships" element={<MembershipPage />} />
+
+
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
