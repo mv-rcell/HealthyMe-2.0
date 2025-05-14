@@ -5,7 +5,6 @@ import Logo from "./Logo";
 import { useAuth } from "@/hooks/useAuth";
 import { Menu, X } from "lucide-react";
 import AuthButton from "./AuthButton";
-import ThemeToggle from "./ThemeToggle";
 import AdButton from "./AdButton";
 
 const Navbar = () => {
@@ -67,7 +66,6 @@ const Navbar = () => {
 
           {/* Right side controls */}
           <div className="flex items-center space-x-2">
-            <ThemeToggle />
             <AuthButton />
             <AdButton /> 
             
