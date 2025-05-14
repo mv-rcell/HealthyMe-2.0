@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Menu, X } from "lucide-react";
 import AuthButton from "./AuthButton";
 import AdButton from "./AdButton";
+import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -68,6 +69,7 @@ const Navbar = () => {
           <div className="flex items-center space-x-2">
             <AuthButton />
             <AdButton /> 
+            <ThemeToggle />
             
             {/* Mobile menu button */}
             <Button
