@@ -19,13 +19,13 @@ import ServiceDetails from "./pages/ServiceDetails";
 import SpecialistOnboarding from "./pages/SpecialistOnboarding.tsx";
 import ClientOnboarding from "./pages/ClientOnboarding.tsx";
 import SpecialistDashboard from "./pages/SpecialistDashboard.tsx";
-import SpecialistProfile from "./pages/SpecialistProfile.tsx"
+import SpecialistProfile from "./pages/SpecialistProfile.tsx";
 import ClientDashboard from "./pages/ClientDashboard.tsx";
 import MembershipPage from "./pages/MembershipPage.tsx";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import { ThemeProvider } from "./hooks/use-theme";
-
+import AuthGate from '@/components/AuthGate.tsx'; 
 
 
 
@@ -63,12 +63,11 @@ const App = () => {
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/specialist-onboarding" element={<SpecialistOnboarding />} />
-                <Route path="/client-onboarding" element={<ClientOnboarding />} />
+                <Route path="/clientonboarding" element={<ClientOnboarding/>} />
                 <Route path="/specialist-dashboard" element={<SpecialistDashboard />} />
                 <Route path="/client-dashboard" element={<ClientDashboard />} />
                 <Route path="/memberships" element={<MembershipPage />} />
-
-
+                <Route path="/" element={<AuthGate />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

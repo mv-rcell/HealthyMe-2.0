@@ -7,6 +7,9 @@ import Membership from "@/components/Membership";
 import About from "@/components/About";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   // Initialize intersection observer for animation
@@ -41,6 +44,20 @@ const Index = () => {
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       <Navbar />
       <Hero />
+      
+       {/* Client Dashboard Access Button */}
+       <div className="container mx-auto py-10 px-4 text-center">
+        <h2 className="text-2xl font-bold mb-4">Access Your Health Dashboard</h2>
+        <p className="mb-6 text-muted-foreground max-w-2xl mx-auto">
+          Track your health journey, manage appointments, and connect with specialists through our personalized dashboard.
+        </p>
+        <Button asChild size="lg" className="group">
+          <Link to="/client-dashboard">
+            Go to Client Dashboard <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Link>
+        </Button>
+      </div>
+
       <Features />
       <Membership />
       <About />
