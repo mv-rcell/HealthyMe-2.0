@@ -48,7 +48,26 @@ const Auth = () => {
 
       toast.success('Successfully signed in!');
       queryClient.invalidateQueries({ queryKey: ['user'] });
-      navigate('/');
+      // Redirect based on user role after sign in
+      if (data.user) {
+        // Fetch the user's profile to determine their role
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+          
+        if (profileData?.role === 'specialist') {
+          navigate('/specialist-dashboard');
+        } else if (profileData?.role === 'client') {
+          navigate('/client-dashboard');
+        } else {
+          navigate('/');
+        }
+      }
+
+
+    
     } catch (error: any) {
       toast.error(`Error signing in: ${error.message}`);
     } finally {
@@ -74,7 +93,6 @@ const Auth = () => {
       if (error) throw error;
 
       if (data.user) {
-        toast.success('Registration successful! Please check your email for confirmation.');
         
         await supabase
           .from('profiles')
@@ -83,6 +101,8 @@ const Auth = () => {
             role: role 
           })
           .eq('id', data.user.id);
+
+          toast.success('Registration successful! Redirecting to onboarding...');
         
         if (role === 'specialist') {
           navigate('/specialist-onboarding');

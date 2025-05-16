@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,7 +45,6 @@ const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }).optional(),
 });
 
-
 const SpecialistOnboarding = () => {
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
@@ -53,12 +52,13 @@ const SpecialistOnboarding = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   
-  // Redirect if not logged in or not a specialist
-  React.useEffect(() => {
-    if (!loading && (!user || profile?.role !== 'specialist')) {
+  // Modified redirect logic to be less strict, allowing initial onboarding
+  useEffect(() => {
+    if (!loading && !user) {
+      // Only redirect if not logged in at all
       navigate('/auth');
     }
-  }, [user, profile, loading, navigate]);
+  }, [user, loading, navigate]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -95,6 +95,23 @@ const SpecialistOnboarding = () => {
       if (imageFile) {
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${user.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        
+        // Check if profile-pictures bucket exists, if not create it
+        try {
+          const { data: buckets } = await supabase.storage.listBuckets();
+          const bucketExists = buckets?.some(bucket => bucket.name === 'profile-pictures');
+          
+          if (!bucketExists) {
+            await supabase.storage.createBucket('profile-pictures', {
+              public: true,
+              allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif'],
+              fileSizeLimit: 5242880, // 5MB
+            });
+          }
+        } catch (error) {
+          console.error('Error checking/creating bucket:', error);
+        }
+        
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('profile-pictures')
           .upload(fileName, imageFile);
@@ -109,7 +126,7 @@ const SpecialistOnboarding = () => {
         profile_picture_url = publicUrl;
       }
 
-      // Update profile
+      // Update profile and also ensure role is set to specialist
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -119,6 +136,7 @@ const SpecialistOnboarding = () => {
           bio: values.bio,
           phone_number: values.phoneNumber,
           profile_picture_url,
+          role: 'specialist', // Ensure role is set correctly
         })
         .eq('id', user.id);
 
@@ -143,7 +161,7 @@ const SpecialistOnboarding = () => {
       <div className="flex-grow container mx-auto px-4 py-16">
         <Card className="max-w-3xl mx-auto">
           <CardHeader>
-          <CardTitle className="text-2xl">Complete Your Specialist Profile</CardTitle>
+            <CardTitle className="text-2xl">Complete Your Specialist Profile</CardTitle>
             <CardDescription>
               Fill out your professional profile to start offering services to clients.
             </CardDescription>

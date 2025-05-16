@@ -27,28 +27,32 @@ export function useAuth() {
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
+        console.log('Auth state change:', event, currentSession?.user?.id);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
-        setLoading(false);
         
         // Fetch profile when auth state changes
         if (currentSession?.user) {
           fetchUserProfile(currentSession.user.id);
         } else {
           setProfile(null);
+          setLoading(false);
+
         }
       }
     );
 
     // Then check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      console.log('Initial session check:', currentSession?.user?.id);
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
-      setLoading(false);
       
       // Fetch profile on initial load if user exists
       if (currentSession?.user) {
         fetchUserProfile(currentSession.user.id);
+      } else {
+        setLoading(false);
       }
     });
 
@@ -60,18 +64,28 @@ export function useAuth() {
   const fetchUserProfile = async (userId: string) => {
     setProfileLoading(true);
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
       
-      if (error) throw error;
-      setProfile(data as UserProfile);
+        if (error) {
+          console.error('Error fetching user profile:', error);
+          setProfile(null);
+        } else {
+          console.log('Profile fetched:', data);
+          setProfile(data as UserProfile);
+        }
     } catch (error) {
       console.error('Error fetching user profile:', error);
+      setProfile(null);
+
     } finally {
       setProfileLoading(false);
+      setLoading(false);
+
     }
   };
 
