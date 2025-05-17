@@ -102,7 +102,7 @@ const Payments = () => {
       const newPayment = {
         user_id: user.id,
         amount,
-        currency: 'KES',
+        currency: '$',
         payment_method: paymentMethod,
         payment_status: 'successful',
         transaction_id: `SIM_${Math.random().toString(36).substr(2, 9)}`,
@@ -130,7 +130,7 @@ const Payments = () => {
         }
       }
       
-      toast.success(`Payment of ${amount/100} KES processed successfully`);
+      toast.success(`Payment of ${amount/100}  processed successfully`);
       queryClient.invalidateQueries({ queryKey: ['payments', user.id] });
       setDialogOpen(false);
       
@@ -196,7 +196,7 @@ const Payments = () => {
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="amount">Amount (KES)</Label>
+                    <Label htmlFor="amount">Amount ($)</Label>
                     <Input
                       id="amount"
                       type="number"
@@ -256,7 +256,7 @@ const Payments = () => {
                 </div>
                 <DialogFooter>
                   <Button onClick={handlePayment} disabled={processingPayment}>
-                    {processingPayment ? 'Processing...' : `Pay ${formatAmount(amount)} KES`}
+                    {processingPayment ? 'Processing...' : `Pay ${formatAmount(amount)} `}
                   </Button>
                 </DialogFooter>
               </DialogContent>
