@@ -23,6 +23,7 @@ import SpecialistProfile from "./pages/SpecialistProfile.tsx";
 import ClientDashboard from "./pages/ClientDashboard.tsx";
 import MembershipPage from "./pages/MembershipPage.tsx";
 import Auth from "./pages/Auth";
+import Payments from "./pages/Payments.tsx";
 import Profile from "./pages/Profile";
 import { ThemeProvider } from "./hooks/use-theme";
 import AuthGate from '@/components/AuthGate.tsx'; 
@@ -66,8 +67,10 @@ const App = () => {
                 <Route path="/client-onboarding" element={<ClientOnboarding/>} />
                 <Route path="/specialist-dashboard" element={<SpecialistDashboard />} />
                 <Route path="/client-dashboard" element={<ClientDashboard />} />
+                <Route path="/payments" element={<Payments />} />
                 <Route path="/memberships" element={<MembershipPage />} />
                 <Route path="/" element={<AuthGate />} />
+
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

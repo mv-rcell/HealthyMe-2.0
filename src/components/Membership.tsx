@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -7,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ClientProfile {
   id: string;
@@ -21,7 +24,7 @@ const plans = [
     id: "starter",
     name: "Starter",
     description: "Perfect for beginners and casual fitness enthusiasts.",
-    price: "$19.99",
+    price: "19.99",
     features: [
       "General fitness assessment",
       "Access to basic workout equipment",
@@ -35,7 +38,7 @@ const plans = [
     id: "pro",
     name: "Pro",
     description: "Ideal for dedicated fitness enthusiasts ready to level up.",
-    price: "$39.99",
+    price: "39.99",
     features: [
       "Comprehensive fitness assessment",
       "Full gym access 24/7",
@@ -51,7 +54,7 @@ const plans = [
     id: "elite",
     name: "Elite",
     description: "The ultimate fitness experience for maximum results.",
-    price: "$79.99",
+    price: "79.99",
     features: [
       "Expert fitness assessment",
       "VIP gym access 24/7",
@@ -78,6 +81,8 @@ const Membership = () => {
     elite: [],
   });
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchClientProfiles = async () => {
@@ -120,6 +125,22 @@ const Membership = () => {
       .map((n) => n[0])
       .join("")
       .toUpperCase();
+    };
+
+    const handleChoosePlan = (planId: string, price: string) => {
+      if (!user) {
+        toast.error("Please sign in to select a membership plan", {
+          description: "You need to create an account to purchase a membership."
+        });
+        navigate("/auth");
+        return;
+      }
+      
+      // Convert price string to number and multiply by 100 to handle in cents
+      const amount = parseFloat(price) * 100;
+      
+      // Navigate to payments page with plan information
+      navigate(`/payments?plan=${planId}&amount=${amount}`);
   };
 
   return (
@@ -162,7 +183,7 @@ const Membership = () => {
                 </p>
                 <div className="flex items-baseline mb-4">
                   <span className="text-3xl md:text-4xl font-bold">
-                    {plan.price}
+                    ${plan.price}
                   </span>
                   <span className="text-muted-foreground ml-2">/ month</span>
                 </div>
