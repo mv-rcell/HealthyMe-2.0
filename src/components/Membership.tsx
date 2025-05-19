@@ -23,7 +23,7 @@ const plans = [
   {
     id: "starter",
     name: "Starter",
-    description: "Perfect for beginners and casual fitness enthusiasts.",
+    description: "Find the perfect plan for your health journey.",
     price: "19.99",
     features: [
       "General fitness assessment",
@@ -37,7 +37,7 @@ const plans = [
   {
     id: "pro",
     name: "Pro",
-    description: "Ideal for dedicated fitness enthusiasts ready to level up.",
+    description: "Ideal for dedicated and all-round wellness enthusiasts ready to level up.",
     price: "39.99",
     features: [
       "Comprehensive fitness assessment",
@@ -53,7 +53,7 @@ const plans = [
   {
     id: "elite",
     name: "Elite",
-    description: "The ultimate fitness experience for maximum results.",
+    description: "The ultimate  experience for maximum health results.",
     price: "79.99",
     features: [
       "Expert fitness assessment",
