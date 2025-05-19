@@ -24,7 +24,7 @@ const plans = [
   {
     id: "starter",
     name: "Starter",
-    description: "Perfect for beginners and casual fitness enthusiasts.",
+    description: "Find the perfect plan for your health journey.",
     price: "19.99",
     features: [
       "General fitness assessment",
