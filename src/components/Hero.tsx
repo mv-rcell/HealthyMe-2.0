@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from "react";
 import { ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
+
 
 
 const Hero = () => {
@@ -78,6 +80,7 @@ const Hero = () => {
           >
             <a href="#features">Explore Services</a>
           </Button>
+                  <Link to="/appointment">
           <Button
             size="lg"
             variant="outline"
@@ -85,6 +88,8 @@ const Hero = () => {
           >
             Book Consultation
           </Button>
+        </Link>
+
         </div>
       </div>
 

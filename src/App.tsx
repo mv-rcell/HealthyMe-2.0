@@ -27,6 +27,7 @@ import Payments from "./pages/Payments.tsx";
 import Profile from "./pages/Profile";
 import { ThemeProvider } from "./hooks/use-theme";
 import AuthGate from '@/components/AuthGate.tsx'; 
+import AppointmentRequest from '@/pages/AppointmentRequest.tsx'
 
 
 
@@ -69,6 +70,8 @@ const App = () => {
                 <Route path="/client-dashboard" element={<ClientDashboard />} />
                 <Route path="/payments" element={<Payments />} />
                 <Route path="/memberships" element={<MembershipPage />} />
+                <Route path="/appointment" element={<AppointmentRequest />} />
+
                 <Route path="/" element={<AuthGate />} />
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

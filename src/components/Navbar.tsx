@@ -24,8 +24,7 @@ const Navbar = () => {
     { name: "Features", path: "/#features" },
     { name: "Memberships", path: "/memberships" },
     { name: "Specialists", path: "/specialists" },
-    { name: "Contact", path: "/#contact" },
-
+    { name: "Clients", path: "/clients" },
   ];
 
   return (
@@ -68,9 +67,9 @@ const Navbar = () => {
           {/* Right side controls */}
           <div className="flex items-center space-x-2">
             <AuthButton />
-            <AdButton /> 
+            <AdButton />
             <ThemeToggle />
-            
+
             {/* Mobile menu button */}
             <Button
               variant="ghost"
@@ -119,4 +118,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;    
+export default Navbar;
