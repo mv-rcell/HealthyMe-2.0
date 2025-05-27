@@ -28,6 +28,8 @@ import Profile from "./pages/Profile";
 import { ThemeProvider } from "./hooks/use-theme";
 import AuthGate from '@/components/AuthGate.tsx'; 
 import AppointmentRequest from '@/pages/AppointmentRequest.tsx'
+import AppointmentHistory from '@/pages/AppointmentHistory';
+import Features from '@/pages/Features.tsx';
 
 
 
@@ -71,6 +73,8 @@ const App = () => {
                 <Route path="/payments" element={<Payments />} />
                 <Route path="/memberships" element={<MembershipPage />} />
                 <Route path="/appointment" element={<AppointmentRequest />} />
+                <Route path="/appointments" element={<AppointmentHistory />} />
+                <Route path="/features" element={<Features />} />
 
                 <Route path="/" element={<AuthGate />} />
 
@@ -86,4 +90,3 @@ const App = () => {
 };
 
 export default App;
-

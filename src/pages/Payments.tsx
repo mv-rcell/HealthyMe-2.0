@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import  Navbar from '@/components/Navbar';
+import  Navbar  from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -102,7 +102,7 @@ const Payments = () => {
       const newPayment = {
         user_id: user.id,
         amount,
-        currency: '$',
+        currency: 'KES',
         payment_method: paymentMethod,
         payment_status: 'successful',
         transaction_id: `SIM_${Math.random().toString(36).substr(2, 9)}`,
@@ -130,7 +130,7 @@ const Payments = () => {
         }
       }
       
-      toast.success(`Payment of ${amount/100}  processed successfully`);
+      toast.success(`Payment of ${amount/100} KES processed successfully`);
       queryClient.invalidateQueries({ queryKey: ['payments', user.id] });
       setDialogOpen(false);
       
@@ -196,7 +196,7 @@ const Payments = () => {
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="amount">Amount ($)</Label>
+                    <Label htmlFor="amount">Amount (KES)</Label>
                     <Input
                       id="amount"
                       type="number"
@@ -256,7 +256,7 @@ const Payments = () => {
                 </div>
                 <DialogFooter>
                   <Button onClick={handlePayment} disabled={processingPayment}>
-                    {processingPayment ? 'Processing...' : `Pay ${formatAmount(amount)} `}
+                    {processingPayment ? 'Processing...' : `Pay ${formatAmount(amount)} KES`}
                   </Button>
                 </DialogFooter>
               </DialogContent>

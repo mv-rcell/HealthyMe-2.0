@@ -9,6 +9,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { ArrowLeft, Calendar, MessageSquare, Check } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 // Service details data structure
 interface ServiceSpecialist {
@@ -712,7 +713,9 @@ const ServiceDetails: React.FC = () => {
             <p className="max-w-2xl mx-auto mb-6 text-muted-foreground">
               Schedule a consultation with one of our specialists today and take the first step toward better health and wellness.
             </p>
+              <Link to="/appointment">
             <Button size="lg">Book an Appointment</Button>
+            </Link>
           </motion.div>
         </div>
       </div>

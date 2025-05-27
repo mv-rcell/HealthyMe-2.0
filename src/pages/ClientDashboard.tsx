@@ -43,7 +43,7 @@ const ClientDashboard = () => {
       title: 'My Appointments',
       description: 'View and manage your upcoming appointments',
       icon: <CalendarIcon className="w-10 h-10 text-primary" />,
-      action: () => navigate('/client/appointments')
+      action: () => navigate('/appointments')
     },
     {
       title: 'Find Specialists',

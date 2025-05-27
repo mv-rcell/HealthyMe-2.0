@@ -24,6 +24,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import Membership from '@/components/Membership';
 
 type Membership = {
   id: string;
@@ -123,6 +124,7 @@ const ClientOnboarding = () => {
     if (!user) return;
     
     setSaving(true);
+
     try {
       let profile_picture_url = profile?.profile_picture_url || null;
 
@@ -189,6 +191,9 @@ const ClientOnboarding = () => {
   if (loading || loadingMemberships) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
+
+  console.log("Loaded Memberships:", memberships);
+
 
   return (
     <div className="min-h-screen flex flex-col">

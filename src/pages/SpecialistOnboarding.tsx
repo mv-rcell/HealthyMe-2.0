@@ -129,7 +129,7 @@ const SpecialistOnboarding = () => {
       // Update profile and also ensure role is set to specialist
       const { error } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
           full_name: values.fullName,
           specialist_type: values.specialistType,
           experience: values.experience,
@@ -220,7 +220,7 @@ const SpecialistOnboarding = () => {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input disabled placeholder="Your email address" {...field} />
+                          <Input  placeholder="Your email address" {...field} />
                         </FormControl>
                         <FormDescription>
                           You cannot change your email address
