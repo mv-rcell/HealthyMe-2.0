@@ -25,6 +25,13 @@ const AppointmentHistory = () => {
     search: ''
   });
 
+if (!user) {
+  console.log("User not logged in");
+  return;
+}
+
+
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 

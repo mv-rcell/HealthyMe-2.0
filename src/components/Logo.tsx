@@ -16,19 +16,19 @@ const Logo: React.FC<LogoProps> = ({
   const sizeClasses = {
     sm: {
       container: "gap-1",
-      icon: "w-5 h-5",
+      icon: "w-10 h-10",
       text: "text-lg",
       tagline: "text-[8px]"
     },
     md: {
       container: "gap-2",
-      icon: "w-8 h-8",
+      icon: "w-14 h-14",
       text: "text-2xl",
       tagline: "text-xs"
     },
     lg: {
       container: "gap-3",
-      icon: "w-12 h-12",
+      icon: "w-10 h-17",
       text: "text-3xl",
       tagline: "text-sm"
     }
@@ -46,9 +46,10 @@ const Logo: React.FC<LogoProps> = ({
       <div className="flex flex-col items-center">
         <div className={cn("relative", sizeClasses[size].icon)}>
           <img 
-            src="/IMG_0733(1).PNG" 
-            alt="HealthyMe Logo" 
+            src="/IMG_0733-removebg-preview(2).png" 
+            alt="HealthyMe Logo"             
             className="w-full h-auto"
+
           />
         </div>
         <div className="flex flex-col items-center">

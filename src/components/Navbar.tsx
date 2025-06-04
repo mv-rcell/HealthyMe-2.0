@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
@@ -5,7 +6,6 @@ import Logo from "./Logo";
 import { useAuth } from "@/hooks/useAuth";
 import { Menu, X } from "lucide-react";
 import AuthButton from "./AuthButton";
-import AdButton from "./AdButton";
 import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
@@ -21,10 +21,10 @@ const Navbar = () => {
   const navItems = [
     { name: "Home", path: "/" },
     { name: "About", path: "/#about" },
-    { name: "Features", path: "/features" },
+    { name: "Features", path: "/#features" },
     { name: "Memberships", path: "/memberships" },
-    { name: "Specialists", path: "/specialists" },
-    { name: "Clients", path: "/clients" },
+    { name: "Find Specialists", path: "/specialists" },
+    { name: "Contact", path: "/#contact" },
   ];
 
   return (
@@ -66,10 +66,9 @@ const Navbar = () => {
 
           {/* Right side controls */}
           <div className="flex items-center space-x-2">
-            <AuthButton />
-            <AdButton />
             <ThemeToggle />
-
+            <AuthButton />
+            
             {/* Mobile menu button */}
             <Button
               variant="ghost"

@@ -12,6 +12,8 @@ import {
   FileSpreadsheet
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import FunctionalFeatures from "./functional/FunctionalFeatures";
+
 
 interface FeatureCardProps {
   icon: React.ReactNode;
@@ -159,6 +161,11 @@ const Features = () => {
           </p>
         </div>
 
+         {/* Interactive Features Demo */}
+         <div className="mb-20">
+          <FunctionalFeatures />
+        </div>
+
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {features.map((feature, index) => (
             <FeatureCard 
@@ -168,6 +175,8 @@ const Features = () => {
             />
           ))}
         </div>
+
+       
 
         {/* Background elements */}
         <div className="absolute top-1/4 -left-64 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10 animate-pulse-slow" />

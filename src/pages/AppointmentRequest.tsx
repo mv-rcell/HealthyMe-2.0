@@ -84,13 +84,33 @@ const AppointmentRequest = () => {
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
-      // Here you would integrate with your backend to save the appointment request
-      console.log('Form submitted:', values);
-
-      // Simulating successful submission
+      const { data, error } = await supabase.from('appointments').insert([
+        {
+          user_id: user.id,
+          location: values.location,
+          has_medical_record: values.hasMedicalRecord,
+          appointment_type: values.appointmentType,
+          medical_record_number: values.medicalRecordNumber || null,
+          mobile_number: values.mobileNumber,
+          email: values.email || null,
+          specialty: values.specialty,
+          doctor: values.doctor || null,
+          consultation_reason: values.consultationReason || null,
+          disclaimer: values.disclaimer,
+          receive_updates: values.receiveUpdates,
+          created_at: new Date().toISOString(), // optional if Supabase handles it
+        },
+      ]);
+  
+      if (error) {
+        console.error('Supabase insert error:', error);
+        toast.error('Failed to submit appointment. Please try again.');
+        return;
+      }
+  
       toast.success('Appointment request submitted successfully!');
-      
-      // Redirect to dashboard based on user role after successful submission
+  
+      // Redirect user based on role
       if (profile?.role === 'specialist') {
         navigate('/specialist-dashboard');
       } else if (profile?.role === 'client') {
@@ -99,12 +119,13 @@ const AppointmentRequest = () => {
         navigate('/');
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error('Failed to submit appointment request. Please try again.');
+      console.error('Unexpected error:', error);
+      toast.error('An unexpected error occurred.');
     } finally {
       setIsSubmitting(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen flex flex-col">

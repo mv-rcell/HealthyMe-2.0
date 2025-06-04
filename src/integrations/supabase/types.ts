@@ -9,6 +9,102 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          appointment_type: string | null
+          consultation_reason: string | null
+          created_at: string
+          disclaimer: string | null
+          doctor: string | null
+          email: string | null
+          has_medical_record: string | null
+          id: number
+          location: string | null
+          medical_record_number: number
+          mobile_number: number | null
+          receive_updates: string | null
+          specialty: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          appointment_type?: string | null
+          consultation_reason?: string | null
+          created_at?: string
+          disclaimer?: string | null
+          doctor?: string | null
+          email?: string | null
+          has_medical_record?: string | null
+          id?: number
+          location?: string | null
+          medical_record_number?: number
+          mobile_number?: number | null
+          receive_updates?: string | null
+          specialty?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          appointment_type?: string | null
+          consultation_reason?: string | null
+          created_at?: string
+          disclaimer?: string | null
+          doctor?: string | null
+          email?: string | null
+          has_medical_record?: string | null
+          id?: number
+          location?: string | null
+          medical_record_number?: number
+          mobile_number?: number | null
+          receive_updates?: string | null
+          specialty?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      appointments_new: {
+        Row: {
+          appointment_date: string
+          client_id: string | null
+          created_at: string | null
+          duration: number | null
+          id: number
+          notes: string | null
+          price: number | null
+          service_type: string
+          specialist_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_date: string
+          client_id?: string | null
+          created_at?: string | null
+          duration?: number | null
+          id?: number
+          notes?: string | null
+          price?: number | null
+          service_type: string
+          specialist_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_date?: string
+          client_id?: string | null
+          created_at?: string | null
+          duration?: number | null
+          id?: number
+          notes?: string | null
+          price?: number | null
+          service_type?: string
+          specialist_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       foods: {
         Row: {
           calories: number | null
@@ -27,6 +123,93 @@ export type Database = {
           created_at?: string
           id?: number
           name?: string | null
+        }
+        Relationships: []
+      }
+      health_records: {
+        Row: {
+          attachments: Json | null
+          client_id: string | null
+          created_at: string | null
+          created_by: string | null
+          date: string
+          description: string | null
+          id: string
+          record_type: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          attachments?: Json | null
+          client_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date: string
+          description?: string | null
+          id?: string
+          record_type: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          attachments?: Json | null
+          client_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          record_type?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      lab_tests: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          follow_up_date: string | null
+          follow_up_scheduled: boolean | null
+          id: string
+          price: number | null
+          report_url: string | null
+          results: Json | null
+          scheduled_date: string
+          status: string | null
+          test_name: string
+          test_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          follow_up_date?: string | null
+          follow_up_scheduled?: boolean | null
+          id?: string
+          price?: number | null
+          report_url?: string | null
+          results?: Json | null
+          scheduled_date: string
+          status?: string | null
+          test_name: string
+          test_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          follow_up_date?: string | null
+          follow_up_scheduled?: boolean | null
+          id?: string
+          price?: number | null
+          report_url?: string | null
+          results?: Json | null
+          scheduled_date?: string
+          status?: string | null
+          test_name?: string
+          test_type?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -57,7 +240,43 @@ export type Database = {
         }
         Relationships: []
       }
-        profiles: {
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          membership_plan: string | null
+          payment_method: string
+          payment_status: string
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          membership_plan?: string | null
+          payment_method: string
+          payment_status?: string
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          membership_plan?: string | null
+          payment_method?: string
+          payment_status?: string
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
         Row: {
           bio: string | null
           created_at: string
@@ -126,6 +345,56 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          appointment_id: number | null
+          client_id: string | null
+          comment: string | null
+          communication_rating: number | null
+          created_at: string | null
+          id: string
+          is_verified: boolean | null
+          overall_rating: number | null
+          professionalism_rating: number | null
+          service_rating: number | null
+          specialist_id: string | null
+        }
+        Insert: {
+          appointment_id?: number | null
+          client_id?: string | null
+          comment?: string | null
+          communication_rating?: number | null
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          overall_rating?: number | null
+          professionalism_rating?: number | null
+          service_rating?: number | null
+          specialist_id?: string | null
+        }
+        Update: {
+          appointment_id?: number | null
+          client_id?: string | null
+          comment?: string | null
+          communication_rating?: number | null
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          overall_rating?: number | null
+          professionalism_rating?: number | null
+          service_rating?: number | null
+          specialist_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       User: {
         Row: {
           created_at: string
@@ -146,6 +415,50 @@ export type Database = {
           weight?: number | null
         }
         Relationships: []
+      }
+      video_sessions: {
+        Row: {
+          appointment_id: number | null
+          client_id: string | null
+          created_at: string | null
+          ended_at: string | null
+          id: string
+          session_token: string | null
+          specialist_id: string | null
+          started_at: string | null
+          status: string | null
+        }
+        Insert: {
+          appointment_id?: number | null
+          client_id?: string | null
+          created_at?: string | null
+          ended_at?: string | null
+          id?: string
+          session_token?: string | null
+          specialist_id?: string | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          appointment_id?: number | null
+          client_id?: string | null
+          created_at?: string | null
+          ended_at?: string | null
+          id?: string
+          session_token?: string | null
+          specialist_id?: string | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_sessions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       WorkoutPlans: {
         Row: {
