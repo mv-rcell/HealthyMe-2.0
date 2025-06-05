@@ -43,8 +43,8 @@ const ClientDashboard = () => {
         <p className="text-gray-600 mb-8">Welcome back, {profile?.full_name}!</p>
         
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
+        <TabsList className="inline-flex space-x-2 min-w-full">           
+           <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
             <TabsTrigger value="health-records">Health Records</TabsTrigger>
             <TabsTrigger value="lab-tests">Lab Tests</TabsTrigger>
