@@ -6,13 +6,13 @@ import { toast } from 'sonner';
 export interface LabTest {
   id: string;
   client_id: string;
-  test_name: string;
   test_type: string;
+  test_name: string;
   scheduled_date: string;
   status: string;
+  price?: number;
   results?: any;
   report_url?: string;
-  price?: number;
   follow_up_scheduled: boolean;
   follow_up_date?: string;
   created_at: string;
@@ -36,7 +36,7 @@ export const useLabTests = () => {
         .order('scheduled_date', { ascending: false });
 
       if (error) throw error;
-      setLabTests(data || []);
+      setLabTests((data || []) as LabTest[]);
     } catch (error: any) {
       toast.error(`Error fetching lab tests: ${error.message}`);
     } finally {
@@ -44,13 +44,16 @@ export const useLabTests = () => {
     }
   };
 
-  const bookLabTest = async (testData: Omit<LabTest, 'id' | 'client_id' | 'created_at' | 'updated_at'>) => {
+  const bookLabTest = async (testData: Omit<LabTest, 'id' | 'created_at' | 'updated_at' | 'client_id'>) => {
     if (!user) return null;
 
     try {
       const { data, error } = await supabase
         .from('lab_tests')
-        .insert([{ ...testData, client_id: user.id }])
+        .insert([{
+          ...testData,
+          client_id: user.id
+        }])
         .select()
         .single();
 
@@ -85,8 +88,7 @@ export const useLabTests = () => {
         .from('lab_tests')
         .update({ 
           follow_up_scheduled: true,
-          follow_up_date: followUpDate,
-          updated_at: new Date().toISOString()
+          follow_up_date: followUpDate
         })
         .eq('id', testId);
 
@@ -101,23 +103,6 @@ export const useLabTests = () => {
 
   useEffect(() => {
     fetchLabTests();
-
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel('lab_tests_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'lab_tests',
-        filter: user ? `client_id=eq.${user.id}` : undefined
-      }, () => {
-        fetchLabTests();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [user]);
 
   return {

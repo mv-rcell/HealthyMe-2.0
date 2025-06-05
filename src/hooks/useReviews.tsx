@@ -34,7 +34,7 @@ export const useReviews = () => {
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
-      setReviews(data || []);
+      setReviews((data || []) as Review[]);
     } catch (error: any) {
       toast.error(`Error fetching reviews: ${error.message}`);
     } finally {
@@ -42,13 +42,33 @@ export const useReviews = () => {
     }
   };
 
-  const createReview = async (reviewData: Omit<Review, 'id' | 'is_verified' | 'created_at'>) => {
+  const getSpecialistReviews = async (specialistId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('specialist_id', specialistId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as Review[];
+    } catch (error: any) {
+      console.error('Error fetching specialist reviews:', error);
+      return [];
+    }
+  };
+
+  const createReview = async (reviewData: Omit<Review, 'id' | 'created_at' | 'is_verified'>) => {
     if (!user) return null;
 
     try {
       const { data, error } = await supabase
         .from('reviews')
-        .insert([{ ...reviewData, client_id: user.id }])
+        .insert([{
+          ...reviewData,
+          client_id: user.id,
+          is_verified: true
+        }])
         .select()
         .single();
 
@@ -63,31 +83,24 @@ export const useReviews = () => {
     }
   };
 
-  const getSpecialistRating = async (specialistId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('reviews')
-        .select('overall_rating')
-        .eq('specialist_id', specialistId);
-
-      if (error) throw error;
-      
-      if (data && data.length > 0) {
-        const average = data.reduce((sum, review) => sum + review.overall_rating, 0) / data.length;
-        return Math.round(average * 10) / 10;
-      }
-      return 0;
-    } catch (error: any) {
-      console.error('Error calculating rating:', error);
-      return 0;
-    }
+  const getSpecialistRating = (specialistId: string) => {
+    const specialistReviews = reviews.filter(r => r.specialist_id === specialistId);
+    if (specialistReviews.length === 0) return 0;
+    
+    const totalRating = specialistReviews.reduce((sum, review) => sum + review.overall_rating, 0);
+    return Math.round((totalRating / specialistReviews.length) * 10) / 10;
   };
+
+  useEffect(() => {
+    fetchReviews();
+  }, []);
 
   return {
     reviews,
     loading,
     createReview,
     fetchReviews,
+    getSpecialistReviews,
     getSpecialistRating
   };
 };

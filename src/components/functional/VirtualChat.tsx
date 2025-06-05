@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Send, Video, Phone, MessageSquare } from 'lucide-react';
+import { Send, Video, Phone, MessageSquare, ExternalLink, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { useZoomIntegration } from '@/hooks/useZoomIntegration';
 
 interface Message {
   id: number;
@@ -23,7 +25,8 @@ const VirtualChat = () => {
   ]);
   const [newMessage, setNewMessage] = useState('');
   const [isVideoCall, setIsVideoCall] = useState(false);
-  const { toast } = useToast();
+  
+  const { loading, activeMeeting, createZoomMeeting, joinZoomMeeting, endZoomMeeting } = useZoomIntegration();
 
   const sendMessage = () => {
     if (!newMessage.trim()) return;
@@ -52,11 +55,36 @@ const VirtualChat = () => {
 
   const startVideoCall = () => {
     setIsVideoCall(true);
-    toast({
-      title: "Video Call Started",
-      description: "Connecting to Dr. Sarah Johnson...",
-      status: "success"
-    });
+    toast.success('Video call started with Dr. Sarah Johnson');
+  };
+
+  const startZoomMeeting = async () => {
+    const meeting = await createZoomMeeting(
+      'Virtual Consultation with Dr. Sarah Johnson',
+      'patient@example.com'
+    );
+    
+    if (meeting) {
+      const meetingMessage: Message = {
+        id: messages.length + 1,
+        text: `Zoom meeting created! Meeting ID: ${meeting.meeting_id}${meeting.password ? ` | Password: ${meeting.password}` : ''}`,
+        sender: 'specialist',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, meetingMessage]);
+    }
+  };
+
+  const copyMeetingInfo = () => {
+    if (activeMeeting) {
+      const meetingInfo = `Zoom Meeting Details:
+Meeting ID: ${activeMeeting.meeting_id}
+Join URL: ${activeMeeting.join_url}
+${activeMeeting.password ? `Password: ${activeMeeting.password}` : ''}`;
+      
+      navigator.clipboard.writeText(meetingInfo);
+      toast.success('Meeting details copied to clipboard');
+    }
   };
 
   return (
@@ -74,14 +102,57 @@ const VirtualChat = () => {
             <Button size="sm" variant="outline">
               <Phone className="h-4 w-4" />
             </Button>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={startZoomMeeting}
+              disabled={loading}
+            >
+              Zoom
+            </Button>
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
         {isVideoCall && (
-          <div className="mb-4 p-4 bg-gray-100 rounded-lg text-center">
+          <div className="mb-4 p-4 bg-muted rounded-lg text-center">
             <Video className="h-8 w-8 mx-auto mb-2" />
             <p className="text-sm">Video call active with Dr. Sarah Johnson</p>
+          </div>
+        )}
+
+        {activeMeeting && (
+          <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center justify-between mb-2">
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                Zoom Meeting Active
+              </Badge>
+              <Button size="sm" variant="outline" onClick={copyMeetingInfo}>
+                <Copy className="h-3 w-3 mr-1" />
+                Copy Details
+              </Button>
+            </div>
+            <p className="text-sm font-medium mb-1">Meeting ID: {activeMeeting.meeting_id}</p>
+            {activeMeeting.password && (
+              <p className="text-sm mb-2">Password: {activeMeeting.password}</p>
+            )}
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                onClick={() => joinZoomMeeting(activeMeeting.join_url)}
+                className="flex-1"
+              >
+                <ExternalLink className="h-3 w-3 mr-1" />
+                Join Meeting
+              </Button>
+              <Button 
+                size="sm" 
+                variant="destructive" 
+                onClick={endZoomMeeting}
+              >
+                End
+              </Button>
+            </div>
           </div>
         )}
         

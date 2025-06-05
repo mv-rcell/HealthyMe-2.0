@@ -1,253 +1,220 @@
-import React, { useState } from 'react';
-import { TestTube, Download, Calendar, Clock, CheckCircle } from 'lucide-react';
+
+import { Calendar, FileText, Download, Clock, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { useLabTests } from '@/hooks/useLabTests.tsx';
+import { useLabTests } from '@/hooks/useLabTests';
+import { useState } from 'react';
 
 const IntegratedLabTestBooking = () => {
-  const [selectedTest, setSelectedTest] = useState('');
-  const [selectedDate, setSelectedDate] = useState('');
-  const [selectedTime, setSelectedTime] = useState('');
+  const [testType, setTestType] = useState('');
+  const [testDate, setTestDate] = useState('');
+  const [homeCollection, setHomeCollection] = useState(false);
+  const [loading, setLoading] = useState(false);
   
-  const { toast } = useToast();
   const { user } = useAuth();
   const { labTests, bookLabTest, downloadReport, scheduleFollowUp } = useLabTests();
 
-  const availableTests = [
-    { id: 'blood-count', name: 'Complete Blood Count (CBC)', price: 25, type: 'blood' },
-    { id: 'lipid-panel', name: 'Lipid Panel', price: 35, type: 'blood' },
-    { id: 'diabetes-screen', name: 'Diabetes Screening', price: 20, type: 'blood' },
-    { id: 'thyroid-panel', name: 'Thyroid Function Panel', price: 45, type: 'blood' },
-    { id: 'vitamin-d', name: 'Vitamin D Test', price: 30, type: 'blood' },
-    { id: 'ecg', name: 'Electrocardiogram (ECG)', price: 40, type: 'cardiac' },
-    { id: 'chest-xray', name: 'Chest X-Ray', price: 60, type: 'imaging' },
-    { id: 'blood-pressure', name: 'Blood Pressure Monitoring', price: 15, type: 'vital' }
-  ];
-
-  const timeSlots = [
-    '08:00', '09:00', '10:00', '11:00', 
-    '14:00', '15:00', '16:00', '17:00'
-  ];
-
   const handleBookTest = async () => {
-    if (!selectedTest || !selectedDate || !selectedTime || !user) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-        variant: "destructive"
-      });
+    if (!user) {
+      toast.error('Please log in to book a test');
       return;
     }
 
-    const testData = availableTests.find(t => t.id === selectedTest);
-    if (!testData) return;
+    if (!testType || !testDate) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
 
-    const scheduledDateTime = new Date(`${selectedDate}T${selectedTime}:00`);
-
-    const testBooking = {
-      test_name: testData.name,
-      test_type: testData.type,
-      scheduled_date: scheduledDateTime.toISOString(),
-      status: 'scheduled' as const,
-      price: testData.price,
-      follow_up_scheduled: false
-    };
-
-    const result = await bookLabTest(testBooking);
-    if (result) {
-      setSelectedTest('');
-      setSelectedDate('');
-      setSelectedTime('');
+    setLoading(true);
+    try {
+      await bookLabTest({
+        test_type: 'diagnostic',
+        test_name: testType,
+        scheduled_date: testDate,
+        status: 'scheduled',
+        price: getTestPrice(testType),
+        results: null,
+        report_url: null,
+        follow_up_scheduled: false
+      });
+      
+      // Reset form
+      setTestType('');
+      setTestDate('');
+      setHomeCollection(false);
+      
+      toast.success('Lab test booked successfully!');
+    } catch (error: any) {
+      toast.error(`Failed to book test: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDownloadReport = async (test: any) => {
-    if (test.report_url) {
-      await downloadReport(test.report_url, test.test_name);
+  const getTestPrice = (testName: string) => {
+    const prices: { [key: string]: number } = {
+      'Blood Test (Complete)': 50,
+      'Urine Analysis': 25,
+      'X-Ray': 75,
+      'MRI Scan': 200,
+      'CT Scan': 150,
+      'ECG': 30,
+      'Blood Sugar': 20,
+      'Cholesterol Test': 35
+    };
+    return prices[testName] || 40;
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'scheduled': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case 'in-progress': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+    }
+  };
+
+  const handleDownloadReport = (reportUrl: string | null, testName: string) => {
+    if (reportUrl) {
+      downloadReport(reportUrl, testName);
     } else {
-      // Simulate report generation for demo
-      const mockReportUrl = `data:text/plain;charset=utf-8,Lab Report for ${test.test_name}\n\nPatient: ${user?.email}\nDate: ${new Date(test.scheduled_date).toLocaleDateString()}\n\nResults: Normal values within acceptable range.\n\nThis is a demo report.`;
-      const encodedUri = encodeURI(mockReportUrl);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `${test.test_name}_report.txt`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast({
-        title: "Demo Report Downloaded",
-        description: "This is a demo report. In a real app, this would be the actual lab results.",
-        variant: "default"
-      });
+      // Simulate report download for demo
+      const blob = new Blob(['Sample Test Report Content'], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      downloadReport(url, testName);
+      URL.revokeObjectURL(url);
     }
   };
 
   const handleScheduleFollowUp = async (testId: string) => {
     const followUpDate = new Date();
-    followUpDate.setDate(followUpDate.getDate() + 14); // 2 weeks from now
-    
+    followUpDate.setDate(followUpDate.getDate() + 7);
     await scheduleFollowUp(testId, followUpDate.toISOString());
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'text-green-600';
-      case 'scheduled': return 'text-blue-600';
-      case 'cancelled': return 'text-red-600';
-      default: return 'text-gray-600';
-    }
-  };
-
-  const selectedTestData = availableTests.find(t => t.id === selectedTest);
-
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
-      <Card>
+    <div className="space-y-6">
+      <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <TestTube className="h-5 w-5" />
-            Book Lab Test
+            <FileText className="h-5 w-5" />
+            Book Lab Tests & Health Checkups
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <label className="text-sm font-medium">Select Test</label>
-            <Select value={selectedTest} onValueChange={setSelectedTest}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a test" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableTests.map((test) => (
-                  <SelectItem key={test.id} value={test.id}>
-                    {test.name} - ${test.price}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {selectedTestData && (
-            <div className="p-3 border rounded-lg bg-muted/50">
-              <h4 className="font-medium">{selectedTestData.name}</h4>
-              <p className="text-sm text-muted-foreground">
-                Type: {selectedTestData.type} | Price: ${selectedTestData.price}
-              </p>
-            </div>
-          )}
-
+        <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium">Preferred Date</label>
-              <Input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Preferred Time</label>
-              <Select value={selectedTime} onValueChange={setSelectedTime}>
+              <label className="block text-sm font-medium mb-2">Test Type</label>
+              <Select value={testType} onValueChange={setTestType}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select time" />
+                  <SelectValue placeholder="Select test type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {timeSlots.map((time) => (
-                    <SelectItem key={time} value={time}>
-                      {time}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="Blood Test (Complete)">Blood Test (Complete) - $50</SelectItem>
+                  <SelectItem value="Urine Analysis">Urine Analysis - $25</SelectItem>
+                  <SelectItem value="X-Ray">X-Ray - $75</SelectItem>
+                  <SelectItem value="MRI Scan">MRI Scan - $200</SelectItem>
+                  <SelectItem value="CT Scan">CT Scan - $150</SelectItem>
+                  <SelectItem value="ECG">ECG - $30</SelectItem>
+                  <SelectItem value="Blood Sugar">Blood Sugar - $20</SelectItem>
+                  <SelectItem value="Cholesterol Test">Cholesterol Test - $35</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Preferred Date & Time</label>
+              <Input
+                type="datetime-local"
+                value={testDate}
+                onChange={(e) => setTestDate(e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
+              />
+            </div>
           </div>
 
-          <Button 
-            onClick={handleBookTest} 
-            className="w-full"
-            disabled={!user}
-          >
-            {!user ? 'Please log in to book test' : 'Book Test'}
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="homeCollection" 
+              checked={homeCollection}
+              onCheckedChange={(checked) => setHomeCollection(checked === true)}
+            />
+            <label htmlFor="homeCollection" className="text-sm">
+              Home sample collection (+$10)
+            </label>
+          </div>
+
+          <Button onClick={handleBookTest} disabled={loading} className="w-full">
+            <Calendar className="h-4 w-4 mr-2" />
+            {loading ? 'Booking...' : 'Book Test'}
           </Button>
         </CardContent>
       </Card>
 
-      {user && labTests.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Lab Tests</CardTitle>
-          </CardHeader>
-          <CardContent>
+      {/* Your Lab Tests */}
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle>Your Lab Tests</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {labTests.length > 0 ? (
             <div className="space-y-4">
               {labTests.map((test) => (
-                <Card key={test.id}>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-medium">{test.test_name}</h4>
-                        <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {new Date(test.scheduled_date).toLocaleDateString()}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {new Date(test.scheduled_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                          <span className={`capitalize ${getStatusColor(test.status)}`}>
-                            {test.status}
-                          </span>
-                        </div>
-                        {test.price && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Price: ${test.price}
-                          </p>
-                        )}
+                <div key={test.id} className="border border-border rounded-lg p-4 bg-card">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-foreground">{test.test_name}</h4>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {new Date(test.scheduled_date).toLocaleDateString()} at{' '}
+                        {new Date(test.scheduled_date).toLocaleTimeString([], { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
                       </div>
-                      
-                      <div className="flex gap-2">
-                        {test.status === 'completed' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDownloadReport(test)}
-                          >
-                            <Download className="h-4 w-4 mr-1" />
-                            Report
-                          </Button>
-                        )}
-                        
-                        {test.status === 'completed' && !test.follow_up_scheduled && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleScheduleFollowUp(test.id)}
-                          >
-                            <Calendar className="h-4 w-4 mr-1" />
-                            Follow-up
-                          </Button>
-                        )}
-                        
-                        {test.follow_up_scheduled && (
-                          <div className="flex items-center gap-1 text-sm text-green-600">
-                            <CheckCircle className="h-4 w-4" />
-                            Follow-up scheduled
-                          </div>
-                        )}
-                      </div>
+                      {test.price && (
+                        <p className="text-sm text-muted-foreground">Price: ${test.price}</p>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getStatusColor(test.status)}>
+                        {test.status}
+                      </Badge>
+                      {test.status === 'completed' && (
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleDownloadReport(test.report_url, test.test_name)}
+                        >
+                          <Download className="h-4 w-4 mr-1" />
+                          Download Report
+                        </Button>
+                      )}
+                      {test.status === 'completed' && !test.follow_up_scheduled && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleScheduleFollowUp(test.id)}
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Schedule Follow-up
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <p className="text-muted-foreground text-center py-8">No lab tests booked yet</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
