@@ -146,8 +146,8 @@ const ClientDashboard = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="appointments" className="mt-6">
-            <Card>
+          <TabsContent value="appointments" className="mt-6 space-y-6">
+          <Card>
               <CardHeader>
                 <CardTitle>My Appointments</CardTitle>
               </CardHeader>
@@ -188,11 +188,11 @@ const ClientDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="health-records" className="mt-6">
+          <TabsContent value="health-records" className="mt-6 space-y-6">
             <HealthRecordsTab />
           </TabsContent>
 
-          <TabsContent value="lab-tests" className="mt-6">
+          <TabsContent value="lab-tests" className="mt-6 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>My Lab Tests</CardTitle>
@@ -236,7 +236,7 @@ const ClientDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="settings" className="mt-6">
+          <TabsContent value="settings" className="mt-6 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Account Settings</CardTitle>
