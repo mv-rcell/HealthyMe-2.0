@@ -10,6 +10,8 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import Newsletter from "@/components/Newsletter";
+
 
 const Index = () => {
   // Initialize intersection observer for animation
@@ -60,6 +62,7 @@ const Index = () => {
 
       <Features />
       <Membership />
+      <Newsletter />
       <About />
       <Contact />
       <Footer />

@@ -125,7 +125,7 @@ const FunctionalFeatures = () => {
               <p className="text-muted-foreground">Verified user feedback and comprehensive ratings</p>
             </CardHeader>
             <CardContent>
-              <IntegratedReviewsSystem />
+              <IntegratedReviewsSystem specialistId={''} />
             </CardContent>
           </Card>
         </TabsContent>

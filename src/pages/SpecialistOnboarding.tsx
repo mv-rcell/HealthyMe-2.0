@@ -204,7 +204,7 @@ const SpecialistOnboarding = () => {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="Your email address" {...field} disabled />
+                          <Input placeholder="Your email address" {...field}  />
                         </FormControl>
                         <FormDescription>
                           You cannot change your email address

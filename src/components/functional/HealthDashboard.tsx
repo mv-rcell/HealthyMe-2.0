@@ -3,6 +3,11 @@ import { Activity, Heart, TrendingUp, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { useHealthAI } from '@/hooks/useHealthAI.tsx';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 interface HealthMetric {
   id: number;
@@ -50,6 +55,41 @@ const HealthDashboard = () => {
     { id: 2, activity: "Yoga Session", duration: "45 min", time: "6:00 PM" },
     { id: 3, activity: "Meditation", duration: "15 min", time: "9:00 PM" }
   ]);
+
+  const { generateWorkoutPlan, analyzeVitals, suggestCheckup, loading } = useHealthAI();
+  const [workoutPreferences, setWorkoutPreferences] = useState('');
+  const [vitalsData, setVitalsData] = useState({
+    bloodPressure: '',
+    heartRate: '',
+    weight: '',
+    temperature: ''
+  });
+  const [aiResponse, setAiResponse] = useState('');
+
+  const handleLogExercise = async () => {
+    if (!workoutPreferences.trim()) {
+      return;
+    }
+    
+    const plan = await generateWorkoutPlan(workoutPreferences);
+    if (plan) {
+      setAiResponse(plan);
+    }
+  };
+
+  const handleRecordVitals = async () => {
+    const plan = await analyzeVitals(vitalsData);
+    if (plan) {
+      setAiResponse(plan);
+    }
+  };
+
+  const handleScheduleCheckup = async () => {
+    const suggestion = await suggestCheckup({ age: 30, lastCheckup: '6 months ago' });
+    if (suggestion) {
+      setAiResponse(suggestion);
+    }
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
@@ -123,21 +163,124 @@ const HealthDashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
+            <CardTitle>AI-Powered Quick Actions</CardTitle>
+
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Button className="w-full justify-start" variant="outline">
-                <Activity className="h-4 w-4 mr-2" />
-                Log Exercise
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <Heart className="h-4 w-4 mr-2" />
-                Record Vitals
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <Calendar className="h-4 w-4 mr-2" />
-                Schedule Checkup
-              </Button>
+            <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="w-full justify-start" variant="outline">
+                    <Activity className="h-4 w-4 mr-2" />
+                    Log Exercise
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Log Exercise with AI</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="preferences">Exercise Preferences</Label>
+                      <Textarea
+                        id="preferences"
+                        placeholder="e.g., I want to build muscle, I have 30 minutes, I prefer home workouts..."
+                        value={workoutPreferences}
+                        onChange={(e) => setWorkoutPreferences(e.target.value)}
+                      />
+                    </div>
+                    <Button onClick={handleLogExercise} disabled={loading} className="w-full">
+                      {loading ? 'Generating...' : 'Generate Workout Plan'}
+                    </Button>
+                    {aiResponse && (
+                      <div className="mt-4 p-4 bg-muted rounded-lg">
+                        <h4 className="font-semibold mb-2">AI Workout Plan:</h4>
+                        <p className="whitespace-pre-wrap text-sm">{aiResponse}</p>
+                      </div>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="w-full justify-start" variant="outline">
+                    <Heart className="h-4 w-4 mr-2" />
+                    Record Vitals
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Record Vitals with AI Analysis</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="bp">Blood Pressure</Label>
+                      <Input
+                        id="bp"
+                        placeholder="120/80"
+                        value={vitalsData.bloodPressure}
+                        onChange={(e) => setVitalsData({...vitalsData, bloodPressure: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="hr">Heart Rate (bpm)</Label>
+                      <Input
+                        id="hr"
+                        placeholder="72"
+                        value={vitalsData.heartRate}
+                        onChange={(e) => setVitalsData({...vitalsData, heartRate: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="weight">Weight (kg)</Label>
+                      <Input
+                        id="weight"
+                        placeholder="70"
+                        value={vitalsData.weight}
+                        onChange={(e) => setVitalsData({...vitalsData, weight: e.target.value})}
+                      />
+                    </div>
+                    <Button onClick={handleRecordVitals} disabled={loading} className="w-full">
+                      {loading ? 'Analyzing...' : 'Analyze Vitals'}
+                    </Button>
+                    {aiResponse && (
+                      <div className="mt-4 p-4 bg-muted rounded-lg">
+                        <h4 className="font-semibold mb-2">AI Analysis:</h4>
+                        <p className="whitespace-pre-wrap text-sm">{aiResponse}</p>
+                      </div>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="w-full justify-start" variant="outline">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Schedule Checkup
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>AI Checkup Recommendations</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Get AI-powered recommendations for your next medical checkup based on your health profile.
+                    </p>
+                    <Button onClick={handleScheduleCheckup} disabled={loading} className="w-full">
+                      {loading ? 'Generating...' : 'Get Checkup Suggestions'}
+                    </Button>
+                    {aiResponse && (
+                      <div className="mt-4 p-4 bg-muted rounded-lg">
+                        <h4 className="font-semibold mb-2">AI Recommendations:</h4>
+                        <p className="whitespace-pre-wrap text-sm">{aiResponse}</p>
+                      </div>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardContent>
         </Card>

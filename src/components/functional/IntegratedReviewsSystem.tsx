@@ -1,74 +1,72 @@
 import React, { useState, useEffect } from 'react';
-import { Star, MessageSquare, User, ThumbsUp, Calendar } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { toast } from 'sonner';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useReviews } from '@/hooks/useReviews';
-import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-interface Specialist {
-  id: string;
-  full_name: string;
-  specialist_type: string;
-  profile_picture_url?: string;
+interface RatingProps {
+  rating: number;
+  setRating: (rating: number) => void;
 }
 
-const IntegratedReviewsSystem = () => {
-  const [specialists, setSpecialists] = useState<Specialist[]>([]);
-  const [selectedSpecialist, setSelectedSpecialist] = useState('');
-  const [overallRating, setOverallRating] = useState(0);
-  const [serviceRating, setServiceRating] = useState(0);
-  const [communicationRating, setCommunicationRating] = useState(0);
-  const [professionalismRating, setProfessionalismRating] = useState(0);
-  const [comment, setComment] = useState('');
-  const [loading, setLoading] = useState(false);
-  
+const Rating: React.FC<RatingProps> = ({ rating, setRating }) => {
+  return (
+    <div className="flex items-center">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          className={`h-5 w-5 cursor-pointer ${star <= rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
+          onClick={() => setRating(star)}
+        />
+      ))}
+    </div>
+  );
+};
+
+interface Review {
+  id: string;
+  client_id: string;
+  specialist_id: string;
+  appointment_id?: number;
+  overall_rating: number;
+  service_rating: number;
+  communication_rating: number;
+  professionalism_rating: number;
+  comment?: string;
+  is_verified: boolean;
+  created_at: string;
+}
+
+const IntegratedReviewsSystem = ({ specialistId }: { specialistId: string }) => {
   const { user } = useAuth();
-  const { reviews, createReview, getSpecialistReviews } = useReviews();
-  const [specialistReviews, setSpecialistReviews] = useState<any[]>([]);
-  const client_id = user?.id; 
+  const { createReview, getSpecialistReviews } = useReviews();
+  const [overallRating, setOverallRating] = useState(5);
+  const [serviceRating, setServiceRating] = useState(5);
+  const [communicationRating, setCommunicationRating] = useState(5);
+  const [professionalismRating, setProfessionalismRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchSpecialists();
-  }, []);
+    const fetchReviews = async () => {
+      setLoading(true);
+      try {
+        const specialistReviews = await getSpecialistReviews(specialistId);
+        setReviews(specialistReviews);
+      } catch (error: any) {
+        toast.error(`Error fetching reviews: ${error.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  useEffect(() => {
-    if (selectedSpecialist) {
-      loadSpecialistReviews();
-    }
-  }, [selectedSpecialist]);
-
-  const fetchSpecialists = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('role', 'specialist')
-        .not('specialist_type', 'is', null);
-
-      if (error) throw error;
-      setSpecialists(data || []);
-    } catch (error: any) {
-      toast.error(`Failed to fetch specialists: ${error.message}`);
-    }
-  };
-
-  const loadSpecialistReviews = async () => {
-    if (!selectedSpecialist) return;
-    
-    try {
-      const reviews = await getSpecialistReviews(selectedSpecialist);
-      setSpecialistReviews(reviews);
-    } catch (error) {
-      console.error('Error loading reviews:', error);
-    }
-  };
+    fetchReviews();
+  }, [specialistId, getSpecialistReviews]);
 
   const handleSubmitReview = async () => {
     if (!user) {
@@ -76,183 +74,89 @@ const IntegratedReviewsSystem = () => {
       return;
     }
 
-    if (!selectedSpecialist || overallRating === 0) {
-      toast.error('Please select a specialist and provide ratings');
-      return;
-    }
+    const reviewData = {
+      client_id: user.id,
+      specialist_id: specialistId,
+      overall_rating: overallRating,
+      service_rating: serviceRating,
+      communication_rating: communicationRating,
+      professionalism_rating: professionalismRating,
+      comment: comment
+    };
 
-    setLoading(true);
-    try {
-      await createReview({
-        client_id,
-        specialist_id: selectedSpecialist,
-        overall_rating: overallRating,
-        service_rating: serviceRating,
-        communication_rating: communicationRating,
-        professionalism_rating: professionalismRating,
-        comment
-      });
-      
-      // Reset form
-      setSelectedSpecialist('');
-      setOverallRating(0);
-      setServiceRating(0);
-      setCommunicationRating(0);
-      setProfessionalismRating(0);
-      setComment('');
-      
-      toast.success('Review submitted successfully!');
-      loadSpecialistReviews();
-    } catch (error: any) {
-      toast.error(`Failed to submit review: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
+    await createReview(reviewData);
+    
+    // Reset form
+    setOverallRating(5);
+    setServiceRating(5);
+    setCommunicationRating(5);
+    setProfessionalismRating(5);
+    setComment('');
   };
-
-  const StarRating = ({ rating, onRatingChange, label }: { rating: number; onRatingChange: (rating: number) => void; label: string }) => (
-    <div className="space-y-2">
-      <label className="text-sm font-medium">{label}</label>
-      <div className="flex gap-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`h-6 w-6 cursor-pointer transition-colors ${
-              star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
-            }`}
-            onClick={() => onRatingChange(star)}
-          />
-        ))}
-      </div>
-    </div>
-  );
 
   return (
     <div className="space-y-6">
-      <Card className="w-full max-w-4xl mx-auto">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            Submit a Review
-          </CardTitle>
+          <CardTitle>Leave a Review</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Select Specialist</label>
-            <Select value={selectedSpecialist} onValueChange={setSelectedSpecialist}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a specialist to review" />
-              </SelectTrigger>
-              <SelectContent>
-                {specialists.map((specialist) => (
-                  <SelectItem key={specialist.id} value={specialist.id}>
-                    {specialist.full_name} - {specialist.specialist_type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="overall">Overall Rating</Label>
+            <Rating rating={overallRating} setRating={setOverallRating} />
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <StarRating 
-              rating={overallRating} 
-              onRatingChange={setOverallRating} 
-              label="Overall Rating" 
-            />
-            <StarRating 
-              rating={serviceRating} 
-              onRatingChange={setServiceRating} 
-              label="Service Quality" 
-            />
-            <StarRating 
-              rating={communicationRating} 
-              onRatingChange={setCommunicationRating} 
-              label="Communication" 
-            />
-            <StarRating 
-              rating={professionalismRating} 
-              onRatingChange={setProfessionalismRating} 
-              label="Professionalism" 
-            />
-          </div>
-
           <div>
-            <label className="block text-sm font-medium mb-2">Your Review</label>
+            <Label htmlFor="service">Service Quality</Label>
+            <Rating rating={serviceRating} setRating={setServiceRating} />
+          </div>
+          <div>
+            <Label htmlFor="communication">Communication</Label>
+            <Rating rating={communicationRating} setRating={setCommunicationRating} />
+          </div>
+          <div>
+            <Label htmlFor="professionalism">Professionalism</Label>
+            <Rating rating={professionalismRating} setRating={setProfessionalismRating} />
+          </div>
+          <div>
+            <Label htmlFor="comment">Comment</Label>
             <Textarea
+              id="comment"
+              placeholder="Write your review here..."
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Share your experience with this specialist..."
-              rows={4}
             />
           </div>
-
-          <Button onClick={handleSubmitReview} disabled={loading} className="w-full">
-            <MessageSquare className="h-4 w-4 mr-2" />
-            {loading ? 'Submitting...' : 'Submit Review'}
-          </Button>
+          <Button onClick={handleSubmitReview}>Submit Review</Button>
         </CardContent>
       </Card>
 
-      {/* Reviews Display */}
-      {selectedSpecialist && (
-        <Card className="w-full max-w-4xl mx-auto">
-          <CardHeader>
-            <CardTitle>Reviews for {specialists.find(s => s.id === selectedSpecialist)?.full_name}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {specialistReviews.length > 0 ? (
-              <div className="space-y-4">
-                {specialistReviews.map((review) => (
-                  <div key={review.id} className="border border-border rounded-lg p-4 bg-card">
-                    <div className="flex items-start gap-4">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback>
-                          <User className="h-5 w-5" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="flex">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`h-4 w-4 ${
-                                  star <= review.overall_rating
-                                    ? 'text-yellow-400 fill-yellow-400'
-                                    : 'text-gray-300'
-                                }`}
-                              />
-                            ))}
-                          </div>
-                          <span className="text-sm text-muted-foreground">
-                            {new Date(review.created_at).toLocaleDateString()}
-                          </span>
-                          {review.is_verified && (
-                            <Badge variant="secondary" className="text-xs">
-                              <ThumbsUp className="h-3 w-3 mr-1" />
-                              Verified
-                            </Badge>
-                          )}
-                        </div>
-                        {review.comment && (
-                          <p className="text-sm text-foreground">{review.comment}</p>
-                        )}
-                        <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
-                          <span>Service: {review.service_rating}/5</span>
-                          <span>Communication: {review.communication_rating}/5</span>
-                          <span>Professionalism: {review.professionalism_rating}/5</span>
-                        </div>
-                      </div>
-                    </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Specialist Reviews</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div>Loading reviews...</div>
+          ) : reviews.length > 0 ? (
+            <div className="space-y-4">
+              {reviews.map((review) => (
+                <div key={review.id} className="border rounded-md p-4">
+                  <div className="flex items-center space-x-2">
+                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                    <span className="text-sm font-medium">{review.overall_rating}</span>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-center py-8">No reviews yet</p>
-            )}
-          </CardContent>
-        </Card>
-      )}
+                  <p className="text-sm text-muted-foreground">{review.comment}</p>
+                  <p className="text-xs text-gray-500">
+                    Reviewed on {new Date(review.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div>No reviews yet.</div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

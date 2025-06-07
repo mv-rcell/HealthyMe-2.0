@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CalendarIcon, UserIcon, SettingsIcon, FileTextIcon, TestTubeIcon } from 'lucide-react';
+import { CalendarIcon, UserIcon, SettingsIcon, FileTextIcon, TestTubeIcon, Link } from 'lucide-react';
 import HealthRecordsTab from '@/components/functional/HealthRecordsTab';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useLabTests } from '@/hooks/useLabTests';
