@@ -4,6 +4,9 @@ import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 
 export interface LabTest {
+  age: string;
+  gender: string;
+  phone_number: string;
   id: string;
   client_id: string;
   test_type: string;

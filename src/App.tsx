@@ -30,6 +30,8 @@ import AuthGate from '@/components/AuthGate.tsx';
 import AppointmentRequest from '@/pages/AppointmentRequest.tsx'
 import AppointmentHistory from '@/pages/AppointmentHistory';
 import Features from '@/pages/Features.tsx';
+import SmartFeatures from "@/pages/SmartFeatures";
+
 
 
 
@@ -75,6 +77,8 @@ const App = () => {
                 <Route path="/appointment" element={<AppointmentRequest />} />
                 <Route path="/appointments" element={<AppointmentHistory />} />
                 <Route path="/features" element={<Features />} />
+                <Route path="/smart-features" element={<SmartFeatures />} />
+
 
                 <Route path="/" element={<AuthGate />} />
 
