@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Brain, Sparkles, Target } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

@@ -1,0 +1,29 @@
+{
+    "name": "HealthyMe - Health & Wellness Platform",
+    "short_name": "HealthyMe",
+    "description": "Your comprehensive healthcare companion with AI-powered insights, specialist connections, and personalized wellness tracking.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#222.1 83.2% 9.8%",
+    "orientation": "portrait-primary",
+    "icons": [
+      {
+        "src": "/favicon.ico",
+        "sizes": "64x64 32x32 24x24 16x16",
+        "type": "image/x-icon"
+      },
+      {
+        "src": "/placeholder.svg",
+        "type": "image/svg+xml",
+        "sizes": "192x192",
+        "purpose": "any maskable"
+      }
+    ],
+    "categories": ["health", "medical", "lifestyle"],
+    "lang": "en",
+    "dir": "ltr",
+    "scope": "/",
+    "prefer_related_applications": false
+  }
+  

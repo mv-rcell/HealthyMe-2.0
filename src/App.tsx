@@ -36,7 +36,16 @@ import SmartFeatures from "@/pages/SmartFeatures";
 
 
 // Create a client
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => {
   const [musicStarted, setMusicStarted] = useState(false);
@@ -50,10 +59,10 @@ const App = () => {
        <ThemeProvider defaultTheme="system">
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
-            <Toaster />
-            <SonnerToaster position="top-right" richColors closeButton />
-            <BrowserRouter>
-              <Routes>
+          <div className="mobile-safe-area">
+          <Toaster />
+          <BrowserRouter>
+            <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/specialists" element={<Specialists />} />
                 <Route path="/clients" element={<Clients />} />
@@ -84,8 +93,9 @@ const App = () => {
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
+                </Routes>
+          </BrowserRouter>
+        </div>
           </TooltipProvider>
         </QueryClientProvider>
       </ThemeProvider>
