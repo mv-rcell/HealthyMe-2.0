@@ -28,8 +28,8 @@ const Navbar = () => {
   ];
 
   return (
-    <header className="bg-background/90 backdrop-blur-md border-b border-border sticky top-0 z-40">
-      <div className="container mx-auto px-4 py-4">
+    <header className="bg-background/90 backdrop-blur-md border-b border-border sticky top-0 z-40 pwa-header">
+      <div className="container mx-auto px-4 py-4 mobile-padding">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Logo />
@@ -57,8 +57,8 @@ const Navbar = () => {
                 }}
                 className={`${
                   isActive(item.path) ? "bg-muted" : ""
-                } text-sm transition-colors`}
-              >
+                } text-sm transition-colors pwa-button`}
+                >
                 {item.name}
               </Button>
             ))}
@@ -73,7 +73,7 @@ const Navbar = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="md:hidden pwa-button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? <X /> : <Menu />}
@@ -83,7 +83,7 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden pt-4 pb-3 border-t mt-4 space-y-2">
+          <div className="md:hidden pt-4 pb-3 border-t mt-4 space-y-2 animate-slide-up">
             {navItems.map((item) => (
               <Button
                 key={item.name}
@@ -105,8 +105,8 @@ const Navbar = () => {
                 }}
                 className={`${
                   isActive(item.path) ? "bg-muted" : ""
-                } w-full justify-start text-sm`}
-              >
+                } w-full justify-start text-sm pwa-button`}
+                >
                 {item.name}
               </Button>
             ))}

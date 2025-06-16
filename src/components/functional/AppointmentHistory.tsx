@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
@@ -7,29 +6,80 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CalendarIcon, ActivityIcon, UserIcon, HeartIcon, ClipboardListIcon, CreditCardIcon, SettingsIcon } from 'lucide-react';
+import {
+  CalendarIcon,
+  ActivityIcon,
+  UserIcon,
+  ClipboardListIcon,
+  CreditCardIcon,
+} from 'lucide-react';
 import HealthDashboard from '@/components/functional/HealthDashboard';
 import HabitTracker from '@/components/functional/HabitTracker';
-import AppointmentHistory from '@/components/functional/AppointmentHistory';
 import HealthRecordsTab from '@/components/functional/HealthRecordsTab';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import AppointmentHistory from '@/pages/AppointmentHistory';
 
 const ClientDashboard = () => {
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
-  
-  // Redirect if not logged in
-  React.useEffect(() => {
+  const [recentActivity, setRecentActivity] = useState([]);
+
+  const displayName = profile?.full_name ?? 'User';
+
+  useEffect(() => {
     if (!loading && !user) {
       navigate('/auth');
     }
   }, [user, loading, navigate]);
 
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
+  useEffect(() => {
+    // Fetch existing activity logs on initial load
+    const fetchActivityLogs = async () => {
+      const { data, error } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
 
-  const quickActions = [
+      if (data) {
+        setRecentActivity(data);
+      }
+    };
+
+    fetchActivityLogs();
+
+    const activityChannel = supabase
+      .channel('realtime-activity')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'activity_logs' }, (payload) => {
+        setRecentActivity((prev) => [payload.new, ...prev]);
+        toast.info('New activity logged');
+      })
+      .subscribe();
+
+    const appointmentChannel = supabase
+      .channel('realtime-appointments')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, (payload) => {
+        toast.success('Appointment updated');
+      })
+      .subscribe();
+
+    const recordsChannel = supabase
+      .channel('realtime-records')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'health_records' }, (payload) => {
+        toast.success('New health record added');
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(activityChannel);
+      supabase.removeChannel(appointmentChannel);
+      supabase.removeChannel(recordsChannel);
+    };
+  }, []);
+
+  const quickActions = useMemo(() => [
     {
       title: 'Book Consultation',
       description: 'Schedule an appointment with a specialist',
@@ -53,15 +103,23 @@ const ClientDashboard = () => {
       description: 'View billing and payment information',
       icon: <CreditCardIcon className="w-8 h-8 text-primary" />,
       action: () => navigate('/payments')
-    },
-  ];
+    }
+  ], [navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <div className="flex-grow container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Welcome back, {profile?.full_name || 'User'}!</h1>
+          <h1 className="text-3xl font-bold mb-2">Welcome back, {displayName}!</h1>
           <p className="text-muted-foreground">Manage your health journey from your personalized dashboard.</p>
         </div>
 
@@ -75,10 +133,15 @@ const ClientDashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {quickActions.map((action, index) => (
-                <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer" onClick={action.action}>
+                <Card
+                  role="button"
+                  aria-label={action.title}
+                  key={index}
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={action.action}
+                >
                   <CardHeader className="flex flex-col items-center pb-2">
                     {action.icon}
                     <CardTitle className="mt-4 text-center">{action.title}</CardTitle>
@@ -90,7 +153,6 @@ const ClientDashboard = () => {
               ))}
             </div>
 
-            {/* Recent Activity */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -99,14 +161,22 @@ const ClientDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Your recent health activities will appear here.</p>
+                {recentActivity.length > 0 ? (
+                  <ul className="space-y-2">
+                    {recentActivity.map((activity, i) => (
+                      <li key={i} className="text-sm text-muted-foreground">
+                        {activity.description || 'New activity logged'}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted-foreground">Your recent health activities will appear here.</p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="appointments">
-            <AppointmentHistory />
-          </TabsContent>
+         
 
           <TabsContent value="health">
             <HealthDashboard />
@@ -126,4 +196,4 @@ const ClientDashboard = () => {
   );
 };
 
-export default ClientDashboard;
+export default AppointmentHistory;

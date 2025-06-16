@@ -48,6 +48,38 @@ const queryClient = new QueryClient({
   },
 });
 
+// PWA install detection
+React.useEffect(() => {
+  const handleInstallPrompt = (e: Event) => {
+    e.preventDefault();
+    console.log('PWA install prompt available');
+  };
+
+  const handleAppInstalled = () => {
+    console.log('PWA was installed');
+    // Track installation analytics here if needed
+  };
+
+  window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+  window.addEventListener('appinstalled', handleAppInstalled);
+
+  // Check if running as PWA
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                (window.navigator as any).standalone === true ||
+                document.referrer.includes('android-app://');
+
+  if (isPWA) {
+    document.body.classList.add('pwa-mode');
+    console.log('Running as PWA');
+  }
+
+  return () => {
+    window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+    window.removeEventListener('appinstalled', handleAppInstalled);
+  };
+}, []);
+
+
 const App = () => {
   const [musicStarted, setMusicStarted] = useState(false);
 
@@ -60,7 +92,7 @@ const App = () => {
        <ThemeProvider defaultTheme="system">
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
-          <div className="mobile-safe-area">
+          <div className="mobile-safe-area pwa-safe-area min-h-screen">
           <Toaster />
           <BrowserRouter>
             <Routes>

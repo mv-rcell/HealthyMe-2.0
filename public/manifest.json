@@ -5,25 +5,97 @@
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#222.1 83.2% 9.8%",
-    "orientation": "portrait-primary",
-    "icons": [
-      {
-        "src": "/favicon.ico",
-        "sizes": "64x64 32x32 24x24 16x16",
-        "type": "image/x-icon"
-      },
-      {
-        "src": "/placeholder.svg",
-        "type": "image/svg+xml",
-        "sizes": "192x192",
-        "purpose": "any maskable"
-      }
-    ],
-    "categories": ["health", "medical", "lifestyle"],
-    "lang": "en",
-    "dir": "ltr",
-    "scope": "/",
-    "prefer_related_applications": false
-  }
-  
+    "theme_color": "#1a1a1a",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Book Consultation",
+      "short_name": "Book",
+      "description": "Quick access to book a consultation",
+      "url": "/book-consultation",
+      "icons": [
+        {
+          "src": "/placeholder.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Find Specialists",
+      "short_name": "Specialists",
+      "description": "Browse healthcare specialists",
+      "url": "/specialists",
+      "icons": [
+        {
+          "src": "/placeholder.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Access your health dashboard",
+      "url": "/client-dashboard",
+      "icons": [
+        {
+          "src": "/placeholder.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/placeholder.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/placeholder.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/placeholder.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/placeholder.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["health", "medical", "lifestyle", "productivity"],
+  "screenshots": [
+    {
+      "src": "/placeholder.svg",
+      "type": "image/svg+xml",
+      "sizes": "540x720",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/placeholder.svg",
+      "type": "image/svg+xml",
+      "sizes": "1024x768",
+      "form_factor": "wide"
+    }
+  ]
+}
