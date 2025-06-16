@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 
 
-
 const Hero = () => {
   const heroRef = useRef<HTMLDivElement>(null);
 
@@ -80,7 +79,7 @@ const Hero = () => {
           >
             <a href="#features">Explore Services</a>
           </Button>
-                  <Link to="/appointment">
+                  <Link to="/book-consultation">
           <Button
             size="lg"
             variant="outline"

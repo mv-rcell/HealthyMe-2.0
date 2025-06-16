@@ -1,190 +1,125 @@
-import React, { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import {
-  Card, CardContent, CardHeader, CardTitle,
-} from '@/components/ui/card';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import {
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from '@/components/ui/select';
+
+import React from 'react';
+import { useAppointments } from '@/hooks/useAppointments';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Calendar, Clock, User, MapPin } from 'lucide-react';
+import { format } from 'date-fns';
+import { specialistsData } from '@/data/specialist';
 
 const AppointmentHistory = () => {
-  const { user } = useAuth();
-  const [appointments, setAppointments] = useState([]);
-  const [filteredAppointments, setFilteredAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState({
-    type: '',
-    specialty: '',
-    search: ''
-  });
+  const { appointments, loading } = useAppointments();
 
-if (!user) {
-  console.log("User not logged in");
-  return;
-}
-
-
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
-
-  const fetchAppointments = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('appointments')
-      .select('*')
-      .eq('user_id', user?.id)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching appointments:', error);
-    } else {
-      setAppointments(data);
-      setFilteredAppointments(data);
-    }
-    setLoading(false);
+  const getSpecialistInfo = (specialistId: string) => {
+    return specialistsData.find(s => s.id === specialistId);
   };
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchAppointments();
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
-  }, [user]);
-
-  const applyFilters = () => {
-    let filtered = appointments;
-    if (filter.type) {
-      filtered = filtered.filter(app => app.appointment_type === filter.type);
-    }
-    if (filter.specialty) {
-      filtered = filtered.filter(app => app.specialty === filter.specialty);
-    }
-    if (filter.search) {
-      filtered = filtered.filter(app =>
-        app.consultation_reason?.toLowerCase().includes(filter.search.toLowerCase()) ||
-        app.doctor?.toLowerCase().includes(filter.search.toLowerCase())
-      );
-    }
-    setFilteredAppointments(filtered);
-    setCurrentPage(1);
   };
 
-  useEffect(() => {
-    applyFilters();
-  }, [filter]);
-
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentAppointments = filteredAppointments.slice(startIndex, startIndex + itemsPerPage);
-  const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
+  if (loading) {
+    return <div className="flex items-center justify-center p-8">Loading appointments...</div>;
+  }
 
   return (
-    <div className="container py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Appointment History</CardTitle>
-        </CardHeader>
-        <CardContent>
-
-          {/* Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
-            <Input
-              placeholder="Search doctor or reason..."
-              value={filter.search}
-              onChange={e => setFilter({ ...filter, search: e.target.value })}
-            />
-            <Select onValueChange={val => setFilter({ ...filter, type: val })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="in-person">In-Person</SelectItem>
-                <SelectItem value="tele">Tele</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select onValueChange={val => setFilter({ ...filter, specialty: val })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by Specialty" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cardiology">Cardiology</SelectItem>
-                <SelectItem value="dermatology">Dermatology</SelectItem>
-                <SelectItem value="neurology">Neurology</SelectItem>
-                <SelectItem value="orthopedics">Orthopedics</SelectItem>
-                <SelectItem value="pediatrics">Pediatrics</SelectItem>
-                <SelectItem value="psychiatry">Psychiatry</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={applyFilters}>Apply Filters</Button>
-          </div>
-
-          {loading ? (
-            <div className="flex justify-center py-10">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : currentAppointments.length === 0 ? (
-            <p className="text-center text-muted-foreground">No appointment history available.</p>
-          ) : (
-            <div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Specialty</TableHead>
-                    <TableHead>Doctor</TableHead>
-                    <TableHead>Reason</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentAppointments.map((appointment) => (
-                    <TableRow key={appointment.id}>
-                      <TableCell>
-                        {new Date(appointment.created_at).toLocaleString()}
-                      </TableCell>
-                      <TableCell className="capitalize">
-                        {appointment.appointment_type === 'tele' ? 'Tele' : 'In-Person'}
-                      </TableCell>
-                      <TableCell className="capitalize">{appointment.specialty}</TableCell>
-                      <TableCell>{appointment.doctor || 'N/A'}</TableCell>
-                      <TableCell>{appointment.consultation_reason || 'N/A'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {/* Pagination */}
-              <div className="flex justify-between items-center pt-6">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(prev => prev - 1)}
-                >
-                  Previous
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(prev => prev + 1)}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Appointment History</h2>
+      
+      {appointments.length === 0 ? (
+        <Card>
+          <CardContent className="text-center py-8">
+            <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">No appointments found. Book your first consultation!</p>
+            <Button className="mt-4" onClick={() => window.location.href = '/book-consultation'}>
+              Book Consultation
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {appointments.map((appointment) => {
+            const specialist = getSpecialistInfo(appointment.specialist_id);
+            return (
+              <Card key={appointment.id}>
+                <CardContent className="p-6">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      {specialist && (
+                        <img
+                          src={specialist.imageUrl}
+                          alt={specialist.name}
+                          className="w-16 h-16 rounded-full object-cover"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">
+                          {specialist?.name || 'Specialist'}
+                        </h3>
+                        <p className="text-primary font-medium">
+                          {specialist?.specialty || appointment.service_type}
+                        </p>
+                        
+                        <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            {format(new Date(appointment.appointment_date), 'MMM dd, yyyy')}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            {format(new Date(appointment.appointment_date), 'HH:mm')}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <User className="h-4 w-4" />
+                            {appointment.duration} minutes
+                          </div>
+                        </div>
+                        
+                        {appointment.notes && (
+                          <p className="text-sm text-muted-foreground mt-2">
+                            {appointment.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge className={getStatusColor(appointment.status)}>
+                        {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                      </Badge>
+                      {appointment.price && (
+                        <p className="text-lg font-semibold">KES {appointment.price}</p>
+                      )}
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">
+                          View Details
+                        </Button>
+                        {appointment.status === 'pending' && (
+                          <Button variant="outline" size="sm">
+                            Reschedule
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

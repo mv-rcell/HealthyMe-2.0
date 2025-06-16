@@ -31,6 +31,7 @@ import AppointmentRequest from '@/pages/AppointmentRequest.tsx'
 import AppointmentHistory from '@/pages/AppointmentHistory';
 import Features from '@/pages/Features.tsx';
 import SmartFeatures from "@/pages/SmartFeatures";
+import BookConsultation from "@/pages/BookConsultation";
 
 
 
@@ -87,6 +88,7 @@ const App = () => {
                 <Route path="/appointments" element={<AppointmentHistory />} />
                 <Route path="/features" element={<Features />} />
                 <Route path="/smart-features" element={<SmartFeatures />} />
+                <Route path="/book-consultation" element={<BookConsultation />} />
 
 
                 <Route path="/" element={<AuthGate />} />

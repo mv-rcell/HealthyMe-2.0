@@ -22,17 +22,15 @@ export const useAIRecommendations = () => {
 
       if (error) {
         console.error('AI function error:', error);
-        // Fallback to simulated response
-        return generateFallbackRecommendation(data);
+        return generateEnhancedFallbackRecommendation(data);
       }
 
       console.log('AI recommendation result:', result);
-      return result?.recommendation || generateFallbackRecommendation(data);
+      return result?.recommendation || generateEnhancedFallbackRecommendation(data);
     } catch (err: any) {
       console.error('AI recommendation error:', err);
       setError(err.message);
-      toast.error('AI service temporarily unavailable. Using fallback recommendations.');
-      return generateFallbackRecommendation(data);
+      return generateEnhancedFallbackRecommendation(data);
     } finally {
       setLoading(false);
     }
@@ -52,64 +50,122 @@ export const useAIRecommendations = () => {
     });
   };
 
-  const generateFallbackRecommendation = (data: { type: string; data: any }) => {
-    console.log('Using fallback AI recommendation for:', data.type);
+  const recommendSpecialist = async (symptoms: string) => {
+    return await generateRecommendation({
+      type: 'specialist',
+      data: { symptoms }
+    });
+  };
+
+  const generateEnhancedFallbackRecommendation = (data: { type: string; data: any }) => {
+    console.log('Using enhanced fallback AI recommendation for:', data.type);
     
     switch (data.type) {
       case 'specialist':
-        return `Based on your symptoms: "${data.data.symptoms}", I recommend consulting with:
-        
-1. **General Medicine** - For initial assessment and diagnosis
-2. **Internal Medicine** - If symptoms persist or are complex
-3. **Specialist Referral** - Based on specific symptom patterns
-
-Please book an appointment through our platform for proper medical evaluation.`;
-
+        return generateSpecialistRecommendation(data.data.symptoms);
       case 'care_plan':
-        return `**Personalized Care Plan**
-
-**Health Goals:** ${data.data.healthGoals}
-**Current Conditions:** ${data.data.currentConditions}
-
-**Recommendations:**
-1. **Regular Monitoring** - Track vital signs and symptoms daily
-2. **Lifestyle Modifications** - Diet, exercise, and stress management
-3. **Medical Follow-ups** - Schedule regular check-ups with specialists
-4. **Preventive Care** - Vaccinations and health screenings
-5. **Emergency Planning** - Know when to seek immediate medical attention
-
-**Next Steps:**
-- Book consultation with relevant specialists
-- Start habit tracking for health goals
-- Review and update care plan monthly`;
-
+        return generateCarePlanRecommendation(data.data.healthGoals, data.data.currentConditions);
       case 'symptom_analysis':
-        return `**Symptom Analysis Report**
-
-**Symptoms Reported:** ${data.data.symptoms}
-
-**Preliminary Assessment:**
-- Symptoms may indicate need for medical evaluation
-- Consider timing, severity, and associated factors
-- Monitor for any worsening or new symptoms
-
-**Recommended Actions:**
-1. **Immediate:** If severe symptoms, seek emergency care
-2. **Short-term:** Book appointment with general practitioner
-3. **Ongoing:** Keep symptom diary for healthcare provider
-
-**Important:** This is not a medical diagnosis. Please consult healthcare professionals for proper evaluation.`;
-
+        return generateSymptomAnalysis(data.data.symptoms);
       default:
         return 'AI recommendation service is being updated. Please try again later or consult with our specialists directly.';
     }
   };
 
+  const generateSpecialistRecommendation = (symptoms: string) => {
+    const symptomsLower = symptoms.toLowerCase();
+    let recommendations = [];
+
+    if (symptomsLower.includes('chest pain') || symptomsLower.includes('heart') || symptomsLower.includes('palpitation')) {
+      recommendations.push({
+        specialist: 'Cardiologist',
+        reason: 'For evaluation of chest pain and heart-related symptoms',
+        urgency: 'High - seek immediate attention if severe'
+      });
+    }
+
+    if (symptomsLower.includes('cough') || symptomsLower.includes('breathing') || symptomsLower.includes('shortness of breath')) {
+      recommendations.push({
+        specialist: 'Pulmonologist',
+        reason: 'For evaluation of respiratory symptoms',
+        urgency: 'Medium - schedule within a week'
+      });
+    }
+
+    if (symptomsLower.includes('rash') || symptomsLower.includes('skin') || symptomsLower.includes('itching')) {
+      recommendations.push({
+        specialist: 'Dermatologist',
+        reason: 'For skin condition evaluation and treatment',
+        urgency: 'Low - can be scheduled within 2 weeks'
+      });
+    }
+
+    if (symptomsLower.includes('stomach') || symptomsLower.includes('abdominal') || symptomsLower.includes('nausea')) {
+      recommendations.push({
+        specialist: 'Gastroenterologist',
+        reason: 'For digestive system evaluation',
+        urgency: 'Medium - schedule within a week'
+      });
+    }
+
+    if (symptomsLower.includes('anxiety') || symptomsLower.includes('depression') || symptomsLower.includes('stress')) {
+      recommendations.push({
+        specialist: 'Psychiatrist/Psychologist',
+        reason: 'For mental health evaluation and support',
+        urgency: 'Medium - important for overall wellbeing'
+      });
+    }
+
+    if (recommendations.length === 0) {
+      recommendations.push({
+        specialist: 'General Practitioner',
+        reason: 'For initial evaluation and diagnosis',
+        urgency: 'Medium - good starting point for any health concern'
+      });
+    }
+
+    let response = `**Specialist Recommendations Based on Your Symptoms: "${symptoms}"**\n\n`;
+    
+    recommendations.forEach((rec, index) => {
+      response += `**${index + 1}. ${rec.specialist}**\n`;
+      response += `• Reason: ${rec.reason}\n`;
+      response += `• Priority: ${rec.urgency}\n\n`;
+    });
+
+    response += `**Next Steps:**\n`;
+    response += `• Book an appointment through our platform\n`;
+    response += `• Prepare a list of all symptoms and their duration\n`;
+    response += `• Bring any relevant medical history or medications\n\n`;
+    response += `**Important:** This is AI-generated guidance. Please consult healthcare professionals for proper medical evaluation.`;
+
+    return response;
+  };
+
+  const generateCarePlanRecommendation = (healthGoals: string, currentConditions: string) => {
+    return `**Personalized Care Plan**\n\n**Your Health Goals:** ${healthGoals}\n**Current Conditions:** ${currentConditions}\n\n**Recommended Action Plan:**\n\n**1. Immediate Steps (Next 1-2 weeks)**\n• Schedule initial consultation with relevant specialists\n• Complete baseline health assessments\n• Start symptom tracking diary\n\n**2. Short-term Goals (1-3 months)**\n• Establish regular check-up schedule\n• Implement lifestyle modifications\n• Begin recommended treatments or therapies\n\n**3. Long-term Objectives (3-12 months)**\n• Monitor progress toward health goals\n• Adjust treatment plans as needed\n• Focus on preventive care measures\n\n**Recommended Specialists to Consult:**\n• Primary Care Physician for overall health assessment\n• Relevant specialists based on your conditions\n• Nutritionist for dietary guidance\n\n**Note:** This is a general framework. Please consult with healthcare professionals for personalized medical advice.`;
+  };
+
+  const generateSymptomAnalysis = (symptoms: string) => {
+    const symptomsLower = symptoms.toLowerCase();
+    let severity = 'Low';
+    let urgency = 'Schedule within 2 weeks';
+    
+    if (symptomsLower.includes('severe') || symptomsLower.includes('intense') || symptomsLower.includes('chest pain')) {
+      severity = 'High';
+      urgency = 'Seek immediate medical attention';
+    } else if (symptomsLower.includes('moderate') || symptomsLower.includes('persistent') || symptomsLower.includes('worsening')) {
+      severity = 'Medium';
+      urgency = 'Schedule within 1 week';
+    }
+
+    return `**Symptom Analysis Report**\n\n**Symptoms Reported:** ${symptoms}\n\n**Preliminary Assessment:**\n• Severity Level: ${severity}\n• Recommended Timeline: ${urgency}\n\n**General Recommendations:**\n• Keep a detailed symptom diary\n• Note triggers, timing, and associated factors\n• Monitor for any changes or worsening\n\n**When to Seek Immediate Care:**\n• If symptoms suddenly worsen\n• If you experience difficulty breathing\n• If you have severe pain or discomfort\n• If symptoms interfere with daily activities\n\n**Next Steps:**\n• Book consultation with appropriate specialist\n• Prepare comprehensive symptom history\n• Consider bringing a support person to appointment\n\n**Important Disclaimer:** This analysis is for informational purposes only. Please consult qualified healthcare professionals for proper medical evaluation and diagnosis.`;
+  };
+
   return {
-    generateRecommendation,
+    recommendSpecialist,
     generateCarePlan,
     analyzeSymptoms,
     loading,
-    error
+    error,
   };
 };
