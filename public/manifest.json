@@ -2,10 +2,10 @@
     "name": "HealthyMe - Health & Wellness Platform",
     "short_name": "HealthyMe",
     "description": "Your comprehensive healthcare companion with AI-powered insights, specialist connections, and personalized wellness tracking.",
-    "start_url": "/",
-    "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#1a1a1a",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a1a",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
@@ -19,9 +19,9 @@
       "url": "/book-consultation",
       "icons": [
         {
-          "src": "/placeholder.svg",
+          "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
           "sizes": "96x96",
-          "type": "image/svg+xml"
+          "type": "image/png"
         }
       ]
     },
@@ -32,9 +32,9 @@
       "url": "/specialists",
       "icons": [
         {
-          "src": "/placeholder.svg",
+          "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
           "sizes": "96x96",
-          "type": "image/svg+xml"
+          "type": "image/png"
         }
       ]
     },
@@ -45,9 +45,9 @@
       "url": "/client-dashboard",
       "icons": [
         {
-          "src": "/placeholder.svg",
+          "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
           "sizes": "96x96",
-          "type": "image/svg+xml"
+          "type": "image/png"
         }
       ]
     }
@@ -59,26 +59,26 @@
       "type": "image/x-icon"
     },
     {
-      "src": "/placeholder.svg",
-      "type": "image/svg+xml",
+      "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
+      "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "/placeholder.svg",
-      "type": "image/svg+xml",
+      "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
+      "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
     },
     {
-      "src": "/placeholder.svg",
-      "type": "image/svg+xml",
+      "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
+      "type": "image/png",
       "sizes": "192x192",
       "purpose": "maskable"
     },
     {
-      "src": "/placeholder.svg",
-      "type": "image/svg+xml",
+      "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
+      "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
     }
@@ -86,14 +86,14 @@
   "categories": ["health", "medical", "lifestyle", "productivity"],
   "screenshots": [
     {
-      "src": "/placeholder.svg",
-      "type": "image/svg+xml",
+      "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
+      "type": "image/png",
       "sizes": "540x720",
       "form_factor": "narrow"
     },
     {
-      "src": "/placeholder.svg",
-      "type": "image/svg+xml",
+      "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
+      "type": "image/png",
       "sizes": "1024x768",
       "form_factor": "wide"
     }
