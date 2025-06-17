@@ -20,6 +20,9 @@ import ServiceDetails from "./pages/ServiceDetails";
 import SpecialistOnboarding from "./pages/SpecialistOnboarding.tsx";
 import ClientOnboarding from "./pages/ClientOnboarding.tsx";
 import SpecialistDashboard from "./pages/SpecialistDashboard.tsx";
+import SpecialistAppointments from "@/pages/SpecialistAppointments.tsx";
+import SpecialistClients from "@/pages/SpecialistClients.tsx";
+import SpecialistServices from "@/pages/SpecialistServices.tsx";
 import SpecialistProfile from "./pages/SpecialistProfile.tsx";
 import ClientDashboard from "./pages/ClientDashboard.tsx";
 import MembershipPage from "./pages/MembershipPage.tsx";
@@ -108,6 +111,9 @@ const App = () => {
                   <Route path="/specialist-onboarding" element={<SpecialistOnboarding />} />
                   <Route path="/client-onboarding" element={<ClientOnboarding />} />
                   <Route path="/specialist-dashboard" element={<SpecialistDashboard />} />
+                  <Route path="/specialist/appointments" element={<SpecialistAppointments />} />
+                  <Route path="/specialist/clients" element={<SpecialistClients />} />
+                  <Route path="/specialist/services" element={<SpecialistServices />} />
                   <Route path="/client-dashboard" element={<ClientDashboard />} />
                   <Route path="/payments" element={<Payments />} />
                   <Route path="/memberships" element={<MembershipPage />} />

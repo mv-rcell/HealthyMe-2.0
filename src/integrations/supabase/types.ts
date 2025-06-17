@@ -105,6 +105,56 @@ export type Database = {
         }
         Relationships: []
       }
+      client_progress: {
+        Row: {
+          appointment_id: number | null
+          client_id: string
+          created_at: string
+          follow_up_date: string | null
+          id: string
+          issue_description: string | null
+          progress_notes: string | null
+          recommendations: string | null
+          specialist_id: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          appointment_id?: number | null
+          client_id: string
+          created_at?: string
+          follow_up_date?: string | null
+          id?: string
+          issue_description?: string | null
+          progress_notes?: string | null
+          recommendations?: string | null
+          specialist_id: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: number | null
+          client_id?: string
+          created_at?: string
+          follow_up_date?: string | null
+          id?: string
+          issue_description?: string | null
+          progress_notes?: string | null
+          recommendations?: string | null
+          specialist_id?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_progress_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments_new"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       foods: {
         Row: {
           calories: number | null
@@ -240,6 +290,47 @@ export type Database = {
         }
         Relationships: []
       }
+    }
+    messages: {
+      Row: {
+        appointment_id: number | null
+        created_at: string
+        id: string
+        is_read: boolean | null
+        message_text: string
+        message_type: string | null
+        recipient_id: string
+        sender_id: string
+      }
+      Insert: {
+        appointment_id?: number | null
+        created_at?: string
+        id?: string
+        is_read?: boolean | null
+        message_text: string
+        message_type?: string | null
+        recipient_id: string
+        sender_id: string
+      }
+      Update: {
+        appointment_id?: number | null
+        created_at?: string
+        id?: string
+        is_read?: boolean | null
+        message_text?: string
+        message_type?: string | null
+        recipient_id?: string
+        sender_id?: string
+      }
+      Relationships: [
+        {
+          foreignKeyName: "messages_appointment_id_fkey"
+          columns: ["appointment_id"]
+          isOneToOne: false
+          referencedRelation: "appointments_new"
+          referencedColumns: ["id"]
+        },
+      ]
       payments: {
         Row: {
           amount: number
@@ -395,6 +486,42 @@ export type Database = {
           },
         ]
       }
+    }
+    specialist_services: {
+      Row: {
+        created_at: string
+        description: string | null
+        duration: number | null
+        id: string
+        is_active: boolean | null
+        price: number
+        service_name: string
+        specialist_id: string
+        updated_at: string
+      }
+      Insert: {
+        created_at?: string
+        description?: string | null
+        duration?: number | null
+        id?: string
+        is_active?: boolean | null
+        price: number
+        service_name: string
+        specialist_id: string
+        updated_at?: string
+      }
+      Update: {
+        created_at?: string
+        description?: string | null
+        duration?: number | null
+        id?: string
+        is_active?: boolean | null
+        price?: number
+        service_name?: string
+        specialist_id?: string
+        updated_at?: string
+      }
+      Relationships: []
       User: {
         Row: {
           created_at: string
