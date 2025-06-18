@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
@@ -43,7 +42,6 @@ const Navbar = () => {
                 variant="ghost"
                 onClick={() => {
                   if (item.path.startsWith("/#")) {
-                    // Handle in-page navigation for homepage sections
                     if (location.pathname === "/") {
                       document
                         .querySelector(item.path.substring(1))
@@ -57,8 +55,8 @@ const Navbar = () => {
                 }}
                 className={`${
                   isActive(item.path) ? "bg-muted" : ""
-                } text-sm transition-colors pwa-button`}
-                >
+                } text-sm transition-colors`}
+              >
                 {item.name}
               </Button>
             ))}
@@ -68,12 +66,10 @@ const Navbar = () => {
           <div className="flex items-center space-x-2">
             <ThemeToggle />
             <AuthButton />
-            
-            {/* Mobile menu button */}
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden pwa-button"
+              className="md:hidden"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? <X /> : <Menu />}
@@ -91,7 +87,6 @@ const Navbar = () => {
                 onClick={() => {
                   setIsMobileMenuOpen(false);
                   if (item.path.startsWith("/#")) {
-                    // Handle in-page navigation for homepage sections
                     if (location.pathname === "/") {
                       document
                         .querySelector(item.path.substring(1))
@@ -105,8 +100,8 @@ const Navbar = () => {
                 }}
                 className={`${
                   isActive(item.path) ? "bg-muted" : ""
-                } w-full justify-start text-sm pwa-button`}
-                >
+                } w-full justify-start text-sm`}
+              >
                 {item.name}
               </Button>
             ))}

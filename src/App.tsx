@@ -54,43 +54,13 @@ const App = () => {
 
   const handleStartMusic = () => setMusicStarted(true);
 
-  // ✅ PWA install handling
-  useEffect(() => {
-    const handleInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      console.log("PWA install prompt available");
-    };
-
-    const handleAppInstalled = () => {
-      console.log("PWA was installed");
-    };
-
-    window.addEventListener("beforeinstallprompt", handleInstallPrompt);
-    window.addEventListener("appinstalled", handleAppInstalled);
-
-    const isPWA =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone === true ||
-      document.referrer.includes("android-app://");
-
-    if (isPWA) {
-      document.body.classList.add("pwa-mode");
-      console.log("Running as PWA");
-    }
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleInstallPrompt);
-      window.removeEventListener("appinstalled", handleAppInstalled);
-    };
-  }, []);
-
+ 
   return (
     <React.StrictMode>
       <ThemeProvider defaultTheme="system">
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
-            <div className="mobile-safe-area pwa-safe-area min-h-screen">
-              <Toaster />
+          <div className="mobile-safe-area">              <Toaster />
               <SonnerToaster />
               <BrowserRouter>
                 <Routes>

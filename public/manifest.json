@@ -5,53 +5,8 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#1a1a1a",
+  "theme_color": "#222.1 83.2% 9.8%",
   "orientation": "portrait-primary",
-  "scope": "/",
-  "lang": "en",
-  "dir": "ltr",
-  "prefer_related_applications": false,
-  "shortcuts": [
-    {
-      "name": "Book Consultation",
-      "short_name": "Book",
-      "description": "Quick access to book a consultation",
-      "url": "/book-consultation",
-      "icons": [
-        {
-          "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "Find Specialists",
-      "short_name": "Specialists",
-      "description": "Browse healthcare specialists",
-      "url": "/specialists",
-      "icons": [
-        {
-          "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "Access your health dashboard",
-      "url": "/client-dashboard",
-      "icons": [
-        {
-          "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
-    }
-  ],
   "icons": [
     {
       "src": "/favicon.ico",
@@ -68,34 +23,11 @@
       "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any"
-    },
-    {
-      "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
-      "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ],
-  "categories": ["health", "medical", "lifestyle", "productivity"],
-  "screenshots": [
-    {
-      "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
-      "type": "image/png",
-      "sizes": "540x720",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "/lovable-uploads/edb94246-c7c7-406c-8b68-daf715b33fd3.png",
-      "type": "image/png",
-      "sizes": "1024x768",
-      "form_factor": "wide"
-    }
-  ]
-}
+  "categories": ["health", "medical", "lifestyle"],
+  "lang": "en",
+  "dir": "ltr",
+  "scope": "/",
+  "prefer_related_applications": false}
