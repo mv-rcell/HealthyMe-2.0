@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Search, Star, MapPin, Clock, Users, Brain, Stethoscope } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useAIRecommendations } from '@/hooks/useAIRecommendations';
 import { toast } from 'sonner';
-import { specialistsData } from '@/data/specialist';
+import { specialistsData } from '@/data/specialist.ts';
 
 const IntegratedSpecialistSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
