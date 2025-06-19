@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -71,15 +70,7 @@ const plans = [
 ];
 
 const Membership = () => {
-  const [clientProfiles, setClientProfiles] = useState<{
-    starter: ClientProfile[];
-    pro: ClientProfile[];
-    elite: ClientProfile[];
-  }>({
-    starter: [],
-    pro: [],
-    elite: [],
-  });
+  const [clientProfiles, setClientProfiles] = useState<{ [key: string]: ClientProfile[] }>({});
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -94,21 +85,16 @@ const Membership = () => {
           .eq("role", "client")
           .not("membership_tier", "is", null);
 
-        if (error) {
-          console.error("Error fetching client profiles:", error);
-          return;
+        if (error) throw error;
+
+        const grouped: { [key: string]: ClientProfile[] } = {};
+        for (const plan of plans) {
+          grouped[plan.id] = data.filter((d) => d.membership_tier?.toLowerCase() === plan.id);
         }
 
-        const profiles = data as ClientProfile[];
-        const groupedProfiles = {
-          starter: profiles.filter((profile) => profile.membership_tier?.toLowerCase() === "starter"),
-          pro: profiles.filter((profile) => profile.membership_tier?.toLowerCase() === "pro"),
-          elite: profiles.filter((profile) => profile.membership_tier?.toLowerCase() === "elite"),
-        };
-        
-        setClientProfiles(groupedProfiles);
+        setClientProfiles(grouped);
       } catch (error) {
-        console.error("Error in fetching client profiles:", error);
+        console.error("Error fetching client profiles:", error);
       } finally {
         setIsLoading(false);
       }
@@ -117,7 +103,6 @@ const Membership = () => {
     fetchClientProfiles();
   }, []);
 
-  // Function to get initials from name
   const getInitials = (name: string | null) => {
     if (!name) return "?";
     return name
@@ -125,22 +110,19 @@ const Membership = () => {
       .map((n) => n[0])
       .join("")
       .toUpperCase();
-    };
+  };
 
-    const handleChoosePlan = (planId: string, price: string) => {
-      if (!user) {
-        toast.error("Please sign in to select a membership plan", {
-          description: "You need to create an account to purchase a membership."
-        });
-        navigate("/auth");
-        return;
-      }
-      
-      // Convert price string to number and multiply by 100 to handle in cents
-      const amount = parseFloat(price) * 100;
-      
-      // Navigate to payments page with plan information
-      navigate(`/payments?plan=${planId}&amount=${amount}`);
+  const handleChoosePlan = (planId: string, price: string) => {
+    if (!user) {
+      toast.error("Please sign in to select a membership plan", {
+        description: "You need to create an account to purchase a membership.",
+      });
+      navigate("/auth");
+      return;
+    }
+
+    const amount = parseFloat(price) * 100;
+    navigate(`/payments?plan=${planId}&amount=${amount}`);
   };
 
   return (
@@ -193,6 +175,7 @@ const Membership = () => {
                     "w-full",
                     plan.popular && "bg-primary text-white hover:bg-primary/90"
                   )}
+                  onClick={() => handleChoosePlan(plan.id, plan.price)}
                 >
                   Choose {plan.name}
                 </Button>
@@ -209,8 +192,7 @@ const Membership = () => {
                   </div>
                 ))}
               </div>
-              
-              {/* Client Profiles Section */}
+
               <div className="mt-8 pt-8 border-t border-gray-100">
                 <h4 className="text-sm font-medium mb-4">
                   {plan.name.toUpperCase()} MEMBERS
@@ -226,8 +208,8 @@ const Membership = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {clientProfiles[plan.id.toLowerCase() as keyof typeof clientProfiles].length > 0 ? (
-                      clientProfiles[plan.id.toLowerCase() as keyof typeof clientProfiles].map((profile) => (
+                    {clientProfiles[plan.id]?.length > 0 ? (
+                      clientProfiles[plan.id].map((profile) => (
                         <div key={profile.id} className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={profile.profile_picture_url || undefined} alt={profile.full_name || ""} />
@@ -247,21 +229,20 @@ const Membership = () => {
             </div>
           ))}
         </div>
-        
-        {/* Members Showcase */}
+
         <div className="mt-20">
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-12">
             Our Member Community
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {Object.entries(clientProfiles).map(([tier, profiles]) => (
-              <div key={tier} className="space-y-6">
-                <h3 className="text-xl font-bold text-center capitalize mb-6">{tier} Members</h3>
+            {plans.map((plan) => (
+              <div key={plan.id} className="space-y-6">
+                <h3 className="text-xl font-bold text-center capitalize mb-6">{plan.name} Members</h3>
                 {isLoading ? (
                   <div className="grid grid-cols-2 gap-4">
                     {[1, 2, 3, 4].map((i) => (
                       <div key={i} className="border rounded-lg p-4">
-                        <AspectRatio ratio={1/1} className="mb-3">
+                        <AspectRatio ratio={1 / 1} className="mb-3">
                           <Skeleton className="h-full w-full rounded-md" />
                         </AspectRatio>
                         <Skeleton className="h-4 w-2/3 mb-2" />
@@ -272,14 +253,17 @@ const Membership = () => {
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-4">
-                    {profiles.length > 0 ? (
-                      profiles.map((profile) => (
-                        <div key={profile.id} className="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
-                          <AspectRatio ratio={1/1} className="mb-3 relative overflow-hidden rounded-md bg-gray-100">
+                    {clientProfiles[plan.id]?.length > 0 ? (
+                      clientProfiles[plan.id].map((profile) => (
+                        <div
+                          key={profile.id}
+                          className="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow"
+                        >
+                          <AspectRatio ratio={1 / 1} className="mb-3 relative overflow-hidden rounded-md bg-gray-100">
                             {profile.profile_picture_url ? (
-                              <img 
-                                src={profile.profile_picture_url} 
-                                alt={profile.full_name || "Member"} 
+                              <img
+                                src={profile.profile_picture_url}
+                                alt={profile.full_name || "Member"}
                                 className="object-cover h-full w-full"
                               />
                             ) : (
@@ -298,7 +282,7 @@ const Membership = () => {
                       ))
                     ) : (
                       <p className="text-center col-span-2 py-8 text-muted-foreground">
-                        No {tier} members yet
+                        No {plan.name.toLowerCase()} members yet
                       </p>
                     )}
                   </div>

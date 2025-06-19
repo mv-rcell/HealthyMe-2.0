@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CalendarIcon, ActivityIcon, UserIcon, HeartIcon, ClipboardListIcon, CreditCardIcon, SettingsIcon } from 'lucide-react';
 import HealthDashboard from '@/components/functional/HealthDashboard';
-import HabitTracker from '@/components/functional/HabitTracker';
+import HabitTracker from '@/pages/HabitTracker';
 import AppointmentHistory from '@/components/functional/AppointmentHistory.tsx';
 import HealthRecordsTab from '@/components/functional/HealthRecordsTab';
 

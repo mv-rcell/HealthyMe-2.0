@@ -4,44 +4,88 @@ import Footer from "@/components/Footer";
 import ProfileCard from "@/components/ProfileCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
-import { CategorySelector, categories } from "@/components/CategorySelector";
+import { Search, ArrowLeft, Stethoscope, Heart, Brain, Eye, Scissors, Baby, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { specialistsData } from "@/data/specialist.ts";
+import { useSearchParams } from "react-router-dom";
 
-// Sample nutrition content
-const nutritionContent = {
-  title: "Nutrition & Diet",
-  description: "Proper nutrition is the foundation of good health and wellbeing. Our nutrition specialists develop personalized diet plans tailored to your unique health needs, preferences, and goals.",
-  keyPoints: [
-    "Evidence-based nutritional guidance",
-    "Personalized meal planning",
-    "Weight management strategies",
-    "Sports performance nutrition",
-    "Dietary strategies for health conditions"
-  ],
-  healthyFoods: [
-    { name: "Leafy Greens", image: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?q=80&w=1480&auto=format&fit=crop", benefits: "Rich in vitamins, minerals and fiber" },
-    { name: "Lean Proteins", image: "https://images.unsplash.com/photo-1600180758890-6b94519a8ba6?q=80&w=1530&auto=format&fit=crop", benefits: "Essential for muscle repair and growth" },
-    { name: "Whole Grains", image: "https://images.unsplash.com/photo-1568254183919-78a4f43a2877?q=80&w=1369&auto=format&fit=crop", benefits: "Provide sustained energy and fiber" },
-    { name: "Berries", image: "https://images.unsplash.com/photo-1596591606975-97ee5cef3a1e?q=80&w=1396&auto=format&fit=crop", benefits: "Packed with antioxidants" }
-  ]
-};
+// Category definitions matching the specialist data structure
+const specialtyCategories = [
+  {
+    id: "general-medicine",
+    name: "General Medicine",
+    description: "Primary care and family medicine",
+    icon: Stethoscope,
+    color: "bg-red-500"
+  },
+  {
+    id: "surgery",
+    name: "Surgery",
+    description: "General and specialized surgical procedures",
+    icon: Scissors,
+    color: "bg-blue-500"
+  },
+  {
+    id: "neurology",
+    name: "Neurology",
+    description: "Brain and nervous system disorders",
+    icon: Brain,
+    color: "bg-purple-500"
+  },
+  {
+    id: "mental-health",
+    name: "Mental Health",
+    description: "Psychiatric and psychological care",
+    icon: Heart,
+    color: "bg-green-500"
+  },
+  {
+    id: "pediatrics",
+    name: "Pediatrics",
+    description: "Child and adolescent healthcare",
+    icon: Baby,
+    color: "bg-pink-500"
+  },
+  {
+    id: "ophthalmology",
+    name: "Ophthalmology",
+    description: "Eye care and vision health",
+    icon: Eye,
+    color: "bg-indigo-500"
+  },
+  {
+    id: "ent",
+    name: "ENT Surgery",
+    description: "Ear, nose, and throat specialists",
+    icon: Users,
+    color: "bg-orange-500"
+  },
+  {
+    id: "dermatology",
+    name: "Dermatology",
+    description: "Skin, hair, and nail care",
+    icon: Heart,
+    color: "bg-teal-500"
+  }
+];
 
 const Specialists = () => {
+  const [searchParams] = useSearchParams();
+  const categoryFromUrl = searchParams.get('category');
+  
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSubcategory, setSelectedSubcategory] = useState("");
-  const [showCategoryContent, setShowCategoryContent] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl || "");
+  const [showCategoryList, setShowCategoryList] = useState(!categoryFromUrl);
   
-  // Reset subcategory when category changes
+  // Handle URL category parameter
   useEffect(() => {
-    setSelectedSubcategory("");
-    // Show category content when a category is selected
-    setShowCategoryContent(!!selectedCategory);
-  }, [selectedCategory]);
+    if (categoryFromUrl) {
+      setSelectedCategory(categoryFromUrl);
+      setShowCategoryList(false);
+    }
+  }, [categoryFromUrl]);
   
-  // Filter specialists based on search term and selected categories
+  // Filter specialists based on search term and selected category
   const filteredSpecialists = specialistsData.filter(specialist => {
     const matchesSearch = 
       !searchTerm || 
@@ -52,153 +96,165 @@ const Specialists = () => {
     
     const matchesCategory = !selectedCategory || specialist.category === selectedCategory;
     
-    const matchesSubcategory = !selectedSubcategory || specialist.subcategory === selectedSubcategory;
-    
-    return matchesSearch && matchesCategory && matchesSubcategory;
+    return matchesSearch && matchesCategory;
   });
 
-  const handleClearFilters = () => {
-    setSearchTerm("");
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setShowCategoryList(false);
+  };
+
+  const handleBackToCategories = () => {
     setSelectedCategory("");
-    setSelectedSubcategory("");
-    setShowCategoryContent(false);
+    setShowCategoryList(true);
   };
 
   // Get current category data
-  const currentCategory = categories.find(cat => cat.id === selectedCategory);
+  const currentCategory = specialtyCategories.find(cat => cat.id === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       
-      <main className="flex-1 container mx-auto px-4 py-16">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Our Specialists</h1>
-          <p className="text-muted-foreground mb-8">
-            Connect with our qualified healthcare professionals specializing in physical and mental wellbeing.
-          </p>
-          
-          {/* Search and filter section */}
-          <div className="space-y-4 mb-8">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name or keywords..."
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+      <main className="flex-1 container mx-auto px-4 py-6">
+        <div className="max-w-md mx-auto">
+          {showCategoryList ? (
+            // Category Selection View - Mobile App Style
+            <div>
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">Choose Specialty</h1>
+                <p className="text-gray-600 text-sm">
+                  Select a medical specialty to find qualified specialists
+                </p>
+              </div>
+              
+              {/* Search Bar */}
+              <div className="relative mb-6">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search specialties..."
+                  className="pl-10 bg-white border-gray-200"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              
+              {/* Category Grid - Mobile App Style */}
+              <div className="grid grid-cols-2 gap-4">
+                {specialtyCategories
+                  .filter(category => 
+                    !searchTerm || 
+                    category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    category.description.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                  .map((category) => {
+                    const IconComponent = category.icon;
+                    return (
+                      <motion.div
+                        key={category.id}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="cursor-pointer"
+                        onClick={() => handleCategorySelect(category.id)}
+                      >
+                        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 h-full flex flex-col items-center text-center space-y-3 hover:shadow-md transition-shadow">
+                          <div className={`${category.color} p-3 rounded-xl`}>
+                            <IconComponent className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900 text-sm">{category.name}</h3>
+                            <p className="text-gray-500 text-xs mt-1">{category.description}</p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+              </div>
             </div>
-            
-            <CategorySelector
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-              selectedSubcategory={selectedSubcategory}
-              onSubcategoryChange={setSelectedSubcategory}
-            />
-          </div>
-
-          {/* Category Content Display */}
-          {showCategoryContent && currentCategory && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="mb-10 bg-white rounded-xl shadow-md overflow-hidden"
-            >
-              <div className="md:flex">
-                <div className="md:flex-shrink-0">
-                  <img 
-                    className="h-48 w-full object-cover md:h-full md:w-48" 
-                    src={currentCategory.image} 
-                    alt={currentCategory.name} 
-                  />
-                </div>
-                <div className="p-8">
-                  <h2 className="text-2xl font-bold text-gray-800">{currentCategory.name}</h2>
-                  <p className="mt-2 text-gray-600">{currentCategory.description}</p>
-                  
-                  {currentCategory.id === "nutrition" && (
-                    <div className="mt-6">
-                      <h3 className="text-lg font-semibold text-gray-800">Healthy Food Choices</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                        {nutritionContent.healthyFoods.map((food, index) => (
-                          <motion.div 
-                            key={index}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.3, delay: index * 0.1 }}
-                            className="bg-gray-50 rounded-lg p-3 text-center shadow-sm"
-                          >
-                            <img src={food.image} alt={food.name} className="w-full h-24 object-cover rounded-md mb-2" />
-                            <h4 className="font-medium text-gray-800">{food.name}</h4>
-                            <p className="text-xs text-gray-600">{food.benefits}</p>
-                          </motion.div>
-                        ))}
-                      </div>
-                      
-                      <div className="mt-6">
-                        <h3 className="text-lg font-semibold text-gray-800">Our Approach</h3>
-                        <ul className="mt-2 space-y-1">
-                          {nutritionContent.keyPoints.map((point, index) => (
-                            <motion.li 
-                              key={index}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
-                              className="flex items-center"
-                            >
-                              <div className="h-2 w-2 rounded-full bg-primary mr-2"></div>
-                              <span className="text-gray-700">{point}</span>
-                            </motion.li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="mt-6">
-                    <h3 className="text-lg font-semibold">Our {currentCategory.name} Specialists</h3>
-                    <p className="text-gray-600 text-sm mt-1">
-                      Meet our team of highly qualified {currentCategory.name.toLowerCase()} specialists ready to help you achieve your health goals.
-                    </p>
-                  </div>
+          ) : (
+            // Specialists List View
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={handleBackToCategories} 
+                  className="flex items-center gap-2 p-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">
+                    {currentCategory?.name} Specialists
+                  </h1>
+                  <p className="text-gray-600 text-sm">{filteredSpecialists.length} specialists available</p>
                 </div>
               </div>
-            </motion.div>
-          )}
-          
-          {/* Specialists grid */}
-          {filteredSpecialists.length > 0 ? (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {filteredSpecialists.map((specialist, index) => (
-                <motion.div
-                  key={specialist.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 * index }}
-                >
-                  <ProfileCard 
-                    {...specialist}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          ) : (
-            <div className="text-center py-16">
-              <p className="text-lg text-muted-foreground">No specialists found matching your criteria.</p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={handleClearFilters}
-              >
-                Clear Filters
-              </Button>
+              
+              {/* Search Bar */}
+              <div className="relative mb-6">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search specialists..."
+                  className="pl-10 bg-white border-gray-200"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              
+              {/* Specialists List */}
+              {filteredSpecialists.length > 0 ? (
+                <div className="space-y-4">
+                  {filteredSpecialists.map((specialist, index) => (
+                    <motion.div
+                      key={specialist.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.1 * index }}
+                    >
+                      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                        <div className="flex gap-3">
+                          <img
+                            src={specialist.imageUrl}
+                            alt={specialist.name}
+                            className="w-16 h-16 rounded-xl object-cover"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-gray-900 text-sm">{specialist.name}</h3>
+                            <p className="text-blue-600 text-xs font-medium">{specialist.specialty}</p>
+                            <p className="text-gray-500 text-xs mt-1 line-clamp-2">{specialist.description}</p>
+                            
+                            <div className="flex items-center justify-between mt-3">
+                              <div className="flex items-center gap-4 text-xs text-gray-500">
+                                <span>⭐ {specialist.rating}</span>
+                                <span>KES {specialist.consultationFee}</span>
+                              </div>
+                              <Button size="sm" className="text-xs px-3 py-1">
+                                Book Now
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-gray-400 mb-2">
+                    <Stethoscope className="h-12 w-12 mx-auto" />
+                  </div>
+                  <p className="text-gray-500">No specialists found</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => setSearchTerm("")}
+                  >
+                    Clear Search
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>

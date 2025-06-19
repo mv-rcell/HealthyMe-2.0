@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, RouterProvider } from "react-router-dom";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -36,6 +36,12 @@ import AppointmentHistory from "@/pages/AppointmentHistory";
 import Features from "@/pages/Features.tsx";
 import SmartFeatures from "@/pages/SmartFeatures";
 import BookConsultation from "@/pages/BookConsultation";
+import IntegratedSpecialistSearch from "./pages/IntegratedSpecialistSearch.tsx";
+import VirtualChat from "./pages/VirtualChat.tsx";
+import IntegratedLabTestBooking from "./pages/IntegratedLabTestBooking.tsx";
+import IntegratedHomeCareBooking from "./pages/IntegratedHomeCareBooking.tsx";
+import HealthPrograms from "./pages/HealthPrograms.tsx";
+import HabitTracker from "./pages/HabitTracker.tsx";
 
 // React Query setup
 const queryClient = new QueryClient({
@@ -92,6 +98,13 @@ const App = () => {
                   <Route path="/features" element={<Features />} />
                   <Route path="/smart-features" element={<SmartFeatures />} />
                   <Route path="/book-consultation" element={<BookConsultation />} />
+                  <Route path="/integratedspecialists" element={<IntegratedSpecialistSearch />} />
+                  <Route path="/Virtualchats" element={<VirtualChat />} />
+                  <Route path="/Labtests" element={<IntegratedLabTestBooking/>} />
+                  <Route path="/Homecare" element={<IntegratedHomeCareBooking/>} />
+                  <Route path="/Programs" element={<HealthPrograms/>} />
+                  <Route path="/tracker" element={<HabitTracker/>} />
+
 
                   {/* Optional: Auth gate route, though "/" is already taken by <Index /> */}
                   <Route path="/gate" element={<AuthGate />} />

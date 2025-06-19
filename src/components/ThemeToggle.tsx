@@ -7,7 +7,41 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useTheme } from "@/hooks/use-theme";
+
+// Simple theme hook implementation
+const useTheme = () => {
+  const [theme, setThemeState] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') || 'light';
+    }
+    return 'light';
+  });
+
+  const setTheme = (newTheme: string) => {
+    setThemeState(newTheme);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', newTheme);
+      
+      // Apply theme to document
+      if (newTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    // Apply theme on mount
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  return { theme, setTheme };
+};
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -28,8 +62,8 @@ export function ThemeToggle() {
         <DropdownMenuItem onClick={() => setTheme("dark")}>
           Dark
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          system
+        <DropdownMenuItem onClick={() => setTheme("system")}>
+          System
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

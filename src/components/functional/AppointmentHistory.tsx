@@ -14,7 +14,7 @@ import {
   CreditCardIcon,
 } from 'lucide-react';
 import HealthDashboard from '@/components/functional/HealthDashboard';
-import HabitTracker from '@/components/functional/HabitTracker';
+import HabitTracker from '@/pages/HabitTracker';
 import HealthRecordsTab from '@/components/functional/HealthRecordsTab';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';

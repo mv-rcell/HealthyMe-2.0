@@ -3,13 +3,13 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import HealthDashboard from './HealthDashboard';
-import IntegratedSpecialistSearch from './IntegratedSpecialistSearch';
-import VirtualChat from './VirtualChat';
-import IntegratedLabTestBooking from './IntegratedLabTestBooking';
-import IntegratedHomeCareBooking from './IntegratedHomeCareBooking';
+import IntegratedSpecialistSearch from '../../pages/IntegratedSpecialistSearch';
+import VirtualChat from '../../pages/VirtualChat';
+import IntegratedLabTestBooking from '../../pages/IntegratedLabTestBooking';
+import IntegratedHomeCareBooking from '../../pages/IntegratedHomeCareBooking';
 import IntegratedReviewsSystem from './IntegratedReviewsSystem';
-import HabitTracker from './HabitTracker';
-import HealthPrograms from './HealthPrograms';
+import HabitTracker from '../../pages/HabitTracker';
+import HealthPrograms from '../../pages/HealthPrograms';
 
 const FunctionalFeatures = () => {
   return (
