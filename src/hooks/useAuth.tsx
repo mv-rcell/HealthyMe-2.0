@@ -23,11 +23,10 @@ export function useAuth() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
 
-  // Prevent multiple profile fetches
   const hasFetchedProfile = useRef(false);
 
   useEffect(() => {
-    // Auth state change listener
+    // Subscribe to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log('Auth state change:', event, currentSession?.user?.id);
@@ -35,6 +34,7 @@ export function useAuth() {
         setUser(currentSession?.user ?? null);
 
         if (currentSession?.user && !hasFetchedProfile.current) {
+          hasFetchedProfile.current = true; // ✅ Prevent double fetch
           fetchUserProfile(currentSession.user.id);
         } else {
           setProfile(null);
@@ -50,6 +50,7 @@ export function useAuth() {
       setUser(currentSession?.user ?? null);
 
       if (currentSession?.user && !hasFetchedProfile.current) {
+        hasFetchedProfile.current = true; // ✅ Prevent double fetch
         fetchUserProfile(currentSession.user.id);
       } else {
         setLoading(false);
@@ -62,10 +63,7 @@ export function useAuth() {
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
-    if (hasFetchedProfile.current) return;
-
     setProfileLoading(true);
-    hasFetchedProfile.current = true;
 
     try {
       console.log('Fetching profile for user:', userId);
@@ -103,9 +101,9 @@ export function useAuth() {
     user,
     session,
     loading,
-    signOut,
     profile,
     profileLoading,
+    signOut,
     isSpecialist: profile?.role === 'specialist',
     isClient: profile?.role === 'client',
     fetchProfile: fetchUserProfile,
