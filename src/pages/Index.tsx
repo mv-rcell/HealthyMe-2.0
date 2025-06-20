@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
+import About from "@/components/About";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -433,6 +434,7 @@ const Index = () => {
           </div>
         </div>
       </main>
+      <About />
       <Footer />
     </div>
   );
