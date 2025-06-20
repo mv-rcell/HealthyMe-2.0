@@ -176,9 +176,6 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Bell className="h-5 w-5 text-gray-400" />
-              <Settings className="h-5 w-5 text-gray-400" />
-              <ThemeToggle />
               <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
                 <span className="text-white text-xs font-bold">H</span>
               </div>
