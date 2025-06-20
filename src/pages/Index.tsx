@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import About from "@/components/About";
 import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
+import Contact from "@/components/Contact";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -437,6 +438,7 @@ const Index = () => {
       </main>
       <About />
       <Newsletter />
+      <Contact />
       <Footer />
     </div>
   );
