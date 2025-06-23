@@ -564,7 +564,7 @@ export const specialistsData: Specialist[] = [
      isSpecialist: false
    },
    {
-     id: "57", name: "Dr. Nduiga", specialty: "Adult Cardiology", rating: 4.8, reviews: 10, location: "MH-DOC Clinic", availability: "Fri 8:0pm", imageUrl: "/placeholder.svg", experience: "16 years", languages: ["English"], consultationFee: 40,
+     id: "58", name: "Dr. Nduiga", specialty: "Adult Cardiology", rating: 4.8, reviews: 10, location: "MH-DOC Clinic", availability: "Fri 8:0pm", imageUrl: "/placeholder.svg", experience: "16 years", languages: ["English"], consultationFee: 40,
      subsequentvisits: 35,
      title: "",
      description: "",
