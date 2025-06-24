@@ -1,5 +1,6 @@
 
 export interface Specialist {
+  isOnline: any;
   id: string;
   name: string;
   title: string;
@@ -28,7 +29,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "2", name: "Dr. John Wamwaki", specialty: "General Surgery", rating: 4.9, reviews: 98, location: "MH-DOC Clinic", availability: "Mon 9:0am", imageUrl: "/placeholder.svg", experience: "12 years", languages: ["English"], consultationFee: 40,
@@ -37,7 +39,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "3", name: "Dr. Nyaim Opar", specialty: "General Surgery", rating: 4.7, reviews: 76, location: "MH-DOC Clinic", availability: "Tue 9:0am", imageUrl: "/placeholder.svg", experience: "18 years", languages: ["English", "Arabic"], consultationFee: 40,
@@ -46,7 +49,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "4", name: "Dr. Kiongi Mwaura", specialty: "General Surgery", rating: 4.7, reviews: 76, location: "MH-DOC Clinic", availability: "Wed 9:0am", imageUrl: "/placeholder.svg", experience: "19 years", languages: ["English",], consultationFee: 40,
@@ -55,7 +59,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "5", name: "Dr. Awadh Mohamed", specialty: "General Surgery", rating: 4.8, reviews: 74, location: "MH-DOC Clinic", availability: "Wed 2:0pm", imageUrl: "/placeholder.svg", experience: "20 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -64,7 +69,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "6", name: "Dr. Aggrey Wafula", specialty: "General Surgery", rating: 4.5, reviews: 74, location: "MH-DOC Clinic", availability: "Thur 9:0am", imageUrl: "/placeholder.svg", experience: "21 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -73,7 +79,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "7", name: "Dr. Seymour Sinari", specialty: "General Surgery", rating: 4.6, reviews: 75, location: "MH-DOC Clinic", availability: "Fri 9:0am", imageUrl: "/placeholder.svg", experience: "21 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -82,7 +89,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "8", name: "Dr. Andrew Ndonga", specialty: "General Surgery", rating: 4.8, reviews: 77, location: "MH-DOC Clinic", availability: "Sat 9:0am", imageUrl: "/placeholder.svg", experience: "15 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -91,7 +99,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
 
@@ -103,7 +112,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "10", name: "Dr. E. Omoge", specialty: "General Medicine", rating: 4.8, reviews: 89, location: "MH-DOC Clinic", availability: "Wed 11:0am", imageUrl: "/placeholder.svg", experience: "14 years", languages: ["English"], consultationFee: 40,
@@ -112,7 +122,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "11", name: "Dr. G. Achiya", specialty: "General Medicine", rating: 4.9, reviews: 89, location: "MH-DOC Clinic", availability: "Thur 2:0pm", imageUrl: "/placeholder.svg", experience: "15 years", languages: ["English"], consultationFee: 40,
@@ -121,7 +132,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "12", name: "Dr. Mureithi", specialty: "General Medicine", rating: 5.0, reviews: 89, location: "MH-DOC Clinic", availability: "Fri 2:0pm", imageUrl: "/placeholder.svg", experience: "14 years", languages: ["English"], consultationFee: 40,
@@ -130,7 +142,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
   // Neurology
@@ -141,7 +154,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "14", name: "Dr. Kwasa", specialty: "Neurology", rating: 4.7, reviews: 156, location: "MH-DOC Clinic", availability: "Fri 9:0am", imageUrl: "/placeholder.svg", experience: "16 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -150,7 +164,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "15", name: "Dr. P .Mativo", specialty: "Neurology", rating: 4.7, reviews: 156, location: "MH-DOC Clinic", availability: "Wed 9:0am", imageUrl: "/placeholder.svg", experience: "17 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -159,7 +174,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
   // Psychiatry
@@ -170,7 +186,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "17", name: "Dr. S. Hinga", specialty: "Psychiatry", rating: 4.6, reviews: 87, location: "MH-DOC Clinic", availability: "Sat 9:0am", imageUrl: "/placeholder.svg", experience: "13 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -179,7 +196,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "18", name: "Dr. I. Kanyanya", specialty: "Psychiatry", rating: 4.6, reviews: 88, location: "MH-DOC Clinic", availability: "Wed 2:0pm", imageUrl: "/placeholder.svg", experience: "15 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -188,7 +206,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
   // ENT Surgery
@@ -199,7 +218,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "20", name: "Dr. Omutsani", specialty: "ENT Surgery", rating: 4.8, reviews: 95, location: "MH-DOC Clinic", availability: "Tue 2:0pm", imageUrl: "/placeholder.svg", experience: "15 years", languages: ["English"], consultationFee: 40,
@@ -208,7 +228,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "21", name: "Dr. Mugwe", specialty: "ENT Surgery", rating: 4.9, reviews: 99, location: "MH-DOC Clinic", availability: "Mon 10:0am", imageUrl: "/placeholder.svg", experience: "18 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -217,7 +238,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "22", name: "Dr. G. Mberia", specialty: "ENT Surgery", rating: 4.9, reviews: 99, location: "MH-DOC Clinic", availability: "Wed 2:30pm", imageUrl: "/placeholder.svg", experience: "19 years", languages: ["English"], consultationFee: 40,
@@ -226,7 +248,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "23", name: "Dr. B. Ongulo", specialty: "ENT Surgery", rating: 4.5, reviews: 96, location: "MH-DOC Clinic", availability: "Thur 9:0am", imageUrl: "/placeholder.svg", experience: "20 years", languages: ["English"], consultationFee: 40,
@@ -235,7 +258,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "24", name: "Dr. Maria Muthoka", specialty: "ENT Surgery", rating: 4.8, reviews: 99, location: "MH-DOC Clinic", availability: "Thur 2:0pm", imageUrl: "/placeholder.svg", experience: "18 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -244,7 +268,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "25", name: "Dr. Kabeu", specialty: "ENT Surgery", rating: 4.9, reviews: 98, location: "MH-DOC Clinic", availability: "Fri 9:0am", imageUrl: "/placeholder.svg", experience: "15 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -253,7 +278,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
   // Dermatology
@@ -264,7 +290,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "27", name: "Dr. P. Njuguna", specialty: "Dermatology", rating: 4.7, reviews: 134, location: "MH-DOC Clinic", availability: "Tue 2:0pm", imageUrl: "/placeholder.svg", experience: "14 years", languages: ["English"], consultationFee: 40,
@@ -273,7 +300,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "28", name: "Dr. P. Njuguna", specialty: "Dermatology", rating: 4.7, reviews: 138, location: "MH-DOC Clinic", availability: "Sat 9:0am", imageUrl: "/placeholder.svg", experience: "14 years", languages: ["English"], consultationFee: 40,
@@ -282,7 +310,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
   // Ophthalmology
@@ -293,7 +322,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "30", name: "Dr. J. Nyamori", specialty: "Ophthalmology", rating: 4.6, reviews: 98, location: "MH-DOC Clinic", availability: "Thu 9:0am", imageUrl: "/placeholder.svg", experience: "12 years", languages: ["English"], consultationFee: 40,
@@ -302,7 +332,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "31", name: "Dr. Owen", specialty: "Ophthalmology", rating: 4.7, reviews: 98, location: "MH-DOC Clinic", availability: "Fri 9:0am", imageUrl: "/placeholder.svg", experience: "13 years", languages: ["English"], consultationFee: 40,
@@ -311,7 +342,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
   // Neonatology
@@ -322,7 +354,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "33", name: "Dr. Kimuhu", specialty: "Neonatology", rating: 4.9, reviews: 176, location: "MH-DOC Clinic", availability: "Thur 11:0am", imageUrl: "/placeholder.svg", experience: "23 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -331,7 +364,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "34", name: "Dr. Gachen", specialty: "Neonatology", rating: 4.7, reviews: 176, location: "MH-DOC Clinic", availability: "Fri 1:30pm", imageUrl: "/placeholder.svg", experience: "24 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -340,7 +374,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
   // Paediatrics
@@ -351,7 +386,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "36", name: "Dr. D. Makewa", specialty: "Paediatrics", rating: 4.7, reviews: 189, location: "MH-DOC Clinic", availability: "Wed 10:0am", imageUrl: "/placeholder.svg", experience: "18 years", languages: ["English"], consultationFee: 40,
@@ -360,7 +396,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "37", name: "Dr. Kimuhu", specialty: "Paediatrics", rating: 4.8, reviews: 190, location: "MH-DOC Clinic", availability: "Thur 8:0am", imageUrl: "/placeholder.svg", experience: "22 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -369,7 +406,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "38", name: "Dr. S.Mugane", specialty: "Paediatrics", rating: 4.9, reviews: 190, location: "MH-DOC Clinic", availability: "Thur 9:0am", imageUrl: "/placeholder.svg", experience: "23 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -378,7 +416,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "39", name: "Dr. Galgallo", specialty: "Paediatrics", rating: 4.9, reviews: 190, location: "MH-DOC Clinic", availability: "Fri 10:0am", imageUrl: "/placeholder.svg", experience: "24 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -387,7 +426,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
   // Gastroenterology
@@ -398,7 +438,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "41", name: "Dr. H. Kioko", specialty: "Gastroenterology", rating: 4.6, reviews: 108, location: "MH-DOC Clinic", availability: "Wed 2:0pm", imageUrl: "/placeholder.svg", experience: "14 years", languages: ["English"], consultationFee: 40,
@@ -407,7 +448,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "42", name: "Dr. Lodenyo", specialty: "Gastroenterology", rating: 4.8, reviews: 10, location: "MH-DOC Clinic", availability: "Thur 2:0pm", imageUrl: "/placeholder.svg", experience: "16 years", languages: ["English"], consultationFee: 40,
@@ -416,7 +458,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "43", name: "Dr. Mutie", specialty: "Gastroenterology", rating: 4.9, reviews: 10, location: "MH-DOC Clinic", availability: "Fri 11:0am", imageUrl: "/placeholder.svg", experience: "18 years", languages: ["English"], consultationFee: 40,
@@ -425,7 +468,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
   // Pain Clinic
@@ -436,7 +480,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   
   // Urology
@@ -447,7 +492,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "46", name: "Dr. Monda", specialty: "Urology", rating: 4.6, reviews: 123, location: "MH-DOC Clinic", availability: "Tue 2:0pm", imageUrl: "/placeholder.svg", experience: "16 years", languages: ["English"], consultationFee: 40,
@@ -456,7 +502,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "47", name: "Dr. Waweru", specialty: "Urology", rating: 4.8, reviews: 125, location: "MH-DOC Clinic", availability: "Thur 2:0pm", imageUrl: "/placeholder.svg", experience: "17 years", languages: ["English"], consultationFee: 40,
@@ -465,7 +512,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "48", name: "Dr. Owilla", specialty: "Urology", rating: 4.7, reviews: 125, location: "MH-DOC Clinic", availability: "Fri 9:0am", imageUrl: "/placeholder.svg", experience: "17 years", languages: ["English"], consultationFee: 40,
@@ -474,7 +522,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "49", name: "Dr. Muigai Mararo", specialty: "Urology", rating: 4.9, reviews: 128, location: "MH-DOC Clinic", availability: "Sat 9:0am", imageUrl: "/placeholder.svg", experience: "20 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -483,7 +532,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
   // Haematology
@@ -494,7 +544,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   
   // Paediatric Cardiac Clinic
@@ -505,7 +556,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "52", name: "Dr. L. Mutai", specialty: "Paediatric Cardiology", rating: 4.8, reviews: 132, location: "MH-DOC Clinic", availability: "Mon 9:0am", imageUrl: "/placeholder.svg", experience: "18 years", languages: ["English"], consultationFee: 40,
@@ -514,7 +566,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "53", name: "Dr. C. Jowi", specialty: "Paediatric Cardiology", rating: 4.9, reviews: 135, location: "MH-DOC Clinic", availability: "Tue 11:0am", imageUrl: "/placeholder.svg", experience: "19 years", languages: ["English"], consultationFee: 40,
@@ -523,7 +576,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "54", name: "Dr. G. Njihia", specialty: "Paediatric Cardiology", rating: 4.9, reviews: 132, location: "MH-DOC Clinic", availability: "Wed 12:0pm", imageUrl: "/placeholder.svg", experience: "22 years", languages: ["English"], consultationFee: 40,
@@ -532,7 +586,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "55", name: "Dr. G. Aketch", specialty: "Paediatric Cardiology", rating: 4.8, reviews: 132, location: "MH-DOC Clinic", availability: "Thur 12:30pm", imageUrl: "/placeholder.svg", experience: "18 years", languages: ["English"], consultationFee: 40,
@@ -541,7 +596,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
  
    // Adult Cardiology Clinic
@@ -552,7 +608,8 @@ export const specialistsData: Specialist[] = [
      description: "",
      category: "",
      subcategory: "",
-     isSpecialist: false
+     isSpecialist: false,
+     isOnline: undefined
    },
    {
      id: "57", name: "Dr. Namasaka", specialty: "Adult Cardiology", rating: 4.6, reviews: 108, location: "MH-DOC Clinic", availability: "Thur 8:0am", imageUrl: "/placeholder.svg", experience: "14 years", languages: ["English"], consultationFee: 40,
@@ -561,7 +618,8 @@ export const specialistsData: Specialist[] = [
      description: "",
      category: "",
      subcategory: "",
-     isSpecialist: false
+     isSpecialist: false,
+     isOnline: undefined
    },
    {
      id: "58", name: "Dr. Nduiga", specialty: "Adult Cardiology", rating: 4.8, reviews: 10, location: "MH-DOC Clinic", availability: "Fri 8:0pm", imageUrl: "/placeholder.svg", experience: "16 years", languages: ["English"], consultationFee: 40,
@@ -570,7 +628,8 @@ export const specialistsData: Specialist[] = [
      description: "",
      category: "",
      subcategory: "",
-     isSpecialist: false
+     isSpecialist: false,
+     isOnline: undefined
    },
    {
      id: "59", name: "Dr. Mureithi Nyamu", specialty: "Adult Cardiology", rating: 4.9, reviews: 10, location: "MH-DOC Clinic", availability: "Fri 8:0am", imageUrl: "/placeholder.svg", experience: "18 years", languages: ["English"], consultationFee: 40,
@@ -579,7 +638,8 @@ export const specialistsData: Specialist[] = [
      description: "",
      category: "",
      subcategory: "",
-     isSpecialist: false
+     isSpecialist: false,
+     isOnline: undefined
    },
  
    // Paediatric Surgery
@@ -590,7 +650,8 @@ export const specialistsData: Specialist[] = [
      description: "",
      category: "",
      subcategory: "",
-     isSpecialist: false
+     isSpecialist: false,
+     isOnline: undefined
    },
    {
      id: "61", name: "Dr. Osawa", specialty: "Paediatric Surgery", rating: 4.6, reviews: 108, location: "MH-DOC Clinic", availability: "Thur 8:0am", imageUrl: "/placeholder.svg", experience: "14 years", languages: ["English"], consultationFee: 40,
@@ -599,7 +660,8 @@ export const specialistsData: Specialist[] = [
      description: "",
      category: "",
      subcategory: "",
-     isSpecialist: false
+     isSpecialist: false,
+     isOnline: undefined
    },
    {
      id: "62", name: "Dr. Kihiko", specialty: "Paediatric Surgery", rating: 4.8, reviews: 10, location: "MH-DOC Clinic", availability: "Fri 8:0pm", imageUrl: "/placeholder.svg", experience: "16 years", languages: ["English"], consultationFee: 40,
@@ -608,7 +670,8 @@ export const specialistsData: Specialist[] = [
      description: "",
      category: "",
      subcategory: "",
-     isSpecialist: false
+     isSpecialist: false,
+     isOnline: undefined
    },
    {
      id: "63", name: "Dr. J.Kamwetu", specialty: "Paediatric Surgery", rating: 4.9, reviews: 10, location: "MH-DOC Clinic", availability: "Fri 8:0am", imageUrl: "/placeholder.svg", experience: "18 years", languages: ["English"], consultationFee: 40,
@@ -617,7 +680,8 @@ export const specialistsData: Specialist[] = [
      description: "",
      category: "",
      subcategory: "",
-     isSpecialist: false
+     isSpecialist: false,
+     isOnline: undefined
    },
  
 
@@ -629,7 +693,8 @@ export const specialistsData: Specialist[] = [
      description: "",
      category: "",
      subcategory: "",
-     isSpecialist: false
+     isSpecialist: false,
+     isOnline: undefined
    },
    {
      id: "65", name: "Dr. P.B. Muthiga", specialty: "Paediatric Neurology", rating: 4.6, reviews: 108, location: "MH-DOC Clinic", availability: "Tue 9:0am", imageUrl: "/placeholder.svg", experience: "15 years", languages: ["English"], consultationFee: 40,
@@ -638,7 +703,8 @@ export const specialistsData: Specialist[] = [
      description: "",
      category: "",
      subcategory: "",
-     isSpecialist: false
+     isSpecialist: false,
+     isOnline: undefined
    },
 
     
@@ -650,7 +716,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "67", name: "Dr. Alex Njiru", specialty: "Neuro-Surgery", rating: 4.7, reviews: 90, location: "MH-DOC Clinic", availability: "Tue 8:0am", imageUrl: "/placeholder.svg", experience: "24 years", languages: ["English"], consultationFee: 40,
@@ -659,7 +726,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "68", name: "Dr. Akuku/Dr. Wekesa", specialty: "Neuro-Surgery", rating: 4.9, reviews: 89, location: "MH-DOC Clinic", availability: "Thur 10:0am", imageUrl: "/placeholder.svg", experience: "21 years", languages: ["English"], consultationFee: 40,
@@ -668,7 +736,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
   // Maxillo-Facial Surgery
@@ -679,7 +748,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "70", name: "Dr. Onyango J.F", specialty: "Maxillo-Facial Surgery", rating: 4.7, reviews: 90, location: "MH-DOC Clinic", availability: "Thur 2:0pm", imageUrl: "/placeholder.svg", experience: "24 years", languages: ["English"], consultationFee: 40,
@@ -688,7 +758,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "71", name: "Dr. Mumenya", specialty: "Maxillo-Facial Surgery", rating: 4.9, reviews: 89, location: "MH-DOC Clinic", availability: "Fri 2:0pm", imageUrl: "/placeholder.svg", experience: "21 years", languages: ["English"], consultationFee: 40,
@@ -697,7 +768,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
   // Rheumatology
@@ -708,7 +780,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   
   // Paediatric Nephrology
@@ -719,7 +792,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   
   //Paed Endocrinologist
@@ -730,7 +804,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   
   //Asthma Clinic
@@ -741,7 +816,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
   //MTCC
@@ -752,7 +828,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
   //Cardiothoracic Surgery
@@ -763,7 +840,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "78", name: "Dr. Enoch Makori", specialty: "Cardiothoracic Surgery", rating: 4.9, reviews: 88, location: "MH-DOC Clinic", availability: "Fridays 11:0am", imageUrl: "/placeholder.svg", experience: "20 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -772,7 +850,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "79", name: "Dr. Muhinga", specialty: "Cardiothoracic Surgery", rating: 4.7, reviews: 88, location: "MH-DOC Clinic", availability: "Fridays 1:0pm", imageUrl: "/placeholder.svg", experience: "17 years", languages: ["English", "Swahili"], consultationFee: 40,
@@ -781,7 +860,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
 
   // Breast Clinic
@@ -792,7 +872,8 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },
   {
     id: "81", name: "Dr. Aggrey Wafula", specialty: "Breast Surgery", rating: 4.9, reviews: 138, location: "MH-DOC Clinic", availability: "Sat 9:0am", imageUrl: "/placeholder.svg", experience: "18 years", languages: ["English"], consultationFee: 40,
@@ -801,5 +882,6 @@ export const specialistsData: Specialist[] = [
     description: "",
     category: "",
     subcategory: "",
-    isSpecialist: false
+    isSpecialist: false,
+    isOnline: undefined
   },]

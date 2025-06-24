@@ -40,7 +40,7 @@ const ClientDashboard = () => {
       title: 'Find Specialists',
       description: 'Browse our network of healthcare professionals',
       icon: <UserIcon className="w-8 h-8 text-primary" />,
-      action: () => navigate('/specialists')
+      action: () => navigate('/integratedspecialists')
     },
     {
       title: 'Health Records',

@@ -24,7 +24,7 @@ export const useAppointments = () => {
 
   const fetchAppointments = async () => {
     if (!user) return;
-    
+
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -42,18 +42,28 @@ export const useAppointments = () => {
     }
   };
 
-  const createAppointment = async (appointmentData: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>) => {
+  const createAppointment = async (
+    appointmentData: Omit<Appointment, 'id' | 'created_at' | 'updated_at' | 'client_id'>
+  ) => {
     if (!user) return null;
+
+    const payload = {
+      ...appointmentData,
+      client_id: user.id,
+    };
+
+    // Optional: log the payload for debugging
+    console.log('Creating appointment with data:', payload);
 
     try {
       const { data, error } = await supabase
         .from('appointments_new')
-        .insert([appointmentData])
+        .insert([payload])
         .select()
         .single();
 
       if (error) throw error;
-      
+
       toast.success('Appointment booked successfully!');
       fetchAppointments();
       return data;
@@ -71,7 +81,7 @@ export const useAppointments = () => {
         .eq('id', appointmentId);
 
       if (error) throw error;
-      
+
       toast.success('Appointment updated successfully!');
       fetchAppointments();
     } catch (error: any) {
@@ -85,14 +95,18 @@ export const useAppointments = () => {
     // Subscribe to real-time updates
     const channel = supabase
       .channel('appointments_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'appointments_new',
-        filter: user ? `client_id=eq.${user.id}` : undefined
-      }, () => {
-        fetchAppointments();
-      })
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments_new',
+          filter: user ? `client_id=eq.${user.id}` : undefined,
+        },
+        () => {
+          fetchAppointments();
+        }
+      )
       .subscribe();
 
     return () => {
@@ -105,6 +119,6 @@ export const useAppointments = () => {
     loading,
     createAppointment,
     updateAppointmentStatus,
-    refetchAppointments: fetchAppointments
+    refetchAppointments: fetchAppointments,
   };
 };

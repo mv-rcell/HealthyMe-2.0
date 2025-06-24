@@ -187,4 +187,3 @@ const IntegratedSpecialistSearch = () => {
 };
 
 export default IntegratedSpecialistSearch;
-

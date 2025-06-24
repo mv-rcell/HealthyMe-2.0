@@ -3,6 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
 export interface UserProfile {
+  location: string;
+  consultation_fee: any;
+  subsequent_visits_fee: any;
+  languages: any;
+  availability: string;
   id: string;
   full_name: string | null;
   phone_number: string | null;
@@ -23,50 +28,16 @@ export function useAuth() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
 
-  const hasFetchedProfile = useRef(false);
-
-  useEffect(() => {
-    // Subscribe to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        console.log('Auth state change:', event, currentSession?.user?.id);
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-
-        if (currentSession?.user && !hasFetchedProfile.current) {
-          hasFetchedProfile.current = true; // ✅ Prevent double fetch
-          fetchUserProfile(currentSession.user.id);
-        } else {
-          setProfile(null);
-          setLoading(false);
-        }
-      }
-    );
-
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      console.log('Initial session check:', currentSession?.user?.id);
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-
-      if (currentSession?.user && !hasFetchedProfile.current) {
-        hasFetchedProfile.current = true; // ✅ Prevent double fetch
-        fetchUserProfile(currentSession.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  const hasFetchedProfile = useRef<string | null>(null);
 
   const fetchUserProfile = async (userId: string) => {
+    // Prevent duplicate calls for same user
+    if (hasFetchedProfile.current === userId) return;
+
     setProfileLoading(true);
+    console.log('Fetching profile for user:', userId);
 
     try {
-      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -79,6 +50,7 @@ export function useAuth() {
       } else {
         console.log('Profile fetched:', data);
         setProfile(data as UserProfile);
+        hasFetchedProfile.current = userId;
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -89,12 +61,42 @@ export function useAuth() {
     }
   };
 
+  useEffect(() => {
+    const handleSession = async (currentSession: Session | null) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+
+      if (currentSession?.user) {
+        await fetchUserProfile(currentSession.user.id);
+      } else {
+        setProfile(null);
+        hasFetchedProfile.current = null;
+        setLoading(false);
+      }
+    };
+
+    // Initial session
+    supabase.auth.getSession().then(({ data }) => {
+      console.log('Initial session check:', data.session?.user?.id);
+      handleSession(data.session);
+    });
+
+    const { subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state change:', _event, session?.user?.id);
+      handleSession(session);
+    }).data;
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setProfile(null);
-    hasFetchedProfile.current = false;
+    hasFetchedProfile.current = null;
   };
 
   return {
