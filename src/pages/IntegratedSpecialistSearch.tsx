@@ -1,33 +1,34 @@
-// The goal is to apply the styling and structure from the second file to the functionality and content of the first file
-// without changing the data or logic of either.
-
 import React, { useState } from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { Search, Star, MapPin, Clock, Users, Brain, Stethoscope } from 'lucide-react';
+import { Search, Star, MapPin, Clock, Users, Brain, Stethoscope, Video, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAIRecommendations } from '@/hooks/useAIRecommendations';
+import { useZoomIntegration } from '@/hooks/useZoomIntegration';
 import { toast } from 'sonner';
 import { specialistsData } from '@/data/specialist.ts';
-import { motion } from 'framer-motion';
+import VirtualChat from './VirtualChat';
 
 const IntegratedSpecialistSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('');
   const [symptoms, setSymptoms] = useState('');
   const [aiRecommendations, setAiRecommendations] = useState<any[]>([]);
-
+  const [selectedSpecialist, setSelectedSpecialist] = useState<any>(null);
+  const [isConsultationOpen, setIsConsultationOpen] = useState(false);
+  
   const { generateRecommendation, loading: aiLoading } = useAIRecommendations();
+  const { loading: zoomLoading, createZoomMeeting } = useZoomIntegration();
 
+  // Extract unique specialties from the specialist list
   const specialties = Array.from(new Set(specialistsData.map(s => s.specialty))).sort();
 
   const filteredSpecialists = specialistsData.filter(specialist => {
     const matchesSearch = specialist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      specialist.specialty.toLowerCase().includes(searchTerm.toLowerCase());
+                         specialist.specialty.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSpecialty = !selectedSpecialty || specialist.specialty === selectedSpecialty;
     return matchesSearch && matchesSpecialty;
   });
@@ -49,139 +50,208 @@ const IntegratedSpecialistSearch = () => {
     }
   };
 
+  const startVirtualConsultation = (specialist: any) => {
+    setSelectedSpecialist(specialist);
+    setIsConsultationOpen(true);
+  };
+
+  const initiateZoomCall = async (specialist: any) => {
+    const meeting = await createZoomMeeting(
+      `Virtual Consultation with ${specialist.name}`,
+      'patient@example.com'
+    );
+    
+    if (meeting) {
+      toast.success(`Zoom meeting created with ${specialist.name}!`);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1">
+          <Input
+            placeholder="Search specialists or specialties..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full"
+          />
+        </div>
+        <Button variant="outline" className="md:w-auto">
+          <Search className="h-4 w-4 mr-2" />
+          Search
+        </Button>
+      </div>
 
-      <main className="flex-1 container mx-auto px-4 py-6">
-        <div className="max-w-2xl mx-auto space-y-6">
-
-          {/* Search */}
-          <div className="flex items-center relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search specialists or specialties..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white border-gray-200"
-            />
-          </div>
-
-          {/* Specialty Filter Buttons */}
-          <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-            {specialties.map((specialty) => (
-              <Button
-                key={specialty}
-                variant={selectedSpecialty === specialty ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedSpecialty(selectedSpecialty === specialty ? '' : specialty)}
-                className="text-xs justify-start"
-              >
-                {specialty}
-              </Button>
-            ))}
-          </div>
-
-          {/* AI Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
+        {specialties.map((specialty) => (
+          <Button
+            key={specialty}
+            variant={selectedSpecialty === specialty ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedSpecialty(selectedSpecialty === specialty ? '' : specialty)}
+            className="text-xs justify-start"
           >
-            <div className="flex items-center gap-2 mb-4">
-              <Brain className="h-5 w-5 text-blue-600" />
-              <h2 className="font-semibold text-gray-900 text-sm">AI-Powered Recommendations</h2>
-            </div>
+            {specialty}
+          </Button>
+        ))}
+      </div>
 
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-blue-600" />
+            AI-Powered Specialist Recommendations
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <label className="text-sm font-medium">Describe your symptoms or health concerns:</label>
             <Input
               placeholder="e.g., chest pain, headaches, skin issues..."
               value={symptoms}
               onChange={(e) => setSymptoms(e.target.value)}
-              className="mb-4"
+              className="mt-1"
             />
-
-            <Button 
-              onClick={getAIRecommendations}
-              disabled={aiLoading}
-              className="w-full text-xs"
-            >
-              <Stethoscope className="h-4 w-4 mr-2" />
-              {aiLoading ? 'Analyzing...' : 'Get AI Recommendations'}
-            </Button>
-
-            {aiRecommendations.length > 0 && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg border text-sm text-muted-foreground whitespace-pre-wrap">
-                {aiRecommendations.map((rec, index) => (
-                  <div key={index}>{rec}</div>
-                ))}
-              </div>
-            )}
-          </motion.div>
-
-          {/* Specialist Count */}
-          <div className="text-xs text-gray-500">
-            Showing {filteredSpecialists.length} of {specialistsData.length} specialists
           </div>
+          <Button 
+            onClick={getAIRecommendations}
+            disabled={aiLoading}
+            className="w-full"
+          >
+            <Stethoscope className="h-4 w-4 mr-2" />
+            {aiLoading ? 'Analyzing...' : 'Get AI Recommendations'}
+          </Button>
+          
+          {aiRecommendations.length > 0 && (
+            <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg border">
+              <h4 className="font-medium mb-2">AI Recommendations:</h4>
+              {aiRecommendations.map((rec, index) => (
+                <div key={index} className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {rec}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-          {/* Specialist List */}
-          {filteredSpecialists.length > 0 ? (
-            <div className="space-y-4">
-              {filteredSpecialists.map((specialist, index) => (
-                <motion.div
-                  key={specialist.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.05 * index }}
-                >
-                  <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                    <div className="flex gap-3">
-                      <img
-                        src={specialist.imageUrl}
-                        alt={specialist.name}
-                        className="w-16 h-16 rounded-xl object-cover"
-                      />
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 text-sm">{specialist.name}</h3>
-                        <p className="text-blue-600 text-xs font-medium">{specialist.specialty}</p>
-                        <p className="text-gray-500 text-xs mt-1 line-clamp-2">{specialist.description}</p>
+      <div className="text-sm text-muted-foreground mb-4">
+        Showing {filteredSpecialists.length} of {specialistsData.length} specialists
+      </div>
 
-                        <div className="flex items-center justify-between mt-3">
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            <span>⭐ {specialist.rating}</span>
-                            <span>KES {specialist.consultationFee}</span>
-                          </div>
-                          <Button size="sm" className="text-xs px-3 py-1">
-                            Book Appointment
-                          </Button>
-                        </div>
+      <div className="grid gap-4">
+        {filteredSpecialists.map((specialist) => (
+          <Card key={specialist.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-4">
+                <img
+                  src={specialist.imageUrl}
+                  alt={specialist.name}
+                  className="w-20 h-20 rounded-full object-cover mx-auto md:mx-0"
+                />
+                
+                <div className="flex-1 space-y-2">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <h3 className="font-semibold text-lg">{specialist.name}</h3>
+                      <p className="text-primary font-medium">{specialist.specialty}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="font-medium">{specialist.rating}</span>
+                        <span className="text-muted-foreground">({specialist.reviews} reviews)</span>
                       </div>
                     </div>
                   </div>
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="text-gray-400 mb-2">
-                <Stethoscope className="h-12 w-12 mx-auto" />
+                  
+                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      {specialist.location}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      {specialist.availability}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Users className="h-4 w-4" />
+                      {specialist.experience} experience
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm text-muted-foreground">{specialist.description}</p>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {specialist.languages.map((language) => (
+                      <Badge key={language} variant="secondary">
+                        {language}
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Consultation fee: </span>
+                      <span className="font-semibold">KES {specialist.consultationFee}</span>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      <Button variant="outline" size="sm">
+                        View Profile
+                      </Button>
+                      <Button size="sm">
+                        Book Appointment
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => startVirtualConsultation(specialist)}
+                        className="flex items-center gap-1"
+                      >
+                        <MessageSquare className="h-3 w-3" />
+                        Virtual Chat
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => initiateZoomCall(specialist)}
+                        disabled={zoomLoading}
+                        className="flex items-center gap-1"
+                      >
+                        <Video className="h-3 w-3" />
+                        {zoomLoading ? 'Creating...' : 'Zoom Call'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <p className="text-gray-500">No specialists found matching your criteria.</p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="mt-3"
-                onClick={() => setSearchTerm("")}
-              >
-                Clear Search
-              </Button>
-            </div>
-          )}
-
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      
+      {filteredSpecialists.length === 0 && (
+        <div className="text-center py-8 text-muted-foreground">
+          No specialists found matching your criteria. Try adjusting your search.
         </div>
-      </main>
+      )}
 
-      <Footer />
+      {/* Virtual Consultation Dialog */}
+      <Dialog open={isConsultationOpen} onOpenChange={setIsConsultationOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Virtual Consultation with {selectedSpecialist?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <VirtualChat />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

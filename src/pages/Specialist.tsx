@@ -4,12 +4,15 @@ import Footer from "@/components/Footer";
 import ProfileCard from "@/components/ProfileCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, ArrowLeft, Stethoscope, Heart, Brain, Eye, Scissors, Baby, Users } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Search, ArrowLeft, Stethoscope, Heart, Brain, Eye, Scissors, Baby, Users, Video, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
-import { specialistsData } from "@/data/specialist.ts";
+import { specialistsData } from "@/data/specialist";
 import { useSearchParams } from "react-router-dom";
+import { useZoomIntegration } from "@/hooks/useZoomIntegration";
+import { toast } from 'sonner';
+import VirtualChat from "@/pages/VirtualChat.tsx";
 
-// Category definitions matching the specialist data structure
 const specialtyCategories = [
   {
     id: "general-medicine",
@@ -76,8 +79,11 @@ const Specialists = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl || "");
   const [showCategoryList, setShowCategoryList] = useState(!categoryFromUrl);
+  const [selectedSpecialist, setSelectedSpecialist] = useState<any>(null);
+  const [isConsultationOpen, setIsConsultationOpen] = useState(false);
   
-  // Handle URL category parameter
+  const { loading: zoomLoading, createZoomMeeting } = useZoomIntegration();
+  
   useEffect(() => {
     if (categoryFromUrl) {
       setSelectedCategory(categoryFromUrl);
@@ -85,7 +91,6 @@ const Specialists = () => {
     }
   }, [categoryFromUrl]);
   
-  // Filter specialists based on search term and selected category
   const filteredSpecialists = specialistsData.filter(specialist => {
     const matchesSearch = 
       !searchTerm || 
@@ -109,8 +114,23 @@ const Specialists = () => {
     setShowCategoryList(true);
   };
 
-  // Get current category data
   const currentCategory = specialtyCategories.find(cat => cat.id === selectedCategory);
+
+  const startVirtualConsultation = (specialist: any) => {
+    setSelectedSpecialist(specialist);
+    setIsConsultationOpen(true);
+  };
+
+  const initiateZoomCall = async (specialist: any) => {
+    const meeting = await createZoomMeeting(
+      `Virtual Consultation with ${specialist.name}`,
+      'patient@example.com'
+    );
+    
+    if (meeting) {
+      toast.success(`Zoom meeting created with ${specialist.name}!`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -119,7 +139,6 @@ const Specialists = () => {
       <main className="flex-1 container mx-auto px-4 py-6">
         <div className="max-w-md mx-auto">
           {showCategoryList ? (
-            // Category Selection View - Mobile App Style
             <div>
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">Choose Specialty</h1>
@@ -128,7 +147,6 @@ const Specialists = () => {
                 </p>
               </div>
               
-              {/* Search Bar */}
               <div className="relative mb-6">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
@@ -139,7 +157,6 @@ const Specialists = () => {
                 />
               </div>
               
-              {/* Category Grid - Mobile App Style */}
               <div className="grid grid-cols-2 gap-4">
                 {specialtyCategories
                   .filter(category => 
@@ -172,7 +189,6 @@ const Specialists = () => {
               </div>
             </div>
           ) : (
-            // Specialists List View
             <div>
               <div className="flex items-center gap-3 mb-6">
                 <Button 
@@ -191,7 +207,6 @@ const Specialists = () => {
                 </div>
               </div>
               
-              {/* Search Bar */}
               <div className="relative mb-6">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
@@ -202,7 +217,6 @@ const Specialists = () => {
                 />
               </div>
               
-              {/* Specialists List */}
               {filteredSpecialists.length > 0 ? (
                 <div className="space-y-4">
                   {filteredSpecialists.map((specialist, index) => (
@@ -229,9 +243,30 @@ const Specialists = () => {
                                 <span>⭐ {specialist.rating}</span>
                                 <span>KES {specialist.consultationFee}</span>
                               </div>
-                              <Button size="sm" className="text-xs px-3 py-1">
-                                Book Now
-                              </Button>
+                              <div className="flex gap-1">
+                                <Button size="sm" className="text-xs px-2 py-1">
+                                  Book
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="text-xs px-2 py-1"
+                                  onClick={() => startVirtualConsultation(specialist)}
+                                >
+                                  <MessageSquare className="h-3 w-3 mr-1" />
+                                  Chat
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="text-xs px-2 py-1"
+                                  onClick={() => initiateZoomCall(specialist)}
+                                  disabled={zoomLoading}
+                                >
+                                  <Video className="h-3 w-3 mr-1" />
+                                  {zoomLoading ? '...' : 'Call'}
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -259,6 +294,19 @@ const Specialists = () => {
           )}
         </div>
       </main>
+      
+      <Dialog open={isConsultationOpen} onOpenChange={setIsConsultationOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Virtual Consultation with {selectedSpecialist?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <VirtualChat />
+          </div>
+        </DialogContent>
+      </Dialog>
       
       <Footer />
     </div>
