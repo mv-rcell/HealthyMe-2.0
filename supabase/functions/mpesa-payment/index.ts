@@ -49,13 +49,21 @@ serve(async (req) => {
     const consumerSecret = Deno.env.get('CONSUMER_SECRET')!
     const shortcode = Deno.env.get('MPESA_SHORTCODE')!
     const passkey = Deno.env.get('MPESA_PASSKEY')!
-    const baseUrl = 'https://api.safaricom.co.ke' // Production URL
+    const baseUrl = Deno.env.get("MPESA_BASE_URL")!
     const callbackUrl = Deno.env.get('MPESA_CALLBACK_URL')!
 
     console.log('Starting M-Pesa payment process for:', { amount, phoneNumber, userId, membershipTier })
+    console.log("Base URL:", baseUrl)
+    console.log("Consumer Key:", consumerKey)
+    console.log("Consumer Secret:", consumerSecret)
+
 
     // Step 1: Get OAuth token
-    const auth = btoa(`${consumerKey}:${consumerSecret}`)
+    if (!consumerKey || !consumerSecret) {
+      throw new Error("Missing M-Pesa API credentials (CONSUMER_KEY or CONSUMER_SECRET)")
+    }
+    
+    const auth = btoa(unescape(encodeURIComponent(`${consumerKey}:${consumerSecret}`)))
     const tokenResponse = await fetch(`${baseUrl}/oauth/v1/generate?grant_type=client_credentials`, {
       method: 'GET',
       headers: {

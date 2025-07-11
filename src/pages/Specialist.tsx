@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ProfileCard from "@/components/ProfileCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Search, ArrowLeft, Stethoscope, Heart, Brain, Eye, Scissors, Baby, Users, Video, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
-import { specialistsData } from "@/data/specialist";
 import { useSearchParams } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useRealSpecialists } from "@/hooks/useRealSpecialists";
 import { useZoomIntegration } from "@/hooks/useZoomIntegration";
+import { useVideoCall } from "@/hooks/useVideoCall";
 import { toast } from 'sonner';
-import VirtualChat from "@/pages/VirtualChat.tsx";
+import VirtualChats from "@/components/functional/VirtualChats.tsx";
+import MessageThread from "@/components/messaging/MessageThread";
+import RealTimeSpecialistCard from "@/components/functional/RealTimeSpecialistCard";
 
 const specialtyCategories = [
   {
@@ -23,7 +26,7 @@ const specialtyCategories = [
   },
   {
     id: "surgery",
-    name: "Surgery",
+    name: "Surgery", 
     description: "General and specialized surgical procedures",
     icon: Scissors,
     color: "bg-blue-500"
@@ -73,6 +76,11 @@ const specialtyCategories = [
 ];
 
 const Specialists = () => {
+  const { user } = useAuth();
+  const { specialists, loading } = useRealSpecialists();
+  const { createZoomMeeting, loading: zoomLoading } = useZoomIntegration();
+  const { startVideoCall, loading: videoLoading } = useVideoCall();
+  
   const [searchParams] = useSearchParams();
   const categoryFromUrl = searchParams.get('category');
   
@@ -80,9 +88,7 @@ const Specialists = () => {
   const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl || "");
   const [showCategoryList, setShowCategoryList] = useState(!categoryFromUrl);
   const [selectedSpecialist, setSelectedSpecialist] = useState<any>(null);
-  const [isConsultationOpen, setIsConsultationOpen] = useState(false);
-  
-  const { loading: zoomLoading, createZoomMeeting } = useZoomIntegration();
+  const [communicationType, setCommunicationType] = useState<'chat' | 'message' | null>(null);
   
   useEffect(() => {
     if (categoryFromUrl) {
@@ -91,15 +97,15 @@ const Specialists = () => {
     }
   }, [categoryFromUrl]);
   
-  const filteredSpecialists = specialistsData.filter(specialist => {
+  const filteredSpecialists = specialists.filter(specialist => {
     const matchesSearch = 
       !searchTerm || 
-      specialist.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      specialist.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      specialist.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      specialist.specialty.toLowerCase().includes(searchTerm.toLowerCase());
+      specialist.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      specialist.specialist_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      specialist.bio?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = !selectedCategory || specialist.category === selectedCategory;
+    const matchesCategory = !selectedCategory || 
+      specialist.specialist_type?.toLowerCase().includes(selectedCategory.toLowerCase());
     
     return matchesSearch && matchesCategory;
   });
@@ -116,20 +122,46 @@ const Specialists = () => {
 
   const currentCategory = specialtyCategories.find(cat => cat.id === selectedCategory);
 
-  const startVirtualConsultation = (specialist: any) => {
-    setSelectedSpecialist(specialist);
-    setIsConsultationOpen(true);
-  };
+  const startZoomCall = async (specialist: any) => {
+    if (!user) {
+      toast.error('Please log in to start a call');
+      return;
+    }
 
-  const initiateZoomCall = async (specialist: any) => {
     const meeting = await createZoomMeeting(
-      `Virtual Consultation with ${specialist.name}`,
-      'patient@example.com'
+      `Virtual Consultation with ${specialist.full_name}`,
+      user.email || 'client@example.com'
     );
     
     if (meeting) {
-      toast.success(`Zoom meeting created with ${specialist.name}!`);
+      toast.success(`Zoom meeting created with ${specialist.full_name}!`);
     }
+  };
+
+  const startVideo = async (specialist: any) => {
+    if (!user) {
+      toast.error('Please log in to start a video call');
+      return;
+    }
+
+    const appointmentId = Math.floor(Math.random() * 1000000);
+    const session = await startVideoCall(appointmentId, specialist.id);
+    if (session) {
+      toast.success(`Video call started with ${specialist.full_name}!`);
+    }
+  };
+
+  const openCommunication = (specialist: any, type: 'chat' | 'message') => {
+    if (!user) {
+      toast.error('Please log in to communicate');
+      return;
+    }
+    setSelectedSpecialist(specialist);
+    setCommunicationType(type);
+  };
+
+  const handleBookAppointment = (specialist: any) => {
+    toast.info(`Booking appointment with ${specialist.full_name}...`);
   };
 
   return (
@@ -201,9 +233,11 @@ const Specialists = () => {
                 </Button>
                 <div>
                   <h1 className="text-xl font-bold text-gray-900">
-                    {currentCategory?.name} Specialists
+                    {currentCategory?.name || 'All'} Specialists
                   </h1>
-                  <p className="text-gray-600 text-sm">{filteredSpecialists.length} specialists available</p>
+                  <p className="text-gray-600 text-sm">
+                    {loading ? 'Loading...' : `${filteredSpecialists.length} specialists available`}
+                  </p>
                 </div>
               </div>
               
@@ -217,7 +251,11 @@ const Specialists = () => {
                 />
               </div>
               
-              {filteredSpecialists.length > 0 ? (
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : filteredSpecialists.length > 0 ? (
                 <div className="space-y-4">
                   {filteredSpecialists.map((specialist, index) => (
                     <motion.div
@@ -226,51 +264,18 @@ const Specialists = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: 0.1 * index }}
                     >
-                      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                        <div className="flex gap-3">
-                          <img
-                            src={specialist.imageUrl}
-                            alt={specialist.name}
-                            className="w-16 h-16 rounded-xl object-cover"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 text-sm">{specialist.name}</h3>
-                            <p className="text-blue-600 text-xs font-medium">{specialist.specialty}</p>
-                            <p className="text-gray-500 text-xs mt-1 line-clamp-2">{specialist.description}</p>
-                            
-                            <div className="flex items-center justify-between mt-3">
-                              <div className="flex items-center gap-4 text-xs text-gray-500">
-                                <span>⭐ {specialist.rating}</span>
-                                <span>KES {specialist.consultationFee}</span>
-                              </div>
-                              <div className="flex gap-1">
-                                <Button size="sm" className="text-xs px-2 py-1">
-                                  Book
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
-                                  className="text-xs px-2 py-1"
-                                  onClick={() => startVirtualConsultation(specialist)}
-                                >
-                                  <MessageSquare className="h-3 w-3 mr-1" />
-                                  Chat
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
-                                  className="text-xs px-2 py-1"
-                                  onClick={() => initiateZoomCall(specialist)}
-                                  disabled={zoomLoading}
-                                >
-                                  <Video className="h-3 w-3 mr-1" />
-                                  {zoomLoading ? '...' : 'Call'}
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      <RealTimeSpecialistCard
+                        specialist={specialist}
+                        onStartChat={(s) => openCommunication(s, 'chat')}
+                        onStartMessage={(s) => openCommunication(s, 'message')}
+                        onStartVideo={startVideo}
+                        onStartZoom={startZoomCall}
+                        onBookAppointment={handleBookAppointment}
+                        loading={{
+                          video: videoLoading,
+                          zoom: zoomLoading
+                        }}
+                      />
                     </motion.div>
                   ))}
                 </div>
@@ -279,7 +284,12 @@ const Specialists = () => {
                   <div className="text-gray-400 mb-2">
                     <Stethoscope className="h-12 w-12 mx-auto" />
                   </div>
-                  <p className="text-gray-500">No specialists found</p>
+                  <p className="text-gray-500">
+                    {specialists.length === 0 
+                      ? "No specialists have registered yet" 
+                      : "No specialists found"
+                    }
+                  </p>
                   <Button 
                     variant="outline" 
                     size="sm"
@@ -295,15 +305,41 @@ const Specialists = () => {
         </div>
       </main>
       
-      <Dialog open={isConsultationOpen} onOpenChange={setIsConsultationOpen}>
+      {/* Communication Dialogs */}
+      <Dialog open={!!selectedSpecialist && communicationType === 'chat'} onOpenChange={() => {
+        setSelectedSpecialist(null);
+        setCommunicationType(null);
+      }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              Virtual Consultation with {selectedSpecialist?.name}
+              Virtual Chat with {selectedSpecialist?.full_name}
             </DialogTitle>
           </DialogHeader>
           <div className="mt-4">
-            <VirtualChat />
+            <VirtualChats />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!selectedSpecialist && communicationType === 'message'} onOpenChange={() => {
+        setSelectedSpecialist(null);
+        setCommunicationType(null);
+      }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Message {selectedSpecialist?.full_name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            {user && selectedSpecialist && (
+              <MessageThread
+                currentUserId={user.id}
+                recipientId={selectedSpecialist.id}
+                recipientName={selectedSpecialist.full_name}
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>

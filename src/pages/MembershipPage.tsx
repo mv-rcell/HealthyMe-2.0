@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -198,25 +199,33 @@ const MembershipPage = () => {
         amount: selectedPlan.price,
         phoneNumber,
         userId: user.id,
-        membershipTier: selectedPlan.id
+        membershipTier: selectedPlan.name
       });
       
-      const { data, error } = await supabase.functions.invoke('stk-push', {        body: {
+      const { data, error } = await supabase.functions.invoke('mpesa-payment', {
+        body: {
           amount: selectedPlan.price,
           phoneNumber: phoneNumber,
           userId: user.id,
-          membershipTier: selectedPlan.id
+          membershipTier: selectedPlan.name
         }
       });
 
       console.log('M-Pesa payment response:', data);
+      console.log('M-Pesa payment error:', error);
 
       if (error) {
         console.error('Supabase function error:', error);
-        throw new Error(error.message);
+        
+        // Try to get more details from the error
+        if (error.context?.body) {
+          console.error('Error response body:', error.context.body);
+        }
+        
+        throw new Error(error.message || 'Payment function error');
       }
 
-      if (data.success) {
+      if (data && data.success) {
         toast.success("Payment request sent successfully!");
         toast.info("Please check your phone for the M-Pesa prompt and enter your PIN");
         
@@ -225,7 +234,7 @@ const MembershipPage = () => {
         setPaymentDialogOpen(false);
         setPhoneNumber(""); // Clear phone number
       } else {
-        throw new Error(data.error || 'Payment failed');
+        throw new Error(data?.error || 'Payment failed - invalid response');
       }
     } catch (error: any) {
       console.error('M-Pesa payment error:', error);
