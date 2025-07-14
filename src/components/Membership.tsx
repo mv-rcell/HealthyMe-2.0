@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
@@ -177,7 +178,7 @@ const Membership = () => {
     setPaymentDialogOpen(true);
   };
 
-  const handleMpesaPayment = async () => {
+  const handlePesaPalPayment = async () => {
     if (!user || !selectedPlan) {
       toast.error("Please select a membership plan");
       return;
@@ -188,98 +189,75 @@ const Membership = () => {
       return;
     }
 
+    // Validate phone number format
+    const phoneRegex = /^(\+254|254|0)?[17]\d{8}$/;
+    if (!phoneRegex.test(phoneNumber.replace(/\s+/g, ''))) {
+      toast.error("Please enter a valid Kenyan phone number (e.g., 0712345678)");
+      return;
+    }
+
     try {
       setProcessingPayment(true);
       
-      toast.info("Initiating M-Pesa payment...");
-      console.log('Initiating payment for:', {
+      toast.info("Initiating PesaPal payment...");
+      console.log('Initiating PesaPal payment for:', {
         amount: selectedPlan.price,
         phoneNumber,
         userId: user.id,
         membershipTier: selectedPlan.name
       });
       
-      const { data, error } = await supabase.functions.invoke('mpesa-payment', {
+      const { data, error } = await supabase.functions.invoke('pesapal-payment', {
         body: {
           amount: selectedPlan.price,
-          phoneNumber: phoneNumber,
+          phoneNumber: phoneNumber.trim(),
           userId: user.id,
           membershipTier: selectedPlan.name
         }
       });
 
-      console.log('M-Pesa payment response:', data);
-      console.log('M-Pesa payment error:', error);
+      console.log('PesaPal payment response:', data);
+      console.log('PesaPal payment error:', error);
 
       if (error) {
         console.error('Supabase function error:', error);
         throw new Error(error.message || 'Payment function error');
       }
 
-      if (data && data.success) {
-        toast.success("Payment request sent successfully!");
-        toast.info("Please check your phone for the M-Pesa prompt and enter your PIN");
+      if (data?.success) {
+        toast.success("Payment request initiated successfully!");
+        toast.info("Redirecting to PesaPal to complete your payment...");
         
-        // Start polling for payment status
-        pollPaymentStatus(data.checkoutRequestId, selectedPlan.id);
+        // Small delay before redirect to allow user to see the success message
+        setTimeout(() => {
+          if (data.redirectUrl) {
+            window.location.href = data.redirectUrl;
+          } else {
+            toast.error("Redirect URL not provided");
+          }
+        }, 2000);
+        
         setPaymentDialogOpen(false);
-        setPhoneNumber(""); // Clear phone number
+        setPhoneNumber("");
       } else {
-        throw new Error(data?.error || 'Payment failed - invalid response');
+        throw new Error(data?.error || 'Payment initialization failed');
       }
     } catch (error: any) {
-      console.error('M-Pesa payment error:', error);
-      toast.error(`Payment failed: ${error.message}`);
+      console.error('PesaPal payment error:', error);
+      
+      let errorMessage = 'Payment failed. Please try again.';
+      if (error.message.includes('Invalid phone number')) {
+        errorMessage = 'Please enter a valid Kenyan phone number (e.g., 0712345678)';
+      } else if (error.message.includes('configuration')) {
+        errorMessage = 'Payment service is temporarily unavailable. Please try again later.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setProcessingPayment(false);
     }
-  };
-
-  const pollPaymentStatus = (checkoutRequestId: string, membershipTier: string) => {
-    let pollCount = 0;
-    const maxPolls = 40; // 2 minutes with 3-second intervals
-    
-    const pollInterval = setInterval(async () => {
-      try {
-        pollCount++;
-        console.log(`Polling payment status (${pollCount}/${maxPolls}) for:`, checkoutRequestId);
-        
-        const { data: payments, error } = await supabase
-          .from('payments')
-          .select('payment_status')
-          .eq('transaction_id', checkoutRequestId)
-          .single();
-
-        if (error) {
-          console.error('Error polling payment status:', error);
-          return;
-        }
-
-        console.log('Payment status:', payments.payment_status);
-
-        if (payments.payment_status === 'successful') {
-          toast.success('🎉 Payment completed successfully! Your membership has been activated.');
-          
-          // Update local state
-          setUserMembership(membershipTier);
-          clearInterval(pollInterval);
-          
-          // Refresh the page to show updated membership
-          window.location.reload();
-        } else if (payments.payment_status === 'failed') {
-          toast.error('❌ Payment failed. Please try again or contact support.');
-          clearInterval(pollInterval);
-        } else if (pollCount >= maxPolls) {
-          toast.warning('⏰ Payment is taking longer than expected. Please check your M-Pesa messages or try again.');
-          clearInterval(pollInterval);
-        }
-      } catch (error) {
-        console.error('Polling error:', error);
-        if (pollCount >= maxPolls) {
-          clearInterval(pollInterval);
-        }
-      }
-    }, 3000);
   };
 
   // Function to get initials from name
@@ -354,7 +332,7 @@ const Membership = () => {
                       isCurrentPlan && "bg-green-500 hover:bg-green-600"
                     )}
                     onClick={() => handlePlanSelection(plan)}
-                    disabled={isCurrentPlan}
+                    disabled={isCurrentPlan || processingPayment}
                   >
                     {isCurrentPlan ? "Current Plan" : `Choose ${plan.name}`}
                   </Button>
@@ -419,7 +397,8 @@ const Membership = () => {
                 Subscribe to {selectedPlan?.name} Plan
               </DialogTitle>
               <DialogDescription className="text-center">
-                Complete your M-Pesa payment to activate your {selectedPlan?.name} membership
+                Complete your payment via PesaPal to activate your {selectedPlan?.name} membership. 
+                Supports M-Pesa, Airtel Money, Visa, and Mastercard.
               </DialogDescription>
             </DialogHeader>
             
@@ -431,16 +410,17 @@ const Membership = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="phone-number">M-Pesa Phone Number</Label>
+                <Label htmlFor="phone-number">Phone Number</Label>
                 <Input
                   id="phone-number"
-                  placeholder="07XXXXXXXX or 254XXXXXXXXX"
+                  placeholder="0712345678"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   className="mobile-input"
+                  maxLength={13}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Enter your M-Pesa registered phone number
+                  Enter your phone number for mobile money payments (M-Pesa, Airtel Money, etc.)
                 </p>
               </div>
             </div>
@@ -448,15 +428,18 @@ const Membership = () => {
             <DialogFooter className="flex flex-col sm:flex-row gap-2">
               <Button 
                 variant="outline" 
-                onClick={() => setPaymentDialogOpen(false)}
+                onClick={() => {
+                  setPaymentDialogOpen(false);
+                  setPhoneNumber("");
+                }}
                 className="w-full sm:w-auto"
                 disabled={processingPayment}
               >
                 Cancel
               </Button>
               <Button 
-                onClick={handleMpesaPayment} 
-                disabled={processingPayment}
+                onClick={handlePesaPalPayment} 
+                disabled={processingPayment || !phoneNumber}
                 className="w-full sm:w-auto"
               >
                 {processingPayment ? (

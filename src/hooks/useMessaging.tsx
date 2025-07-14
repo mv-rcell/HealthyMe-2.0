@@ -16,16 +16,19 @@ export interface Message {
 export const useMessaging = (currentUserId?: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [conversationPartnerId, setConversationPartnerId] = useState<string | null>(null);
 
-  const fetchMessages = async (conversationPartnerId: string) => {
+  const fetchMessages = async (partnerId: string) => {
     if (!currentUserId) return;
     
     setLoading(true);
+    setConversationPartnerId(partnerId);
+    
     try {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .or(`and(sender_id.eq.${currentUserId},recipient_id.eq.${conversationPartnerId}),and(sender_id.eq.${conversationPartnerId},recipient_id.eq.${currentUserId})`)
+        .or(`and(sender_id.eq.${currentUserId},recipient_id.eq.${partnerId}),and(sender_id.eq.${partnerId},recipient_id.eq.${currentUserId})`)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -72,28 +75,56 @@ export const useMessaging = (currentUserId?: string) => {
     }
   };
 
+  // Real-time subscription for messages
   useEffect(() => {
-    if (!currentUserId) return;
+    if (!currentUserId || !conversationPartnerId) return;
 
+    console.log('Setting up real-time subscription for messages');
+    
     const channel = supabase
-      .channel('messages_changes')
+      .channel('messages_realtime')
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
-          table: 'messages'
+          table: 'messages',
+          filter: `or(and(sender_id.eq.${currentUserId},recipient_id.eq.${conversationPartnerId}),and(sender_id.eq.${conversationPartnerId},recipient_id.eq.${currentUserId}))`
         },
-        () => {
-          // Refresh messages when changes occur
+        (payload) => {
+          console.log('New message received:', payload);
+          const newMessage = payload.new as Message;
+          setMessages(prev => [...prev, newMessage]);
+          
+          // Mark as read if it's not from current user
+          if (newMessage.sender_id !== currentUserId) {
+            markAsRead(newMessage.id);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `or(and(sender_id.eq.${currentUserId},recipient_id.eq.${conversationPartnerId}),and(sender_id.eq.${conversationPartnerId},recipient_id.eq.${currentUserId}))`
+        },
+        (payload) => {
+          console.log('Message updated:', payload);
+          const updatedMessage = payload.new as Message;
+          setMessages(prev => prev.map(msg => 
+            msg.id === updatedMessage.id ? updatedMessage : msg
+          ));
         }
       )
       .subscribe();
 
     return () => {
+      console.log('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
-  }, [currentUserId]);
+  }, [currentUserId, conversationPartnerId]);
 
   return {
     messages,
