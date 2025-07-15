@@ -1,45 +1,62 @@
 
-import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import AIRecommendations from '@/components/smart-features/AIRecommendations';
-import NotificationCenter from '@/components/smart-features/NotificationCenter.tsx';
-import ReferralDashboard from '@/components/smart-features/ReferralDashboard';
+import React from "react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import AIRecommendations from "@/components/smart-features/AIRecommendations";
+import AppQueryAI from "@/components/AppQueryAI";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Brain, MessageCircle, Sparkles } from "lucide-react";
 
 const SmartFeatures = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       
-      <main className="flex-1 container mx-auto px-4 py-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center space-y-4 mb-8">
-            <h1 className="text-4xl font-bold">Smart Health Features</h1>
-            <p className="text-xl text-muted-foreground">
-              AI-powered tools and intelligent features to enhance your healthcare experience
+      <main className="flex-1 container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold mb-4 flex items-center justify-center gap-2">
+              <Brain className="h-8 w-8 text-primary" />
+              Smart AI Features
+            </h1>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Leverage the power of artificial intelligence to enhance your health journey with personalized recommendations and instant app assistance.
             </p>
           </div>
 
-          <Tabs defaultValue="ai-recommendations" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="ai-recommendations">AI Recommendations</TabsTrigger>
-              <TabsTrigger value="notifications">Notifications</TabsTrigger>
-              <TabsTrigger value="referrals">Referrals & Rewards</TabsTrigger>
-            </TabsList>
+          <div className="grid gap-8">
+            {/* App Query AI */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5" />
+                  Ask About HealthyMe
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Get instant answers about app features, how to book appointments, find specialists, and more.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <AppQueryAI />
+              </CardContent>
+            </Card>
 
-            <TabsContent value="ai-recommendations" className="mt-6">
-              <AIRecommendations />
-            </TabsContent>
-
-            <TabsContent value="notifications" className="mt-6">
-              <NotificationCenter />
-            </TabsContent>
-
-            <TabsContent value="referrals" className="mt-6">
-              <ReferralDashboard />
-            </TabsContent>
-          </Tabs>
+            {/* Health AI Recommendations */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  AI Health Recommendations
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Get personalized health guidance, care plans, and symptom analysis powered by advanced AI.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <AIRecommendations />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
       
