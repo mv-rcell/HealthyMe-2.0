@@ -7,7 +7,7 @@ import IntegratedSpecialistSearch from '../../pages/IntegratedSpecialistSearch';
 import VirtualChat from '../../pages/VirtualChat';
 import IntegratedLabTestBooking from '../../pages/IntegratedLabTestBooking';
 import IntegratedHomeCareBooking from '../../pages/IntegratedHomeCareBooking';
-import IntegratedReviewsSystem from './IntegratedReviewsSystem';
+import IntegratedReviewsSystem from '../../pages/IntegratedReviewsSystem';
 import HabitTracker from '../../pages/HabitTracker';
 import HealthPrograms from '../../pages/HealthPrograms';
 

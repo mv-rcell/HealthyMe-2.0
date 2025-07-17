@@ -1,171 +1,134 @@
-import React, { useState } from 'react';
-import { MessageCircle, Send, Bot, User } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { useAppQuery } from '@/hooks/useAppQuery';
 
-interface Message {
-  id: string;
-  text: string;
-  isUser: boolean;
-  timestamp: Date;
-}
+import React, { useState } from 'react';
+import { MessageSquare, Send, Bot } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useAppQuery } from '@/hooks/useAppQuery';
 
 const AppQueryAI = () => {
   const [query, setQuery] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: "Hi! I'm your HealthyMe assistant. I can help you with questions about the app, its features, how to book appointments, find specialists, use AI recommendations, and more. What would you like to know?",
-      isUser: false,
-      timestamp: new Date()
-    }
-  ]);
-  
-  const { askQuestion, loading } = useAppQuery();
+  const [conversation, setConversation] = useState<Array<{type: 'user' | 'ai', message: string}>>([]);
+  const { askQuestion, loading, error } = useAppQuery();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim() || loading) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: query,
-      isUser: true,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
+    const userMessage = query;
     setQuery('');
-
-    const response = await askQuestion(query);
     
-    const aiMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      text: response,
-      isUser: false,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, aiMessage]);
+    // Add user message to conversation
+    setConversation(prev => [...prev, { type: 'user', message: userMessage }]);
+    
+    try {
+      const response = await askQuestion(userMessage);
+      
+      // Add AI response to conversation
+      setConversation(prev => [...prev, { type: 'ai', message: response }]);
+    } catch (err) {
+      console.error('Query error:', err);
+      setConversation(prev => [...prev, { 
+        type: 'ai', 
+        message: 'I apologize, but I encountered an error processing your question. Please try again.' 
+      }]);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageCircle className="h-5 w-5" />
-            Ask About HealthyMe
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Chat Messages */}
-            <div className="max-h-96 overflow-y-auto space-y-3 p-4 bg-gray-50 rounded-lg">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex items-start gap-3 ${
-                    message.isUser ? 'flex-row-reverse' : 'flex-row'
-                  }`}
-                >
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                    message.isUser ? 'bg-primary text-primary-foreground' : 'bg-secondary'
-                  }`}>
-                    {message.isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-                  </div>
-                  <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                    message.isUser 
-                      ? 'bg-primary text-primary-foreground ml-auto' 
-                      : 'bg-white border mr-auto'
-                  }`}>
-                    <p className="text-sm whitespace-pre-wrap">{message.text}</p>
-                    <p className="text-xs opacity-70 mt-1">
-                      {message.timestamp.toLocaleTimeString()}
-                    </p>
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Bot className="h-5 w-5" />
+          Ask About Our App
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Conversation History */}
+        <div className="max-h-96 overflow-y-auto space-y-3 border rounded-lg p-4 bg-muted/30">
+          {conversation.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">
+              Ask me anything about our health platform - features, services, how to use specific tools, or anything else!
+            </p>
+          ) : (
+            conversation.map((msg, index) => (
+              <div key={index} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] p-3 rounded-lg ${
+                  msg.type === 'user' 
+                    ? 'bg-primary text-primary-foreground ml-4' 
+                    : 'bg-background border mr-4'
+                }`}>
+                  <div className="flex items-start gap-2">
+                    {msg.type === 'ai' && <Bot className="h-4 w-4 mt-0.5 text-primary" />}
+                    <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                   </div>
                 </div>
-              ))}
-              {loading && (
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                    <Bot className="h-4 w-4" />
-                  </div>
-                  <div className="bg-white border rounded-lg px-4 py-2">
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
+              </div>
+            ))
+          )}
+          {loading && (
+            <div className="flex justify-start">
+              <div className="bg-background border mr-4 p-3 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Bot className="h-4 w-4 text-primary" />
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
+          )}
+        </div>
 
-            {/* Input Form */}
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <Textarea
-                placeholder="Ask me anything about HealthyMe - features, appointments, specialists, AI recommendations..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="flex-1 min-h-[60px]"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit(e);
-                  }
-                }}
-              />
-              <Button 
-                type="submit" 
-                disabled={loading || !query.trim()}
-                className="self-end"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </form>
+        {/* Input Form */}
+        <form onSubmit={handleSubmit} className="flex gap-2">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Ask about features, services, how to book appointments..."
+            disabled={loading}
+            className="flex-1"
+          />
+          <Button 
+            type="submit" 
+            disabled={loading || !query.trim()}
+            size="icon"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </form>
 
-            {/* Quick Questions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {error && (
+          <p className="text-destructive text-sm">{error}</p>
+        )}
+
+        {/* Example Questions */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Try asking:</p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              "How do I book a lab test?",
+              "What specialists are available?",
+              "How does the AI health dashboard work?",
+              "What membership plans do you offer?"
+            ].map((example) => (
               <Button
+                key={example}
                 variant="outline"
                 size="sm"
-                onClick={() => setQuery("How do I book an appointment with a specialist?")}
-                className="text-left justify-start h-auto p-3"
+                onClick={() => setQuery(example)}
+                disabled={loading}
+                className="text-xs"
               >
-                How do I book an appointment?
+                {example}
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setQuery("What AI features are available in the app?")}
-                className="text-left justify-start h-auto p-3"
-              >
-                What AI features are available?
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setQuery("How do I access my health dashboard?")}
-                className="text-left justify-start h-auto p-3"
-              >
-                How do I access my dashboard?
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setQuery("What types of specialists are available?")}
-                className="text-left justify-start h-auto p-3"
-              >
-                What specialists are available?
-              </Button>
-            </div>
+            ))}
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

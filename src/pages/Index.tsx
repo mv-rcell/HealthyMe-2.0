@@ -33,7 +33,10 @@ import {
   Bell,
   Settings,
   Sun,
-  Moon
+  Moon,
+  House,
+  LucidePartyPopper,
+  Glasses
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -221,14 +224,16 @@ const Index = () => {
                 </div>
               </motion.div>
 
+
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <div className="text-center cursor-pointer" onClick={() => navigate('/virtualchats')}>
+                <div className="text-center cursor-pointer" onClick={() => navigate('/Homecare')}>
                   <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-red-50 flex items-center justify-center">
-                    <Video className="h-6 w-6 text-red-500" />
+                    <House className="h-6 w-6 text-red-500" />
                   </div>
-                  <span className="text-xs text-gray-700">Virtual consults</span>
+                  <span className="text-xs text-gray-700">Home care</span>
                 </div>
               </motion.div>
+
 
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <div className="text-center cursor-pointer" onClick={() => navigate('/integratedspecialists')}>
@@ -238,6 +243,17 @@ const Index = () => {
                   <span className="text-xs text-gray-700">Find specialists</span>
                 </div>
               </motion.div>
+
+              
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <div className="text-center cursor-pointer" onClick={() => navigate('/IntegratedReviewSystem')}>
+                  <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-red-50 flex items-center justify-center">
+                    <Glasses className="h-6 w-6 text-red-500" />
+                  </div>
+                  <span className="text-xs text-gray-700">Reviews</span>
+                </div>
+              </motion.div>
+
 
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <div className="text-center cursor-pointer" onClick={() => navigate('/labtests')}>
@@ -382,7 +398,7 @@ const Index = () => {
                   </div>
                 </CardContent>
               </Card>
-
+                              
               <Card className="bg-white rounded-xl shadow-sm border border-gray-100">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
@@ -399,6 +415,7 @@ const Index = () => {
               </Card>
             </div>
           </div>
+
 
           {/* AI Features Section */}
           <div className="mb-8">

@@ -3,6 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
 export interface UserProfile {
+  [x: string]: null;
+  [x: string]: any[];
+  [x: string]: null;
+  age: null;
+  gender: null;
+  health_conditions: any[];
   location: string;
   consultation_fee: any;
   subsequent_visits_fee: any;

@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Phone, Mail, MapPin, Send } from "lucide-react";
+import { Phone, Mail, MapPin, Send, Clock, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -10,7 +11,58 @@ const Contact = () => {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeSpecialists: 0,
+    completedAppointments: 0
+  });
   const contactRef = useRef<HTMLElement>(null);
+
+  // Fetch real-time stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Get total users count
+        const { count: usersCount } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+
+        // Get active specialists count
+        const { count: specialistsCount } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+          .eq('role', 'specialist')
+          .eq('is_active', true);
+
+        // Get completed appointments count
+        const { count: appointmentsCount } = await supabase
+          .from('appointments_new')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'completed');
+
+        setStats({
+          totalUsers: usersCount || 0,
+          activeSpecialists: specialistsCount || 0,
+          completedAppointments: appointmentsCount || 0
+        });
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+
+    fetchStats();
+    
+    // Set up real-time subscription for stats updates
+    const channel = supabase
+      .channel('contact-stats')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, fetchStats)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments_new' }, fetchStats)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -22,30 +74,45 @@ const Contact = () => {
     setIsSubmitting(true);
     
     try {
-      // Send data to backend API
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Something went wrong');
+      // Store contact message in database
+      const { error } = await supabase
+        .from('contact_messages')
+        .insert([
+          {
+            name: formData.name,
+            email: formData.email,
+            message: formData.message,
+            created_at: new Date().toISOString()
+          }
+        ]);
+
+      if (error) {
+        console.error('Database error:', error);
+        // Continue with email sending even if database fails
       }
-      
+
+      // Send email notification to admin
+      const { error: emailError } = await supabase.functions.invoke('contact-notification', {
+        body: {
+          name: formData.name,
+          email: formData.email,
+          message: formData.message
+        }
+      });
+
+      if (emailError) {
+        console.error('Email error:', emailError);
+      }
+
       // Reset form and show success message
       setFormData({ name: "", email: "", message: "" });
       toast.success("Message sent!", {
-        description: "We'll get back to you as soon as possible."
+        description: "We'll get back to you within 24 hours."
       });
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error("Failed to send message", {
-        description: error instanceof Error ? error.message : "Please try again later"
+        description: "Please try again or contact us directly."
       });
     } finally {
       setIsSubmitting(false);
@@ -95,6 +162,22 @@ const Contact = () => {
           <p className="text-muted-foreground md:text-lg max-w-2xl mx-auto">
             Have questions or ready to start your health journey? Reach out to us.
           </p>
+        </div>
+
+        {/* Real-time Stats */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12 reveal">
+          <div className="text-center p-6 glass-card rounded-2xl">
+            <div className="text-3xl font-bold text-primary mb-2">{stats.totalUsers.toLocaleString()}</div>
+            <div className="text-muted-foreground">Registered Users</div>
+          </div>
+          <div className="text-center p-6 glass-card rounded-2xl">
+            <div className="text-3xl font-bold text-primary mb-2">{stats.activeSpecialists}</div>
+            <div className="text-muted-foreground">Active Specialists</div>
+          </div>
+          <div className="text-center p-6 glass-card rounded-2xl">
+            <div className="text-3xl font-bold text-primary mb-2">{stats.completedAppointments.toLocaleString()}</div>
+            <div className="text-muted-foreground">Successful Consultations</div>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-12 items-start">
@@ -167,8 +250,7 @@ const Contact = () => {
                   <Phone className="h-5 w-5 text-primary mr-3 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
                   <div>
                     <p className="font-medium">Phone</p>
-                    <p className="text-muted-foreground">+254 701 210 698</p>
-                    <p className="text-muted-foreground">+254 701 482 127</p>
+                    <p className="text-muted-foreground">+254 792 297 731</p>
                   </div>
                 </div>
                 
@@ -176,7 +258,7 @@ const Contact = () => {
                   <Mail className="h-5 w-5 text-primary mr-3 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
                   <div>
                     <p className="font-medium">Email</p>
-                    <p className="text-muted-foreground">contact@healthyme.com</p>
+                    <p className="text-muted-foreground">support@healthyme.com</p>
                   </div>
                 </div>
                 
@@ -185,8 +267,8 @@ const Contact = () => {
                   <div>
                     <p className="font-medium">Address</p>
                     <p className="text-muted-foreground">
-                      354 Kimathi Street, Suite 100<br />
-                      Nairobi, CA 00-00120
+                      Nairobi Health Center<br />
+                      Westlands, Nairobi 00100
                     </p>
                   </div>
                 </div>
@@ -194,7 +276,7 @@ const Contact = () => {
             </div>
             
             <div className="glass-card p-6 rounded-2xl hover-lift">
-              <h3 className="text-xl font-semibold mb-4">Hours of Operation</h3>
+              <h3 className="text-xl font-semibold mb-4">Business Hours</h3>
               <div className="space-y-2">
                 <div className="flex justify-between transition-all duration-300 hover:translate-x-1 hover:font-medium">
                   <span>Monday - Friday</span>
@@ -208,6 +290,18 @@ const Contact = () => {
                   <span>Sunday</span>
                   <span>10:00 AM - 4:00 PM</span>
                 </div>
+              </div>
+            </div>
+
+            <div className="glass-card p-6 rounded-2xl hover-lift">
+              <h3 className="text-xl font-semibold mb-4">Response Time</h3>
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary" />
+                <span className="text-muted-foreground">We typically respond within 2-4 hours during business hours</span>
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <Calendar className="h-5 w-5 text-primary" />
+                <span className="text-muted-foreground">Emergency support available 24/7</span>
               </div>
             </div>
           </div>

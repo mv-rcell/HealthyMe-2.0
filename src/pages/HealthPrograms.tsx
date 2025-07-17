@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Trophy, Users, Target, Calendar } from 'lucide-react';
+import { Trophy, Users, Target, Calendar, Activity, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 
-const HealthPrograms = () => {
+const HealthProgramsPage = () => {
   const [joinedPrograms, setJoinedPrograms] = useState<string[]>([]);
   const { toast } = useToast();
 
@@ -66,96 +66,122 @@ const HealthPrograms = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
-      <div className="grid md:grid-cols-2 gap-6">
-        <div>
-          <h3 className="text-xl font-semibold mb-4">Available Programs</h3>
-          <div className="space-y-4">
-            {programs.map((program) => (
-              <Card key={program.id}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{program.name}</CardTitle>
-                  <p className="text-sm text-muted-foreground">{program.description}</p>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      {program.duration}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
-                      {program.participants} participants
-                    </div>
-                  </div>
-                  
-                  {joinedPrograms.includes(program.id) && program.progress > 0 && (
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Progress</span>
-                        <span>{program.progress}%</span>
-                      </div>
-                      <Progress value={program.progress} className="h-2" />
-                    </div>
-                  )}
-                  
-                  <div className="text-sm">
-                    <span className="font-medium">Rewards: </span>
-                    {program.rewards}
-                  </div>
-                  
-                  <Button
-                    onClick={() => handleJoinProgram(program.id)}
-                    className="w-full"
-                    variant={joinedPrograms.includes(program.id) ? "secondary" : "default"}
-                  >
-                    {joinedPrograms.includes(program.id) ? 'Joined' : 'Join Program'}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <header className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <Activity className="h-8 w-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-900">Health Programs</h1>
           </div>
-        </div>
-
-        <div>
-          <h3 className="text-xl font-semibold mb-4">Community Leaderboard</h3>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-yellow-500" />
-                Top Participants
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {leaderboard.map((user) => (
-                  <div
-                    key={user.rank}
-                    className={`flex items-center justify-between p-2 rounded ${
-                      user.name === 'You' ? 'bg-primary/10 border border-primary/20' : ''
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                        user.rank <= 3 ? 'bg-yellow-500 text-white' : 'bg-gray-200'
-                      }`}>
-                        {user.rank}
-                      </div>
-                      <span className={user.name === 'You' ? 'font-medium' : ''}>{user.name}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Target className="h-4 w-4 text-primary" />
-                      <span className="font-medium">{user.points}</span>
-                    </div>
-                  </div>
-                ))}
+          <p className="text-gray-600 text-lg">
+            Join community-driven health challenges and track your progress towards better wellness
+          </p>
+          <div className="flex items-center gap-6 mt-4 text-sm text-gray-500">
+            <div className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              <span>2,793 active participants</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Award className="h-4 w-4" />
+              <span>15+ rewards available</span>
+            </div>
+          </div>
+        </header>
+        
+        <main>
+          <div className="w-full max-w-4xl mx-auto space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-xl font-semibold mb-4">Available Programs</h3>
+                <div className="space-y-4">
+                  {programs.map((program) => (
+                    <Card key={program.id}>
+                      <CardHeader>
+                        <CardTitle className="text-lg">{program.name}</CardTitle>
+                        <p className="text-sm text-muted-foreground">{program.description}</p>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            {program.duration}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Users className="h-4 w-4" />
+                            {program.participants} participants
+                          </div>
+                        </div>
+                        
+                        {joinedPrograms.includes(program.id) && program.progress > 0 && (
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span>Progress</span>
+                              <span>{program.progress}%</span>
+                            </div>
+                            <Progress value={program.progress} className="h-2" />
+                          </div>
+                        )}
+                        
+                        <div className="text-sm">
+                          <span className="font-medium">Rewards: </span>
+                          {program.rewards}
+                        </div>
+                        
+                        <Button
+                          onClick={() => handleJoinProgram(program.id)}
+                          className="w-full"
+                          variant={joinedPrograms.includes(program.id) ? "secondary" : "default"}
+                        >
+                          {joinedPrograms.includes(program.id) ? 'Joined' : 'Join Program'}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+
+              <div>
+                <h3 className="text-xl font-semibold mb-4">Community Leaderboard</h3>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Trophy className="h-5 w-5 text-yellow-500" />
+                      Top Participants
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {leaderboard.map((user) => (
+                        <div
+                          key={user.rank}
+                          className={`flex items-center justify-between p-2 rounded ${
+                            user.name === 'You' ? 'bg-primary/10 border border-primary/20' : ''
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                              user.rank <= 3 ? 'bg-yellow-500 text-white' : 'bg-gray-200'
+                            }`}>
+                              {user.rank}
+                            </div>
+                            <span className={user.name === 'You' ? 'font-medium' : ''}>{user.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Target className="h-4 w-4 text-primary" />
+                            <span className="font-medium">{user.points}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );
 };
 
-export default HealthPrograms;
+export default HealthProgramsPage;

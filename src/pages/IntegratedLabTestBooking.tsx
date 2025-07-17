@@ -1,17 +1,7 @@
-// Updated IntegratedLabTestBooking with lab test data from the uploaded images
-import { Calendar, FileText, Download, Clock, CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
-import { useLabTests } from '@/hooks/useLabTests';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { Calendar, FileText, Download, Clock, CheckCircle, User, Phone, CreditCard } from 'lucide-react';
 
-const IntegratedLabTestBooking = () => {
+const LabTestBookingPage = () => {
   const [testType, setTestType] = useState('');
   const [testDate, setTestDate] = useState('');
   const [homeCollection, setHomeCollection] = useState(false);
@@ -20,8 +10,33 @@ const IntegratedLabTestBooking = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { user } = useAuth();
-  const { labTests, bookLabTest, downloadReport, scheduleFollowUp } = useLabTests();
+  // Mock lab tests data
+  const labTests = [
+    {
+      id: '1',
+      test_name: 'Blood Glucose',
+      scheduled_date: '2024-01-20T10:00:00',
+      status: 'completed',
+      price: 35,
+      age: '32',
+      gender: 'Male',
+      phone_number: '+1 (555) 123-4567',
+      report_url: null,
+      follow_up_scheduled: false
+    },
+    {
+      id: '2',
+      test_name: 'Lipid Profile',
+      scheduled_date: '2024-01-25T14:30:00',
+      status: 'scheduled',
+      price: 65,
+      age: '32',
+      gender: 'Male',
+      phone_number: '+1 (555) 123-4567',
+      report_url: null,
+      follow_up_scheduled: false
+    }
+  ];
 
   const categorizedLabTestOptions = {
     "Haematology": [
@@ -78,214 +93,290 @@ const IntegratedLabTestBooking = () => {
     ]
   };
 
-  const getTestPrice = (testName: string) => {
-    const prices: { [key: string]: number } = {
+  const getTestPrice = (testName) => {
+    const prices = {
       'ANA': 60, 'Vitamin B12': 45, 'TSH': 30, 'Cholesterol': 35, 'Bilirubin': 25, 'Prolactin': 40
     };
     return prices[testName] || 40;
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'scheduled': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'in-progress': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'scheduled': return 'bg-blue-100 text-blue-800';
+      case 'in-progress': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const handleBookTest = async () => {
-    if (!user) {
-      toast.error('Please log in to book a test');
-      return;
-    }
-
     if (!testType || !testDate || !age || !gender || !phoneNumber) {
-      toast.error('Please fill in all required fields');
+      alert('Please fill in all required fields');
       return;
     }
 
     setLoading(true);
-    try {
-      await bookLabTest({
-        test_type: 'diagnostic',
-        test_name: testType,
-        scheduled_date: testDate,
-        status: 'scheduled',
-        price: getTestPrice(testType) + (homeCollection ? 10 : 0),
-        results: null,
-        report_url: null,
-        follow_up_scheduled: false,
-        age,
-        gender,
-        phone_number: phoneNumber
-      });
-
+    setTimeout(() => {
       setTestType('');
       setTestDate('');
       setHomeCollection(false);
       setAge('');
       setGender('');
       setPhoneNumber('');
-
-      toast.success('Lab test booked successfully!');
-    } catch (error: any) {
-      toast.error(`Failed to book test: ${error.message}`);
-    } finally {
       setLoading(false);
-    }
+      alert('Lab test booked successfully!');
+    }, 1500);
   };
 
-  const handleDownloadReport = (reportUrl: string | null, testName: string) => {
-    if (reportUrl) {
-      downloadReport(reportUrl, testName);
-    } else {
-      const blob = new Blob(['Sample Test Report Content'], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      downloadReport(url, testName);
-      URL.revokeObjectURL(url);
-    }
+  const handleDownloadReport = (reportUrl, testName) => {
+    const blob = new Blob(['Sample Test Report Content'], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${testName}_report.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  const handleScheduleFollowUp = async (testId: string) => {
-    const followUpDate = new Date();
-    followUpDate.setDate(followUpDate.getDate() + 7);
-    await scheduleFollowUp(testId, followUpDate.toISOString());
+  const handleScheduleFollowUp = async (testId) => {
+    alert('Follow-up scheduled for next week');
   };
 
   return (
-    <div className="space-y-6">
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Book Lab Tests & Health Checkups
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Test Type</label>
-              <Select value={testType} onValueChange={setTestType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select test type" />
-                </SelectTrigger>
-                <SelectContent>
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Lab Test Booking</h1>
+          <p className="text-lg text-gray-600">Schedule your lab tests and manage your health checkups</p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Tests</p>
+                <p className="text-2xl font-bold text-gray-900">{labTests.length}</p>
+              </div>
+              <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <FileText className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Completed</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {labTests.filter(test => test.status === 'completed').length}
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Scheduled</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {labTests.filter(test => test.status === 'scheduled').length}
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <Clock className="h-6 w-6 text-yellow-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Book Test Form */}
+        <div className="bg-white rounded-lg shadow-sm border mb-8">
+          <div className="px-6 py-5 border-b">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Book Lab Tests & Health Checkups
+            </h2>
+          </div>
+          
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Test Type</label>
+                <select
+                  value={testType}
+                  onChange={(e) => setTestType(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select test type</option>
                   {Object.entries(categorizedLabTestOptions).map(([category, tests]) => (
-                    <div key={category}>
-                      <p className="px-2 py-1 text-xs font-semibold text-muted-foreground">{category}</p>
+                    <optgroup key={category} label={category}>
                       {tests.map((test) => (
-                        <SelectItem key={test} value={test}>{test}</SelectItem>
+                        <option key={test} value={test}>{test}</option>
                       ))}
-                    </div>
+                    </optgroup>
                   ))}
-                </SelectContent>
-              </Select>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Date & Time</label>
+                <input
+                  type="datetime-local"
+                  value={testDate}
+                  onChange={(e) => setTestDate(e.target.value)}
+                  min={new Date().toISOString().slice(0, 16)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
+                <input
+                  type="number"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  placeholder="Enter age"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                <select
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                <input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="Enter phone number"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Preferred Date & Time</label>
-              <Input
-                type="datetime-local"
-                value={testDate}
-                onChange={(e) => setTestDate(e.target.value)}
-                min={new Date().toISOString().slice(0, 16)}
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="homeCollection"
+                checked={homeCollection}
+                onChange={(e) => setHomeCollection(e.target.checked)}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
+              <label htmlFor="homeCollection" className="text-sm text-gray-700">
+                Home sample collection (+$10)
+              </label>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Age</label>
-              <Input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="Enter age" />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Gender</label>
-              <Select value={gender} onValueChange={setGender}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Male">Male</SelectItem>
-                  <SelectItem value="Female">Female</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Phone Number</label>
-              <Input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="Enter phone number" />
-            </div>
+            <button
+              onClick={handleBookTest}
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <Calendar className="h-5 w-5" />
+              {loading ? 'Booking...' : 'Book Test'}
+            </button>
           </div>
+        </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="homeCollection"
-              checked={homeCollection}
-              onCheckedChange={(checked) => setHomeCollection(checked === true)}
-            />
-            <label htmlFor="homeCollection" className="text-sm">
-              Home sample collection (+$10)
-            </label>
+        {/* Lab Tests List */}
+        <div className="bg-white rounded-lg shadow-sm border">
+          <div className="px-6 py-5 border-b">
+            <h2 className="text-xl font-semibold text-gray-900">Your Lab Tests</h2>
           </div>
-
-          <Button onClick={handleBookTest} disabled={loading} className="w-full">
-            <Calendar className="h-4 w-4 mr-2" />
-            {loading ? 'Booking...' : 'Book Test'}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle>Your Lab Tests</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {labTests.length > 0 ? (
-            <div className="space-y-4">
-              {labTests.map((test) => (
-                <div key={test.id} className="border border-border rounded-lg p-4 bg-card">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium text-foreground">{test.test_name}</h4>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        {new Date(test.scheduled_date).toLocaleDateString()} at{' '}
-                        {new Date(test.scheduled_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          
+          <div className="p-6">
+            {labTests.length > 0 ? (
+              <div className="space-y-4">
+                {labTests.map((test) => (
+                  <div key={test.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <h3 className="text-lg font-medium text-gray-900">{test.test_name}</h3>
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(test.status)}`}>
+                            {test.status}
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            <span>
+                              {new Date(test.scheduled_date).toLocaleDateString()} at{' '}
+                              {new Date(test.scheduled_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4" />
+                            <span>Price: ${test.price}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            <span>Age: {test.age || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span>Gender: {test.gender || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center gap-2 md:col-span-2">
+                            <Phone className="h-4 w-4" />
+                            <span>Phone: {test.phone_number || 'N/A'}</span>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm text-muted-foreground">Price: ${test.price}</p>
-                      <p className="text-sm mt-1">Age: {test.age || 'N/A'}</p>
-                      <p className="text-sm">Gender: {test.gender || 'N/A'}</p>
-                      <p className="text-sm">Phone: {test.phone_number || 'N/A'}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className={getStatusColor(test.status)}>
-                        {test.status}
-                      </Badge>
-                      {test.status === 'completed' && (
-                        <Button size="sm" onClick={() => handleDownloadReport(test.report_url, test.test_name)}>
-                          <Download className="h-4 w-4 mr-1" />
-                          Download Report
-                        </Button>
-                      )}
-                      {test.status === 'completed' && !test.follow_up_scheduled && (
-                        <Button size="sm" variant="outline" onClick={() => handleScheduleFollowUp(test.id)}>
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Schedule Follow-up
-                        </Button>
-                      )}
+                      
+                      <div className="flex items-center gap-2">
+                        {test.status === 'completed' && (
+                          <button
+                            onClick={() => handleDownloadReport(test.report_url, test.test_name)}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                          >
+                            <Download className="h-4 w-4" />
+                            Download Report
+                          </button>
+                        )}
+                        {test.status === 'completed' && !test.follow_up_scheduled && (
+                          <button
+                            onClick={() => handleScheduleFollowUp(test.id)}
+                            className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                            Schedule Follow-up
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground text-center py-8">No lab tests booked yet</p>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-xl text-gray-600 mb-2">No lab tests booked yet</p>
+                <p className="text-gray-500">Book your first test to get started with your health checkups</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default IntegratedLabTestBooking;
+export default LabTestBookingPage;

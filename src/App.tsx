@@ -42,6 +42,7 @@ import IntegratedLabTestBooking from "./pages/IntegratedLabTestBooking.tsx";
 import IntegratedHomeCareBooking from "./pages/IntegratedHomeCareBooking.tsx";
 import HealthPrograms from "./pages/HealthPrograms.tsx";
 import HabitTracker from "./pages/HabitTracker.tsx";
+import IntegratedReviewsSystem from "./pages/IntegratedReviewsSystem.tsx";
 
 // React Query setup
 const queryClient = new QueryClient({
@@ -104,6 +105,8 @@ const App = () => {
                   <Route path="/Homecare" element={<IntegratedHomeCareBooking/>} />
                   <Route path="/Programs" element={<HealthPrograms/>} />
                   <Route path="/tracker" element={<HabitTracker/>} />
+                  <Route path="/IntegratedReviewSystem" element={<IntegratedReviewsSystem specialistId={""}/>} />
+
 
 
                   {/* Optional: Auth gate route, though "/" is already taken by <Index /> */}
