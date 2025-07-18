@@ -110,6 +110,45 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_requests: {
+        Row: {
+          client_id: string
+          created_at: string
+          duration: number | null
+          id: string
+          notes: string | null
+          preferred_date: string
+          service_type: string
+          specialist_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          duration?: number | null
+          id?: string
+          notes?: string | null
+          preferred_date: string
+          service_type: string
+          specialist_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          duration?: number | null
+          id?: string
+          notes?: string | null
+          preferred_date?: string
+          service_type?: string
+          specialist_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       client_progress: {
         Row: {
           appointment_id: number | null

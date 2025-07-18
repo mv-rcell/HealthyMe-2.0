@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { Search, Star, MapPin, Clock, Users, Brain, Stethoscope, Video, MessageSquare, Phone } from 'lucide-react';
+import {
+  Search, Star, MapPin, Clock, Users,
+  Brain, Stethoscope, Video, MessageSquare, Phone
+} from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -13,28 +16,30 @@ import { useVideoCall } from '@/hooks/useVideoCall';
 import { toast } from 'sonner';
 import VirtualChats from '@/components/functional/VirtualChats.tsx';
 import MessageThread from '../messaging/MessageThread';
+import BookingRequestsPanel from './BookingRequestPanel';
 
 const RealTimeSpecialistSearch = () => {
   const { user } = useAuth();
   const { specialists, loading } = useRealSpecialists();
   const { createZoomMeeting, loading: zoomLoading } = useZoomIntegration();
   const { startVideoCall, loading: videoLoading } = useVideoCall();
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('');
   const [selectedSpecialist, setSelectedSpecialist] = useState<any>(null);
   const [communicationType, setCommunicationType] = useState<'chat' | 'message' | null>(null);
+  const [showBookingDialog, setShowBookingDialog] = useState(false); // ✅
 
   const specialties = Array.from(new Set(specialists.map(s => s.specialist_type).filter(Boolean))).sort();
 
   const filteredSpecialists = specialists.filter(specialist => {
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       specialist.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       specialist.specialist_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       specialist.bio?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesSpecialty = !selectedSpecialty || specialist.specialist_type === selectedSpecialty;
-    
+
     return matchesSearch && matchesSpecialty;
   });
 
@@ -48,7 +53,7 @@ const RealTimeSpecialistSearch = () => {
       `Consultation with ${specialist.full_name}`,
       user.email || 'client@example.com'
     );
-    
+
     if (meeting) {
       toast.success(`Zoom meeting created with ${specialist.full_name}!`);
     }
@@ -60,9 +65,8 @@ const RealTimeSpecialistSearch = () => {
       return;
     }
 
-    // Create a temporary appointment for the video call
     const appointmentId = Math.floor(Math.random() * 1000000);
-    
+
     const session = await startVideoCall(appointmentId, specialist.id);
     if (session) {
       toast.success(`Video call started with ${specialist.full_name}!`);
@@ -74,7 +78,7 @@ const RealTimeSpecialistSearch = () => {
       toast.error('Please log in to communicate');
       return;
     }
-    
+
     setSelectedSpecialist(specialist);
     setCommunicationType(type);
   };
@@ -148,7 +152,7 @@ const RealTimeSpecialistSearch = () => {
                     <div className="w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                   )}
                 </div>
-                
+
                 <div className="flex-1 space-y-2">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                     <div>
@@ -161,7 +165,7 @@ const RealTimeSpecialistSearch = () => {
                       </Badge>
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                     {specialist.location && (
                       <div className="flex items-center gap-1">
@@ -182,11 +186,11 @@ const RealTimeSpecialistSearch = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   {specialist.bio && (
                     <p className="text-sm text-muted-foreground line-clamp-2">{specialist.bio}</p>
                   )}
-                  
+
                   {specialist.languages && (
                     <div className="flex flex-wrap gap-2">
                       {specialist.languages.split(',').map((language, index) => (
@@ -196,9 +200,9 @@ const RealTimeSpecialistSearch = () => {
                       ))}
                     </div>
                   )}
-                  
+
                   <Separator />
-                  
+
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                     <div className="text-sm">
                       {specialist.consultation_fee && (
@@ -209,11 +213,17 @@ const RealTimeSpecialistSearch = () => {
                       )}
                     </div>
                     <div className="flex gap-2 flex-wrap">
-                      <Button size="sm">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setSelectedSpecialist(specialist);
+                          setShowBookingDialog(true);
+                        }}
+                      >
                         Book Appointment
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => openCommunication(specialist, 'chat')}
                         className="flex items-center gap-1"
@@ -221,8 +231,8 @@ const RealTimeSpecialistSearch = () => {
                         <MessageSquare className="h-3 w-3" />
                         Chat
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => openCommunication(specialist, 'message')}
                         className="flex items-center gap-1"
@@ -230,8 +240,8 @@ const RealTimeSpecialistSearch = () => {
                         <MessageSquare className="h-3 w-3" />
                         Message
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => startVideo(specialist)}
                         disabled={videoLoading}
@@ -240,8 +250,8 @@ const RealTimeSpecialistSearch = () => {
                         <Video className="h-3 w-3" />
                         {videoLoading ? 'Starting...' : 'Video'}
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => startZoomCall(specialist)}
                         disabled={zoomLoading}
@@ -258,17 +268,17 @@ const RealTimeSpecialistSearch = () => {
           </Card>
         ))}
       </div>
-      
+
       {filteredSpecialists.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
-          {specialists.length === 0 
-            ? "No specialists have registered yet." 
+          {specialists.length === 0
+            ? "No specialists have registered yet."
             : "No specialists found matching your criteria. Try adjusting your search."
           }
         </div>
       )}
 
-      {/* Communication Dialogs */}
+      {/* Chat Dialog */}
       <Dialog open={!!selectedSpecialist && communicationType === 'chat'} onOpenChange={() => {
         setSelectedSpecialist(null);
         setCommunicationType(null);
@@ -280,11 +290,12 @@ const RealTimeSpecialistSearch = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="mt-4">
-            <VirtualChats/>
+            <VirtualChats />
           </div>
         </DialogContent>
       </Dialog>
 
+      {/* Message Dialog */}
       <Dialog open={!!selectedSpecialist && communicationType === 'message'} onOpenChange={() => {
         setSelectedSpecialist(null);
         setCommunicationType(null);
@@ -302,6 +313,25 @@ const RealTimeSpecialistSearch = () => {
                 recipientId={selectedSpecialist.id}
                 recipientName={selectedSpecialist.full_name}
               />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Booking Dialog */}
+      <Dialog open={showBookingDialog} onOpenChange={(open) => {
+        setShowBookingDialog(open);
+        if (!open) setSelectedSpecialist(null);
+      }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Book Appointment with {selectedSpecialist?.full_name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            {selectedSpecialist && (
+              <BookingRequestsPanel specialist={selectedSpecialist} />
             )}
           </div>
         </DialogContent>

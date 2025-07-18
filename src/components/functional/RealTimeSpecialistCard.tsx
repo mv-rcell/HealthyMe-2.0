@@ -1,125 +1,235 @@
 
-import React from 'react';
-import { Star, MapPin, Clock, Users, Video, MessageSquare, Phone } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Star, MapPin, Clock, Calendar, MessageSquare, Video, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { RealSpecialist } from '@/hooks/useRealSpecialists.tsx';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { useBookingRequests } from '@/hooks/useBookingRequests';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 interface RealTimeSpecialistCardProps {
-  specialist: RealSpecialist;
-  onStartChat: (specialist: RealSpecialist) => void;
-  onStartMessage: (specialist: RealSpecialist) => void;
-  onStartVideo: (specialist: RealSpecialist) => void;
-  onStartZoom: (specialist: RealSpecialist) => void;
-  onBookAppointment: (specialist: RealSpecialist) => void;
-  loading?: {
-    video?: boolean;
-    zoom?: boolean;
+  specialist: {
+    id: string;
+    full_name: string | null;
+    specialist_type: string | null;
+    location: string | null;
+    bio: string | null;
+    consultation_fee: number | null;
+    subsequent_visits_fee: number | null;
+    availability: string | null;
+    languages: string | null;
+    is_online: boolean | null;
+    experience: string | null;
+    profile_picture_url: string | null;
   };
+  rating?: number;
+  reviewCount?: number;
 }
 
-const RealTimeSpecialistCard: React.FC<RealTimeSpecialistCardProps> = ({
-  specialist,
-  onStartChat,
-  onStartMessage,
-  onStartVideo,
-  onStartZoom,
-  onBookAppointment,
-  loading = {}
+const RealTimeSpecialistCard: React.FC<RealTimeSpecialistCardProps> = ({ 
+  specialist, 
+  rating = 4.8, 
+  reviewCount = 24 
 }) => {
+  const { createBookingRequest } = useBookingRequests();
+  const { user } = useAuth();
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [bookingData, setBookingData] = useState({
+    preferred_date: '',
+    service_type: specialist.specialist_type || '',
+    duration: 60,
+    notes: ''
+  });
+
+  const handleBooking = async () => {
+    if (!user || !bookingData.preferred_date) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    const result = await createBookingRequest({
+      client_id: user.id,
+      specialist_id: specialist.id,
+      service_type: bookingData.service_type,
+      preferred_date: new Date(bookingData.preferred_date).toISOString(),
+      duration: bookingData.duration,
+      notes: bookingData.notes,
+      status: 'pending'
+    });
+
+    if (result) {
+      setIsBookingOpen(false);
+      setBookingData({
+        preferred_date: '',
+        service_type: specialist.specialist_type || '',
+        duration: 60,
+        notes: ''
+      });
+    }
+  };
+
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex gap-3">
-          <div className="relative">
+    <Card className="group hover:shadow-lg transition-all duration-300 relative overflow-hidden">
+      {specialist.is_online && (
+        <div className="absolute top-4 right-4 z-10">
+          <Badge className="bg-green-100 text-green-800 border-green-200">
+            <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse" />
+            Online
+          </Badge>
+        </div>
+      )}
+      
+      <CardContent className="p-6">
+        <div className="flex items-start gap-4">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary text-xl font-semibold">
             {specialist.profile_picture_url ? (
-              <img
-                src={specialist.profile_picture_url}
-                alt={specialist.full_name}
-                className="w-12 h-12 rounded-full object-cover"
+              <img 
+                src={specialist.profile_picture_url} 
+                alt={specialist.full_name || 'Specialist'} 
+                className="w-full h-full rounded-full object-cover"
               />
             ) : (
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                {specialist.full_name?.charAt(0) || 'S'}
-              </div>
-            )}
-            {specialist.is_online && (
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+              specialist.full_name?.charAt(0) || 'S'
             )}
           </div>
           
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between">
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-sm truncate">{specialist.full_name}</h3>
-                <p className="text-primary text-xs font-medium">{specialist.specialist_type}</p>
-              </div>
-              <Badge variant={specialist.is_online ? "default" : "secondary"} className="text-xs">
-                {specialist.is_online ? 'Online' : 'Offline'}
-              </Badge>
+          <div className="flex-1 space-y-2">
+            <div>
+              <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                {specialist.full_name}
+              </h3>
+              <p className="text-primary font-medium">{specialist.specialist_type}</p>
             </div>
             
-            {specialist.bio && (
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{specialist.bio}</p>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <span>{rating}</span>
+                <span>({reviewCount} reviews)</span>
+              </div>
+              {specialist.experience && (
+                <span>{specialist.experience}</span>
+              )}
+            </div>
+            
+            {specialist.location && (
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <MapPin className="h-3 w-3" />
+                <span>{specialist.location}</span>
+              </div>
+            )}
+
+            {specialist.languages && (
+              <div className="text-sm text-muted-foreground">
+                <span className="font-medium">Languages:</span> {specialist.languages}
+              </div>
             )}
             
-            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-              {specialist.experience && (
-                <span className="flex items-center gap-1">
-                  <Users className="h-3 w-3" />
-                  {specialist.experience}
-                </span>
-              )}
-              {specialist.consultation_fee && (
-                <span>KES {specialist.consultation_fee}</span>
-              )}
-            </div>
+            {specialist.bio && (
+              <p className="text-sm text-muted-foreground line-clamp-2">
+                {specialist.bio}
+              </p>
+            )}
             
-            <Separator className="my-2" />
-            
-            <div className="flex gap-1 flex-wrap">
-              <Button size="sm" onClick={() => onBookAppointment(specialist)} className="text-xs px-2 py-1">
-                Book
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => onStartChat(specialist)}
-                className="text-xs px-2 py-1"
-              >
-                <MessageSquare className="h-3 w-3 mr-1" />
-                Chat
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => onStartMessage(specialist)}
-                className="text-xs px-2 py-1"
-              >
-                Message
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => onStartVideo(specialist)}
-                disabled={loading.video}
-                className="text-xs px-2 py-1"
-              >
-                <Video className="h-3 w-3 mr-1" />
-                {loading.video ? '...' : 'Video'}
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => onStartZoom(specialist)}
-                disabled={loading.zoom}
-                className="text-xs px-2 py-1"
-              >
-                <Phone className="h-3 w-3 mr-1" />
-                {loading.zoom ? '...' : 'Zoom'}
-              </Button>
+            <div className="flex items-center justify-between pt-2">
+              <div className="space-y-1">
+                {specialist.consultation_fee && (
+                  <div className="flex items-center gap-1 text-sm">
+                    <DollarSign className="h-3 w-3" />
+                    <span className="font-medium">KES {specialist.consultation_fee}</span>
+                    <span className="text-muted-foreground">/ consultation</span>
+                  </div>
+                )}
+                {specialist.availability && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    <span>{specialist.availability}</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline">
+                  <MessageSquare className="h-3 w-3 mr-1" />
+                  Chat
+                </Button>
+                <Button size="sm" variant="outline">
+                  <Video className="h-3 w-3 mr-1" />
+                  Video
+                </Button>
+                <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="bg-primary hover:bg-primary/90">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      Book
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Book Appointment with {specialist.full_name}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="service_type">Service Type</Label>
+                        <Input
+                          id="service_type"
+                          value={bookingData.service_type}
+                          onChange={(e) => setBookingData({...bookingData, service_type: e.target.value})}
+                          placeholder="Enter service type"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="preferred_date">Preferred Date & Time</Label>
+                        <Input
+                          id="preferred_date"
+                          type="datetime-local"
+                          value={bookingData.preferred_date}
+                          onChange={(e) => setBookingData({...bookingData, preferred_date: e.target.value})}
+                          min={new Date().toISOString().slice(0, 16)}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="duration">Duration (minutes)</Label>
+                        <Input
+                          id="duration"
+                          type="number"
+                          value={bookingData.duration}
+                          onChange={(e) => setBookingData({...bookingData, duration: parseInt(e.target.value)})}
+                          min="30"
+                          step="15"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="notes">Additional Notes (Optional)</Label>
+                        <Textarea
+                          id="notes"
+                          value={bookingData.notes}
+                          onChange={(e) => setBookingData({...bookingData, notes: e.target.value})}
+                          placeholder="Any specific requirements or health concerns..."
+                          rows={3}
+                        />
+                      </div>
+                      
+                      <div className="flex gap-2 pt-4">
+                        <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="flex-1">
+                          Cancel
+                        </Button>
+                        <Button onClick={handleBooking} className="flex-1">
+                          Send Booking Request
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           </div>
         </div>

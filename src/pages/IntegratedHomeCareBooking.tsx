@@ -9,6 +9,7 @@ import { useAppointments } from '@/hooks/useAppointments.tsx';
 import { useVideoCall } from '@/hooks/useVideoCall.tsx';
 import { supabase } from '@/integrations/supabase/client';
 
+
 interface Specialist {
   id: string;
   full_name: string;
@@ -59,7 +60,6 @@ const IntegratedHomeCareBooking = () => {
       setLoading(false);
     }
   };
-
   const handleBooking = async () => {
     if (!selectedService || !selectedSpecialist || !user) {
       toast({
