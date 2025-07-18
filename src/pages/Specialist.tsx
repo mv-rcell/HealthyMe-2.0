@@ -12,7 +12,7 @@ import { useRealSpecialists } from "@/hooks/useRealSpecialists";
 import { useZoomIntegration } from "@/hooks/useZoomIntegration";
 import { useVideoCall } from "@/hooks/useVideoCall";
 import { toast } from 'sonner';
-import VirtualChats from "@/components/functional/VirtualChats.tsx";
+import VirtualChat from "@/components/functional/VirtualChats.tsx";
 import MessageThread from "@/components/messaging/MessageThread";
 import RealTimeSpecialistCard from "@/components/functional/RealTimeSpecialistCard";
 
@@ -266,7 +266,6 @@ const Specialists = () => {
                     >
                       <RealTimeSpecialistCard
                         specialist={specialist}
-                        onStartChat={(s) => openCommunication(s, 'chat')}
                         onStartMessage={(s) => openCommunication(s, 'message')}
                         onStartVideo={startVideo}
                         onStartZoom={startZoomCall}
@@ -317,7 +316,7 @@ const Specialists = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="mt-4">
-            <VirtualChats />
+            <VirtualChat />
           </div>
         </DialogContent>
       </Dialog>

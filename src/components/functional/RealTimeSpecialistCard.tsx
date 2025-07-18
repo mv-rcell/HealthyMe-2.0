@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Star, MapPin, Clock, Calendar, MessageSquare, Video, DollarSign } from 'lucide-react';
+import { Star, MapPin, Clock, Calendar, MessageSquare, Video, DollarSign, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,12 +28,25 @@ interface RealTimeSpecialistCardProps {
   };
   rating?: number;
   reviewCount?: number;
+  onStartMessage?: (specialist: any) => void;
+  onStartVideo?: (specialist: any) => Promise<void>;
+  onStartZoom?: (specialist: any) => Promise<void>;
+  onBookAppointment?: (specialist: any) => void;
+  loading?: {
+    video: boolean;
+    zoom: boolean;
+  };
 }
 
 const RealTimeSpecialistCard: React.FC<RealTimeSpecialistCardProps> = ({ 
   specialist, 
   rating = 4.8, 
-  reviewCount = 24 
+  reviewCount = 24,
+  onStartMessage,
+  onStartVideo,
+  onStartZoom,
+  onBookAppointment,
+  loading = { video: false, zoom: false }
 }) => {
   const { createBookingRequest } = useBookingRequests();
   const { user } = useAuth();
@@ -154,13 +166,17 @@ const RealTimeSpecialistCard: React.FC<RealTimeSpecialistCardProps> = ({
               </div>
               
               <div className="flex gap-2">
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" onClick={() => onStartMessage?.(specialist)}>
                   <MessageSquare className="h-3 w-3 mr-1" />
-                  Chat
+                  Message
                 </Button>
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" onClick={() => onStartVideo?.(specialist)} disabled={loading.video}>
                   <Video className="h-3 w-3 mr-1" />
-                  Video
+                  {loading.video ? 'Starting...' : 'Video'}
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => onStartZoom?.(specialist)} disabled={loading.zoom}>
+                  <Phone className="h-3 w-3 mr-1" />
+                  {loading.zoom ? 'Creating...' : 'Zoom'}
                 </Button>
                 <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
                   <DialogTrigger asChild>

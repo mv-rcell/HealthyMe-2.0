@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Menu, X } from "lucide-react";
 import AuthButton from "./AuthButton";
 import ThemeToggle from "./ThemeToggle";
+import MessageNotificationBell from "./messaging/MessageNotificationBell";
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -20,7 +21,9 @@ const Navbar = () => {
   const navItems = [
     { name: "Home", path: "/" },
     { name: "About", path: "/#about" },
-    { name: "Features", path: "/smart-features" },
+    { name: "Features", path: "/#features" },
+    { name: "Book Consultation", path: "/book-consultation" },
+    { name: "Find Specialists", path: "/specialists" },
     { name: "Memberships", path: "/memberships" },
     { name: "Contact", path: "/#contact" },
   ];
@@ -41,6 +44,7 @@ const Navbar = () => {
                 variant="ghost"
                 onClick={() => {
                   if (item.path.startsWith("/#")) {
+                    // Handle in-page navigation for homepage sections
                     if (location.pathname === "/") {
                       document
                         .querySelector(item.path.substring(1))
@@ -54,7 +58,7 @@ const Navbar = () => {
                 }}
                 className={`${
                   isActive(item.path) ? "bg-muted" : ""
-                } text-sm transition-colors`}
+                } text-sm transition-colors pwa-button`}
               >
                 {item.name}
               </Button>
@@ -64,11 +68,14 @@ const Navbar = () => {
           {/* Right side controls */}
           <div className="flex items-center space-x-2">
             <ThemeToggle />
+            {user && <MessageNotificationBell />}
             <AuthButton />
+            
+            {/* Mobile menu button */}
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="md:hidden pwa-button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? <X /> : <Menu />}
@@ -86,6 +93,7 @@ const Navbar = () => {
                 onClick={() => {
                   setIsMobileMenuOpen(false);
                   if (item.path.startsWith("/#")) {
+                    // Handle in-page navigation for homepage sections
                     if (location.pathname === "/") {
                       document
                         .querySelector(item.path.substring(1))
@@ -99,7 +107,7 @@ const Navbar = () => {
                 }}
                 className={`${
                   isActive(item.path) ? "bg-muted" : ""
-                } w-full justify-start text-sm`}
+                } w-full justify-start text-sm pwa-button`}
               >
                 {item.name}
               </Button>
