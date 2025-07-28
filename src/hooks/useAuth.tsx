@@ -3,28 +3,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
 export interface UserProfile {
-  [x: string]: null;
-  [x: string]: any[];
-  [x: string]: null;
-  age: null;
-  gender: null;
-  health_conditions: any[];
-  location: string;
-  consultation_fee: any;
-  subsequent_visits_fee: any;
-  languages: any;
-  availability: string;
   id: string;
-  full_name: string | null;
-  phone_number: string | null;
-  role: 'specialist' | 'client' | null;
+  full_name?: string;
+  phone_number?: string;
+  role?: 'specialist' | 'client';
   created_at: string;
-  specialist_type: string | null;
-  experience: string | null;
-  bio: string | null;
-  profile_picture_url: string | null;
-  membership_tier: string | null;
-  payment_method: string | null;
+  specialist_type?: string;
+  experience?: string;
+  bio?: string;
+  profile_picture_url?: string;
+  membership_tier?: string;
+  payment_method?: string;
 }
 
 export function useAuth() {
@@ -33,17 +22,91 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
+  const currentUserId = useRef<string | null>(null);
 
-  const hasFetchedProfile = useRef<string | null>(null);
+  useEffect(() => {
+    let mounted = true;
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        if (!mounted) return;
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Auth state change:', event, currentSession?.user?.id);
+        }
+
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+
+        if (currentSession?.user) {
+          if (
+            currentUserId.current !== currentSession.user.id ||
+            (!profile && !profileLoading)
+          ) {
+            currentUserId.current = currentSession.user.id;
+            await fetchUserProfile(currentSession.user.id);
+          } else {
+            setLoading(false);
+          }
+        } else {
+          currentUserId.current = null;
+          setProfile(null);
+          setLoading(false);
+        }
+      }
+    );
+
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error('Error getting initial session:', error);
+          setLoading(false);
+          return;
+        }
+
+        if (!mounted) return;
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Initial session check:', currentSession?.user?.id);
+        }
+
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+
+        if (currentSession?.user) {
+          currentUserId.current = currentSession.user.id;
+          await fetchUserProfile(currentSession.user.id);
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        if (mounted) setLoading(false);
+      }
+    };
+
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   const fetchUserProfile = async (userId: string) => {
-    // Prevent duplicate calls for same user
-    if (hasFetchedProfile.current === userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
 
     setProfileLoading(true);
-    console.log('Fetching profile for user:', userId);
-
     try {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Fetching profile for user:', userId);
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -51,12 +114,21 @@ export function useAuth() {
         .single();
 
       if (error) {
-        console.error('Error fetching user profile:', error);
+        if (error.code === 'PGRST116') {
+          console.warn('No profile found. Optionally creating one...');
+          await createEmptyProfile(userId); // optional fallback
+        } else {
+          console.error('Error fetching user profile:', error);
+          setProfile(null);
+        }
+      } else if (!data) {
+        console.warn('Profile is empty.');
         setProfile(null);
       } else {
-        console.log('Profile fetched:', data);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Profile fetched:', data);
+        }
         setProfile(data as UserProfile);
-        hasFetchedProfile.current = userId;
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -67,42 +139,48 @@ export function useAuth() {
     }
   };
 
-  useEffect(() => {
-    const handleSession = async (currentSession: Session | null) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
+  const createEmptyProfile = async (userId: string) => {
+    try {
+      const { error } = await supabase.from('profiles').insert({
+        id: userId,
+        full_name: null,
+        phone_number: null,
+        role: null,
+        created_at: new Date().toISOString(),
+      });
 
-      if (currentSession?.user) {
-        await fetchUserProfile(currentSession.user.id);
+      if (error) {
+        console.error('Error creating empty profile:', error);
       } else {
-        setProfile(null);
-        hasFetchedProfile.current = null;
-        setLoading(false);
+        // Fetch the newly created profile
+        await fetchUserProfile(userId);
       }
-    };
+    } catch (error) {
+      console.error('Error inserting fallback profile:', error);
+    }
+  };
 
-    // Initial session
-    supabase.auth.getSession().then(({ data }) => {
-      console.log('Initial session check:', data.session?.user?.id);
-      handleSession(data.session);
-    });
-
-    const { subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('Auth state change:', _event, session?.user?.id);
-      handleSession(session);
-    }).data;
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  const refreshSession = async () => {
+    const { data: refreshedSession, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error('Error refreshing session:', error);
+    } else {
+      setSession(refreshedSession.session);
+      setUser(refreshedSession.session?.user ?? null);
+      if (refreshedSession.session?.user?.id) {
+        await fetchUserProfile(refreshedSession.session.user.id);
+      }
+    }
+  };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
-    setProfile(null);
-    hasFetchedProfile.current = null;
+    try {
+      await supabase.auth.signOut();
+      setProfile(null);
+      currentUserId.current = null;
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   return {
@@ -112,8 +190,9 @@ export function useAuth() {
     profile,
     profileLoading,
     signOut,
+    refreshSession,
     isSpecialist: profile?.role === 'specialist',
     isClient: profile?.role === 'client',
-    fetchProfile: fetchUserProfile,
+    isLoggedIn: !!user,
   };
 }

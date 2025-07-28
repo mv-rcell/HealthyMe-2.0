@@ -8,3 +8,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
 console.log('Anon Key:', import.meta.env.VITE_SUPABASE_ANON_KEY);
+
+if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('❌ Supabase environment variables are missing!');
+  } else {
+    console.log('✅ Supabase client initialized.');
+  }
+  

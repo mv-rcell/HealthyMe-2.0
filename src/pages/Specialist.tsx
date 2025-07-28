@@ -12,7 +12,7 @@ import { useRealSpecialists } from "@/hooks/useRealSpecialists";
 import { useZoomIntegration } from "@/hooks/useZoomIntegration";
 import { useVideoCall } from "@/hooks/useVideoCall";
 import { toast } from 'sonner';
-import VirtualChat from "@/components/functional/VirtualChats.tsx";
+import VirtualChat from "@/components/functional/VirtualChats";
 import MessageThread from "@/components/messaging/MessageThread";
 import RealTimeSpecialistCard from "@/components/functional/RealTimeSpecialistCard";
 

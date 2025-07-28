@@ -11,7 +11,7 @@ import { useRealSpecialists } from '@/hooks/useRealSpecialists';
 import { useZoomIntegration } from '@/hooks/useZoomIntegration';
 import { useVideoCall } from '@/hooks/useVideoCall';
 import { toast } from 'sonner';
-import VirtualChat from './VirtualChats.tsx';
+import VirtualChat from './VirtualChats';
 import MessageThread from '../messaging/MessageThread';
 import RealTimeSpecialistCard from './RealTimeSpecialistCard';
 
@@ -38,6 +38,11 @@ const RealTimeSpecialistSearch = () => {
     
     return matchesSearch && matchesSpecialty;
   });
+
+  console.log('All specialists:', specialists);
+console.log('Search term:', searchTerm);
+console.log('Selected specialty:', selectedSpecialty);
+
 
   const startZoomCall = async (specialist: any) => {
     if (!user) {
@@ -80,16 +85,7 @@ const RealTimeSpecialistSearch = () => {
     setCommunicationType(type);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-          <p className="text-muted-foreground">Loading specialists...</p>
-        </div>
-      </div>
-    );
-  }
+  
 
   return (
     <div className="space-y-6">
