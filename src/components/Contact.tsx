@@ -224,7 +224,9 @@ const Contact = () => {
                   <Phone className="h-5 w-5 text-primary mr-3 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
                   <div>
                     <p className="font-medium">Phone</p>
-                    <p className="text-muted-foreground">+254 792 297 731</p>
+                    <p className="text-muted-foreground">+254 701 482 127</p>
+                    <p className="text-muted-foreground">+254 701 210 698</p>
+
                   </div>
                 </div>
                 

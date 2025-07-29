@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -9,9 +10,7 @@ export const useRealtimeData = () => {
   useEffect(() => {
     if (!user) return;
 
-    const channels = [];
-
-    // Appointments
+    // Set up realtime subscriptions for multiple tables
     const appointmentsChannel = supabase
       .channel('appointments_changes')
       .on(
@@ -31,10 +30,9 @@ export const useRealtimeData = () => {
             timestamp: new Date().toISOString()
           }]);
         }
-      );
-    channels.push(appointmentsChannel);
+      )
+      .subscribe();
 
-    // Lab Tests
     const labTestsChannel = supabase
       .channel('lab_tests_changes')
       .on(
@@ -54,10 +52,9 @@ export const useRealtimeData = () => {
             timestamp: new Date().toISOString()
           }]);
         }
-      );
-    channels.push(labTestsChannel);
+      )
+      .subscribe();
 
-    // Messages
     const messagesChannel = supabase
       .channel('messages_changes')
       .on(
@@ -77,10 +74,9 @@ export const useRealtimeData = () => {
             timestamp: new Date().toISOString()
           }]);
         }
-      );
-    channels.push(messagesChannel);
+      )
+      .subscribe();
 
-    // Specialists — IMPORTANT FIX HERE
     const specialistsChannel = supabase
       .channel('specialists_changes')
       .on(
@@ -89,27 +85,25 @@ export const useRealtimeData = () => {
           event: '*',
           schema: 'public',
           table: 'profiles',
-          // ❗ FIX: 'filter' is NOT supported here — use `.on()` without it, then filter in code
+          filter: 'role=eq.specialist'
         },
         (payload) => {
-          if (payload.new?.role?.trim().toLowerCase() === 'specialist') {
-            console.log('Specialist update:', payload);
-            setRealtimeUpdates(prev => [...prev, {
-              type: 'specialist',
-              event: payload.eventType,
-              data: payload.new || payload.old,
-              timestamp: new Date().toISOString()
-            }]);
-          }
+          console.log('Specialist update:', payload);
+          setRealtimeUpdates(prev => [...prev, {
+            type: 'specialist',
+            event: payload.eventType,
+            data: payload.new || payload.old,
+            timestamp: new Date().toISOString()
+          }]);
         }
-      );
-    channels.push(specialistsChannel);
-
-    // Subscribe all
-    channels.forEach((ch) => ch.subscribe());
+      )
+      .subscribe();
 
     return () => {
-      channels.forEach((ch) => supabase.removeChannel(ch));
+      supabase.removeChannel(appointmentsChannel);
+      supabase.removeChannel(labTestsChannel);
+      supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(specialistsChannel);
     };
   }, [user]);
 
