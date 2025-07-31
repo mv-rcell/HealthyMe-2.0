@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -17,19 +17,23 @@ export const useMessaging = (currentUserId?: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [conversationPartnerId, setConversationPartnerId] = useState<string | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const fetchMessages = async (partnerId: string) => {
     if (!currentUserId) return;
-    
+
     setLoading(true);
     setConversationPartnerId(partnerId);
-    
+
     try {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .or(`and(sender_id.eq.${currentUserId},recipient_id.eq.${partnerId}),and(sender_id.eq.${partnerId},recipient_id.eq.${currentUserId})`)
-        .order('created_at', { ascending: true });
+        .or(
+          `and(sender_id.eq.${currentUserId},recipient_id.eq.${partnerId}),and(sender_id.eq.${partnerId},recipient_id.eq.${currentUserId})`
+        )
+        .order('created_at', { ascending: true })
+        .limit(100); // <-- Prevent massive payloads
 
       if (error) throw error;
       setMessages(data || []);
@@ -40,19 +44,20 @@ export const useMessaging = (currentUserId?: string) => {
       setLoading(false);
     }
   };
-
-  const sendMessage = async (recipientId: string, messageText: string, appointmentId?: number) => {
+  const sendMessage = async (
+recipientId: string, messageText: string, sessionId: number,
+   // appointmentId?: number
+  ) => {
     if (!currentUserId) return;
 
     try {
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          sender_id: currentUserId,
-          recipient_id: recipientId,
-          message_text: messageText,
-          appointment_id: appointmentId
-        });
+      const { error } = await supabase.from('messages').insert({
+        sender_id: currentUserId,
+        recipient_id: recipientId,
+        message_text: messageText,
+        message_type: 'text', // Add this if your table expects a type
+        is_read: false     
+      });
 
       if (error) throw error;
       toast.success('Message sent');
@@ -75,12 +80,16 @@ export const useMessaging = (currentUserId?: string) => {
     }
   };
 
-  // Real-time subscription for messages
   useEffect(() => {
     if (!currentUserId || !conversationPartnerId) return;
 
-    console.log('Setting up real-time subscription for messages');
-    
+    console.log('🔄 Setting up real-time subscription for messaging');
+
+    // Clean up existing channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
+
     const channel = supabase
       .channel('messages_realtime')
       .on(
@@ -88,15 +97,22 @@ export const useMessaging = (currentUserId?: string) => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'messages',
-          filter: `or(and(sender_id.eq.${currentUserId},recipient_id.eq.${conversationPartnerId}),and(sender_id.eq.${conversationPartnerId},recipient_id.eq.${currentUserId}))`
+          table: 'messages'
         },
         (payload) => {
-          console.log('New message received:', payload);
           const newMessage = payload.new as Message;
-          setMessages(prev => [...prev, newMessage]);
-          
-          // Mark as read if it's not from current user
+
+          const isRelevant =
+            (newMessage.sender_id === currentUserId &&
+              newMessage.recipient_id === conversationPartnerId) ||
+            (newMessage.sender_id === conversationPartnerId &&
+              newMessage.recipient_id === currentUserId);
+
+          if (!isRelevant) return;
+
+          console.log('📨 New message received:', newMessage);
+          setMessages((prev) => [...prev, newMessage]);
+
           if (newMessage.sender_id !== currentUserId) {
             markAsRead(newMessage.id);
           }
@@ -107,21 +123,33 @@ export const useMessaging = (currentUserId?: string) => {
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'messages',
-          filter: `or(and(sender_id.eq.${currentUserId},recipient_id.eq.${conversationPartnerId}),and(sender_id.eq.${conversationPartnerId},recipient_id.eq.${currentUserId}))`
+          table: 'messages'
         },
         (payload) => {
-          console.log('Message updated:', payload);
           const updatedMessage = payload.new as Message;
-          setMessages(prev => prev.map(msg => 
-            msg.id === updatedMessage.id ? updatedMessage : msg
-          ));
+
+          const isRelevant =
+            (updatedMessage.sender_id === currentUserId &&
+              updatedMessage.recipient_id === conversationPartnerId) ||
+            (updatedMessage.sender_id === conversationPartnerId &&
+              updatedMessage.recipient_id === currentUserId);
+
+          if (!isRelevant) return;
+
+          console.log('📝 Message updated:', updatedMessage);
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === updatedMessage.id ? updatedMessage : msg
+            )
+          );
         }
       )
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
-      console.log('Cleaning up real-time subscription');
+      console.log('🧹 Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
   }, [currentUserId, conversationPartnerId]);

@@ -1,128 +1,111 @@
-import { useState, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 
 export interface BookingRequest {
+  patient_name: ReactNode;
+  reason: ReactNode;
+  service_type: ReactNode;
+  preferred_date: string | number | Date;
+  duration: ReactNode;
   id: string;
-  client_id: string;
+  patient_id: string;
   specialist_id: string;
-  service_type: string;
-  preferred_date: string;
-  duration: number;
-  notes?: string;
-  status: 'pending' | 'accepted' | 'rejected' | 'completed';
+  status: 'pending' | 'accepted' | 'declined';
+  scheduled_time: string | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }
 
-export const useBookingRequests = () => {
-  const { user, profile } = useAuth();
-  const [bookingRequests, setBookingRequests] = useState<BookingRequest[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchBookingRequests = async () => {
-    if (!user) return;
-    
-    setLoading(true);
-    try {
-      let query = supabase.from('booking_requests').select('*');
-      
-      // If user is a specialist, get requests sent to them
-      // If user is a client, get requests they sent
-      if (profile?.role === 'specialist') {
-        query = query.eq('specialist_id', user.id);
-      } else {
-        query = query.eq('client_id', user.id);
-      }
-
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setBookingRequests(data || []);
-    } catch (error: any) {
-      console.error('Error fetching booking requests:', error);
-      toast.error(`Error fetching booking requests: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createBookingRequest = async (requestData: Omit<BookingRequest, 'id' | 'created_at' | 'updated_at'>) => {
-    if (!user) return null;
-
-    try {
-      const { data, error } = await supabase
-        .from('booking_requests')
-        .insert([requestData])
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      toast.success('Booking request sent successfully!');
-      fetchBookingRequests();
-      return data;
-    } catch (error: any) {
-      console.error('Error creating booking request:', error);
-      toast.error(`Error sending booking request: ${error.message}`);
-      return null;
-    }
-  };
-
-  const updateBookingRequestStatus = async (requestId: string, status: BookingRequest['status']) => {
-    try {
-      const { error } = await supabase
-        .from('booking_requests')
-        .update({ 
-          status, 
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', requestId);
-
-      if (error) throw error;
-      
-      toast.success(`Booking request ${status} successfully!`);
-      fetchBookingRequests();
-    } catch (error: any) {
-      console.error('Error updating booking request:', error);
-      toast.error(`Error updating booking request: ${error.message}`);
-    }
-  };
+export const useBookingRequests = (specialistId: string | null) => {
+  const [requests, setRequests] = useState<BookingRequest[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchBookingRequests();
+    if (!specialistId) return;
 
-    // Subscribe to real-time updates for booking requests
-    const channel = supabase
-      .channel('booking_requests_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'booking_requests'
-      }, (payload) => {
-        console.log('Booking request update:', payload);
-        fetchBookingRequests(); // Refetch to get updated data
-        
-        // Show notification for new requests (specialists only)
-        if (payload.eventType === 'INSERT' && profile?.role === 'specialist' && payload.new?.specialist_id === user?.id) {
-          toast.info('New booking request received!', {
-            description: 'Check your dashboard for details.'
-          });
-        }
-      })
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const fetchRequests = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('booking_requests')
+        .select('*')
+        .eq('specialist_id', specialistId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        toast.error('Failed to fetch booking requests');
+        console.error(error);
+      } else {
+        setRequests(data);
+      }
+
+      setLoading(false);
+    };
+
+    const subscribeToChanges = () => {
+      channel = supabase
+        .channel(`booking_requests_${specialistId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'booking_requests',
+            filter: `specialist_id=eq.${specialistId}`,
+          },
+          (payload) => {
+            const newRecord = payload.new as BookingRequest;
+            const oldRecord = payload.old as BookingRequest;
+
+            setRequests((prev) => {
+              switch (payload.eventType) {
+                case 'INSERT':
+                  return [newRecord, ...prev];
+                case 'UPDATE':
+                  return prev.map((req) => (req.id === newRecord.id ? newRecord : req));
+                case 'DELETE':
+                  return prev.filter((req) => req.id !== oldRecord.id);
+                default:
+                  return prev;
+              }
+            });
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log(`Subscribed to booking_requests_${specialistId}`);
+          }
+        });
+    };
+
+    fetchRequests();
+    subscribeToChanges();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+        console.log(`Unsubscribed from booking_requests_${specialistId}`);
+      }
     };
-  }, [user, profile]);
+  }, [specialistId]);
+
+  const createBookingRequest = async (
+    request: Omit<BookingRequest, 'id' | 'created_at' | 'updated_at'>
+  ) => {
+    const { error } = await supabase.from('booking_requests').insert(request);
+    if (error) {
+      toast.error('Failed to create booking request');
+      throw error;
+    }
+    toast.success('Booking request created');
+  };
 
   return {
-    bookingRequests,
+    bookingRequests: requests,
     loading,
     createBookingRequest,
-    updateBookingRequestStatus,
-    refetchBookingRequests: fetchBookingRequests
   };
 };

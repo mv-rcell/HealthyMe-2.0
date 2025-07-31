@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -10,7 +11,7 @@ export interface RealSpecialist {
   bio: string;
   profile_picture_url: string | null;
   consultation_fee: number | null;
-  subsequent_visits_fee: number;
+  subsequent_visits_fee: number | null;
   location: string | null;
   languages: string | null;
   is_online: boolean | null;
@@ -21,58 +22,32 @@ export interface RealSpecialist {
 export const useRealSpecialists = () => {
   const [specialists, setSpecialists] = useState<RealSpecialist[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refetching, setRefetching] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchSpecialists = async (isRefetch = false) => {
-    if (isRefetch) setRefetching(true);
-    else setLoading(true);
-
+  const fetchSpecialists = async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          full_name,
-          specialist_type,
-          experience,
-          bio,
-          profile_picture_url,
-          consultation_fee,
-          subsequent_visits_fee,
-          location,
-          languages,
-          is_online,
-          is_active,
-          availability
-        `)
-        .ilike('role', 'specialist') // case-insensitive match
-        .in('is_active', [true, 'true', 1]) // support multiple truthy values
+        .select('*')
+        .eq('role', 'specialist')
+        .eq('is_active', true)
         .not('full_name', 'is', null)
-        .not('specialist_type', 'is', null)
-        .neq('full_name', '')
-        .neq('specialist_type', '');
+        .not('specialist_type', 'is', null);
 
       if (error) throw error;
 
-      console.log('✅ Fetched specialists:', data?.length);
-      console.table(data);
-
       setSpecialists(data || []);
-      setError(null);
-    } catch (err) {
-      console.error('❌ Failed to fetch specialists:', err);
+    } catch (error) {
+      console.error('Error fetching specialists:', error);
       toast.error('Failed to load specialists');
-      setError('Failed to load specialists');
     } finally {
       setLoading(false);
-      setRefetching(false);
     }
   };
 
   useEffect(() => {
     fetchSpecialists();
 
+    // Set up real-time subscription for specialist updates
     const channel = supabase
       .channel('specialists_changes')
       .on(
@@ -81,9 +56,10 @@ export const useRealSpecialists = () => {
           event: '*',
           schema: 'public',
           table: 'profiles',
+          filter: 'role=eq.specialist'
         },
         () => {
-          fetchSpecialists(true);
+          fetchSpecialists();
         }
       )
       .subscribe();
@@ -96,8 +72,6 @@ export const useRealSpecialists = () => {
   return {
     specialists,
     loading,
-    refetching,
-    error,
-    refetch: () => fetchSpecialists(true)
+    refetch: fetchSpecialists
   };
 };

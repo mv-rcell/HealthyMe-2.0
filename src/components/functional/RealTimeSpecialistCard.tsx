@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useBookingRequests } from '@/hooks/useBookingRequests';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { createBookingRequest } from '@/hooks/useBookingRequests';
 
 interface RealTimeSpecialistCardProps {
   specialist: {

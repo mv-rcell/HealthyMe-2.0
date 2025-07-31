@@ -280,6 +280,7 @@ const SpecialistOnboarding = () => {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user?.id}-${documentId}-${Date.now()}.${fileExt}`;
+      
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('specialist-documents')
         .upload(fileName, file);
@@ -305,6 +306,17 @@ const SpecialistOnboarding = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user) return;
     
+    // Additional validation before submission
+    if (!isStepComplete(0) || !isStepComplete(1) || !isStepComplete(2)) {
+      toast.error('Please complete all required fields and upload all required documents before submitting.');
+      return;
+    }
+
+    if (!imageFile && !profile?.profile_picture_url) {
+      toast.error('Please upload a professional profile picture.');
+      return;
+    }
+
     setSaving(true);
     try {
       let profile_picture_url = profile?.profile_picture_url || null;
@@ -313,6 +325,22 @@ const SpecialistOnboarding = () => {
       if (imageFile) {
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${user.id}-profile-${Date.now()}.${fileExt}`;
+        
+        // Ensure profile-pictures bucket exists
+        try {
+          const { data: buckets } = await supabase.storage.listBuckets();
+          const bucketExists = buckets?.some(bucket => bucket.name === 'profile-pictures');
+          
+          if (!bucketExists) {
+            await supabase.storage.createBucket('profile-pictures', {
+              public: true,
+              allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif'],
+              fileSizeLimit: 5242880, // 5MB
+            });
+          }
+        } catch (error) {
+          console.error('Error checking/creating bucket:', error);
+        }
         
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('profile-pictures')
@@ -327,82 +355,111 @@ const SpecialistOnboarding = () => {
         profile_picture_url = publicUrl;
       }
 
-      const applicationPayload = {
-        user_id: user.id,
-        full_name: values.fullName,
-        specialist_type: values.specialistType,
-        experience_years: values.yearsExperience,
-        education: values.education,
-        bio: values.bio,
-        phone_number: values.phoneNumber,
-        license_number: values.licenseNumber,
-        primary_certification: values.primaryCertification,
-        certification_expiry: values.certificationExpiry,
-        fitness_specialties: values.fitnessSpecialties,
-        references: values.references,
-        profile_picture_url,
-        documents: documents.map(doc => ({
-          id: doc.id,
-          name: doc.name,
-          url: doc.url,
-          uploaded: doc.uploaded
-        })),
-        status: 'pending_review',
-        submitted_at: new Date().toISOString()
-      };
-      
-      const fileName = `${user.id}-application-${Date.now()}.json`;
-      const fileBlob = new Blob([JSON.stringify(applicationPayload)], { type: 'application/json' });
-      
-      const { error: applicationUploadError } = await supabase.storage
-        .from('specialist-applications')
-        .upload(fileName, fileBlob);
+      // Create specialist application record
+      const { data: applicationData, error: applicationError } = await supabase
+        .from('specialist_applications')
+        .insert({
+          user_id: user.id,
+          specialist_type: values.specialistType,
+          experience_years: values.yearsExperience,
+          education: values.education,
+          bio: values.bio,
+          phone_number: values.phoneNumber,
+          license_number: values.licenseNumber || null,
+          primary_certification: values.primaryCertification || null,
+          certification_expiry: values.certificationExpiry || null,
+          fitness_specialties: values.fitnessSpecialties || [],
+          references: values.references,
+          documents: documents.map(doc => ({
+            id: doc.id,
+            name: doc.name,
+            url: doc.url,
+            uploaded: doc.uploaded,
+            required: doc.required
+          })),
+          status: 'submitted',
+          submitted_at: new Date().toISOString()
+        })
+        .select('id')
+        .single();
 
-      if (applicationUploadError) {
-        console.error('Application Upload Error:', applicationUploadError);
-        toast.error('Failed to upload application to storage.');
-        throw applicationUploadError;
+      if (applicationError) throw applicationError;
+
+      // Update profile with basic info but keep role as pending approval
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: values.fullName,
+          specialist_type: values.specialistType,
+          experience: `${values.yearsExperience} years`,
+          bio: values.bio,
+          phone_number: values.phoneNumber,
+          profile_picture_url,
+          role: 'specialist_pending', // Pending approval status
+          is_active: false, // Not active until approved
+          is_online: false,
+          verification_status: 'pending_review',
+          license_number: values.licenseNumber || null,
+          primary_certification: values.primaryCertification || null,
+          certification_expiry: values.certificationExpiry ? new Date(values.certificationExpiry) : null,
+          fitness_specialties: values.fitnessSpecialties || [],
+          education: values.education,
+          professional_references: values.references
+        })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
+      // Submit the application using the stored procedure
+      if (applicationData?.id) {
+        const { error: submitError } = await supabase.rpc('submit_specialist_application', {
+          application_id: applicationData.id
+        });
+
+        if (submitError) {
+          console.error('Error submitting application:', submitError);
+          // Don't throw here as the main data is already saved
+        }
       }
 
-
-      const { error: profileError } = await supabase
-      .from('profiles')
-      .update({
-        full_name: values.fullName,
-        specialist_type: values.specialistType,
-        experience: values.yearsExperience,
-        bio: values.bio,
-        phone_number: values.phoneNumber,
-        profile_picture_url,
-        role: 'specialist_pending',
-        is_active: false,
-        is_online: false,
-        verification_status: 'pending_review',
-      })
-      .eq('id', user.id);
-    
-    if (profileError) throw profileError;
-    
-    toast.success('Application submitted successfully! Your profile is now under review.');
-    navigate('/specialist-pending');
+      toast.success('Application submitted successfully! Your profile is now under review.');
       
-      // Navigate to a pending approval page instead of dashboard
+      // Navigate to pending approval page
       navigate('/specialist-pending');
     } catch (error: any) {
-      toast.error(`Error submitting application: ${error.message}`);
+      console.error('Submission error:', error);
+      toast.error(`Error submitting application: ${error.message || 'Please try again'}`);
     } finally {
       setSaving(false);
     }
   };
 
   const isStepComplete = (step: number) => {
+    const values = form.getValues();
+    
     switch (step) {
       case 0: // Basic info
-        return form.getValues('fullName') && form.getValues('specialistType') && form.getValues('bio');
+        return (
+          values.fullName && 
+          values.specialistType && 
+          values.bio && 
+          values.bio.length >= 50 &&
+          values.phoneNumber &&
+          values.yearsExperience >= 0 &&
+          imageFile !== null // Require profile picture
+        );
       case 1: // Documents
-        return documents.filter(doc => doc.required).every(doc => doc.uploaded);
+        const requiredDocs = documents.filter(doc => doc.required);
+        return requiredDocs.length > 0 && requiredDocs.every(doc => doc.uploaded);
       case 2: // Professional details
-        return form.getValues('education') && form.getValues('references');
+        return (
+          values.education && 
+          values.education.length >= 10 &&
+          values.references && 
+          values.references.length >= 20
+        );
+      case 3: // Review - check if all previous steps are complete
+        return isStepComplete(0) && isStepComplete(1) && isStepComplete(2);
       default:
         return false;
     }
@@ -440,7 +497,15 @@ const SpecialistOnboarding = () => {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <CardContent>
-                <Tabs value={currentStep.toString()} className="w-full">
+                <Tabs value={currentStep.toString()} onValueChange={(value) => {
+                  const stepNum = parseInt(value);
+                  // Only allow navigation to next step if current step is complete
+                  if (stepNum <= currentStep || isStepComplete(stepNum - 1)) {
+                    setCurrentStep(stepNum);
+                  } else {
+                    toast.error('Please complete the current step before proceeding.');
+                  }
+                }} className="w-full">
                   <TabsContent value="0" className="space-y-6">
                     <h3 className="text-lg font-semibold">Basic Information</h3>
                     
@@ -815,14 +880,12 @@ const SpecialistOnboarding = () => {
                   )}
                   
                   {currentStep === 3 && (
-                    <Button 
-                      type="submit" 
-                      disabled={saving}
-                    >
-                      {saving ? 'Submitting Application...' : 'Submit Application'}
-                    </Button>
-                  )}
+                   <Button type="submit">
+                   {saving ? 'Submitting Application...' : 'Submit Application'}
+                 </Button>
+                 
                   
+                  )}
                 </div>
               </CardFooter>
             </form>

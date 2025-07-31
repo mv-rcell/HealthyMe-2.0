@@ -88,39 +88,54 @@ export const useMessageNotifications = () => {
 
   const fetchUnreadMessages = async () => {
     if (!user) return;
-
+  
     try {
-      const { data, error } = await supabase
+      // Step 1: Fetch unread messages
+      const { data: messages, error: msgError } = await supabase
         .from('messages')
-        .select(`
-          id,
-          sender_id,
-          message_text,
-          created_at,
-          is_read,
-          profiles!messages_sender_id_fkey(full_name)
-        `)
+        .select('id, sender_id, message_text, created_at, is_read')
         .eq('recipient_id', user.id)
         .eq('is_read', false)
         .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const formattedNotifications: MessageNotification[] = data?.map(msg => ({
+  
+      if (msgError) throw msgError;
+      if (!messages || messages.length === 0) {
+        setNotifications([]);
+        setUnreadCount(0);
+        return;
+      }
+  
+      // Step 2: Get unique sender_ids
+      const senderIds = [...new Set(messages.map(msg => msg.sender_id))];
+  
+      // Step 3: Fetch sender profiles
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', senderIds);
+  
+      if (profileError) throw profileError;
+  
+      const profileMap = new Map(profiles.map(p => [p.id, p.full_name]));
+  
+      // Step 4: Merge profile names into messages
+      const formattedNotifications: MessageNotification[] = messages.map(msg => ({
         id: msg.id,
         sender_id: msg.sender_id,
-        sender_name: (msg.profiles as any)?.full_name || 'Unknown User',
+        sender_name: profileMap.get(msg.sender_id) || 'Unknown User',
         message_text: msg.message_text,
         created_at: msg.created_at,
         is_read: msg.is_read
-      })) || [];
-
+      }));
+  
       setNotifications(formattedNotifications);
       setUnreadCount(formattedNotifications.length);
     } catch (error) {
       console.error('Error fetching unread messages:', error);
+      toast.error('Failed to load unread messages');
     }
   };
+  
 
   const markNotificationAsRead = async (messageId: string) => {
     try {

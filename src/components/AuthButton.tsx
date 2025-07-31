@@ -21,14 +21,6 @@ const AuthButton = () => {
     navigate('/');
   };
 
-  if (loading) {
-    return (
-      <Button variant="outline" disabled>
-        <span className="animate-pulse">Loading...</span>
-      </Button>
-    );
-  }
-
   if (user) {
     return (
       <DropdownMenu>
