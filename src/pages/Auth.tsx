@@ -21,7 +21,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [role, setRole] = useState<'specialist' | 'client'>('client');
+  const [role, setRole] = useState<'specialist' | 'client' | 'fitness_trainer'>('client');
   const [loading, setLoading] = useState(false);
 
   const [showSignInPassword, setShowSignInPassword] = useState(false);
@@ -57,8 +57,8 @@ const Auth = () => {
           .eq('id', data.user.id)
           .single();
           
-        if (profileData?.role === 'specialist') {
-          navigate('/specialist-dashboard');
+          if (profileData?.role === 'specialist' || profileData?.role === 'fitness_trainer') {
+            navigate('/specialist-dashboard');
         } else if (profileData?.role === 'client') {
           navigate('/client-dashboard');
         } else {
@@ -104,8 +104,8 @@ const Auth = () => {
 
           toast.success('Registration successful! Redirecting to onboarding...');
         
-        if (role === 'specialist') {
-          navigate('/specialist-onboarding');
+          if (role === 'specialist' || role === 'fitness_trainer') {
+            navigate('/specialist-onboarding');
         } else {
           navigate('/client-onboarding');
         }
@@ -218,8 +218,8 @@ const Auth = () => {
                 <Label>I am a:</Label>
                 <RadioGroup 
                   value={role} 
-                  onValueChange={(value) => setRole(value as 'specialist' | 'client')}
-                  className="flex space-x-4"
+                   onValueChange={(value) => setRole(value as 'specialist' | 'client' | 'fitness_trainer')}
+                  className="flex flex-col space-y-2"
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="client" id="client" />
@@ -227,8 +227,11 @@ const Auth = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="specialist" id="specialist" />
-                    <Label htmlFor="specialist">Specialist</Label>
+                    <Label htmlFor="specialist">Health Specialist</Label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="fitness_trainer" id="fitness_trainer" />
+                    <Label htmlFor="fitness_trainer">Fitness Trainer</Label>                  </div>
                 </RadioGroup>
               </div>
               

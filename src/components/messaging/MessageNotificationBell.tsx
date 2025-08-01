@@ -14,11 +14,12 @@ import { formatDistanceToNow } from 'date-fns';
 
 const MessageNotificationBell = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { notifications, unreadCount, markNotificationAsRead, clearAllNotifications } = useMessageNotifications();
+  const { notifications, unreadCount, markNotificationAsRead, clearAllNotifications, navigateToMessage } = useMessageNotifications();
 
-  const handleNotificationClick = (messageId: string) => {
+  const handleNotificationClick = (messageId: string, senderId: string) => {
     markNotificationAsRead(messageId);
-    // You could add navigation to the message thread here
+    navigateToMessage(senderId);
+    setIsOpen(false); // Close the popover after navigation
   };
 
   return (
@@ -68,7 +69,7 @@ const MessageNotificationBell = () => {
                       className={`p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors ${
                         !notification.is_read ? 'bg-muted/30' : ''
                       }`}
-                      onClick={() => handleNotificationClick(notification.id)}
+                      onClick={() => handleNotificationClick(notification.id, notification.sender_id)}
                     >
                       <div className="flex items-start gap-3">
                         <div className="flex-1 min-w-0">

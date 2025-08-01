@@ -43,6 +43,7 @@ import IntegratedHomeCareBooking from "./pages/IntegratedHomeCareBooking.tsx";
 import HealthPrograms from "./pages/HealthPrograms.tsx";
 import HabitTracker from "./pages/HabitTracker.tsx";
 import IntegratedReviewsSystem from "./pages/IntegratedReviewsSystem.tsx";
+import Messages from "@/pages/Messages";
 
 
 
@@ -108,8 +109,7 @@ const App = () => {
                   <Route path="/Programs" element={<HealthPrograms/>} />
                   <Route path="/tracker" element={<HabitTracker/>} />
                   <Route path="/IntegratedReviewSystem" element={<IntegratedReviewsSystem specialistId={""}/>} />
-
-
+                  <Route path="/messages/:userId" element={<Messages />} />
 
                   {/* Optional: Auth gate route, though "/" is already taken by <Index /> */}
                   <Route path="/gate" element={<AuthGate />} />

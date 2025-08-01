@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from './useAuth';
+import { useNavigate } from 'react-router-dom';
 
 export interface MessageNotification {
   id: string;
@@ -16,6 +17,8 @@ export const useMessageNotifications = () => {
   const [notifications, setNotifications] = useState<MessageNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const { user } = useAuth();
+  const navigate = useNavigate();
+
 
   // Fetch unread messages on mount
   useEffect(() => {
@@ -72,7 +75,8 @@ export const useMessageNotifications = () => {
               label: 'View',
               onClick: () => {
                 // This could trigger opening the message thread
-                console.log('View message clicked');
+                navigate(`/messages/${newMessage.sender_id}`);
+
               }
             }
           });
@@ -159,6 +163,10 @@ export const useMessageNotifications = () => {
     }
   };
 
+  const navigateToMessage = (senderId: string) => {
+    navigate(`/messages/${senderId}`);
+  };
+
   const clearAllNotifications = () => {
     setNotifications([]);
     setUnreadCount(0);
@@ -169,6 +177,8 @@ export const useMessageNotifications = () => {
     unreadCount,
     markNotificationAsRead,
     clearAllNotifications,
-    fetchUnreadMessages
+    fetchUnreadMessages,
+    navigateToMessage,
+
   };
 };
