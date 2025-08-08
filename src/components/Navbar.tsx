@@ -7,6 +7,8 @@ import { Menu, X } from "lucide-react";
 import AuthButton from "./AuthButton";
 import ThemeToggle from "./ThemeToggle";
 import MessageNotificationBell from "./messaging/MessageNotificationBell";
+import BookingNotificationBell from "./functional/BookingNotificationBell";
+
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -24,6 +26,7 @@ const Navbar = () => {
     { name: "Book Consultation", path: "/book-consultation" },
     { name: "Memberships", path: "/memberships" },
     { name: "Contact", path: "/#contact" },
+    { name: "Requests", path: "/BookingRequestsPanel"}
   ];
 
   return (
@@ -67,6 +70,8 @@ const Navbar = () => {
           <div className="flex items-center space-x-2">
             <ThemeToggle />
             {user && <MessageNotificationBell />}
+            {user && <BookingNotificationBell />}
+
             <AuthButton />
             
             {/* Mobile menu button */}

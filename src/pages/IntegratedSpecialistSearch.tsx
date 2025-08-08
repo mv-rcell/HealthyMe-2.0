@@ -10,10 +10,6 @@ const IntegratedSpecialistSearch = () => {
   return (
     <div className="space-y-6">
       <RealTimeSpecialistSearch />
-      {/* Show booking requests panel for both clients and specialists */}
-      {profile && (
-        <BookingRequestsPanel />
-      )}
     </div>
   );
 };
