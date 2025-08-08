@@ -22,14 +22,13 @@ export const useZoomIntegration = () => {
       console.log('Creating Zoom meeting:', { topic, participant_email: participantEmail });
 
       const { data, error } = await supabase.functions.invoke('create-zoom-meeting', {
-        headers: { 'Content-Type': 'application/json' },
         body: {
           topic,
           duration: 60,
           participant_email: participantEmail
         }
       });
-
+      
       if (error) {
         console.error('Zoom API error:', error);
         toast.error(error.message || 'Failed to create Zoom meeting');

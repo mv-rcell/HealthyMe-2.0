@@ -44,6 +44,8 @@ import HealthPrograms from "./pages/HealthPrograms.tsx";
 import HabitTracker from "./pages/HabitTracker.tsx";
 import IntegratedReviewsSystem from "./pages/IntegratedReviewsSystem.tsx";
 import Messages from "@/pages/Messages";
+import GlobalVideoCallHandler from "@/components/video/GlobalVideoCallHandler";
+
 
 
 
@@ -72,6 +74,7 @@ const App = () => {
           <TooltipProvider>
           <div className="mobile-safe-area">              <Toaster />
               <SonnerToaster />
+              <GlobalVideoCallHandler />
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Index />} />

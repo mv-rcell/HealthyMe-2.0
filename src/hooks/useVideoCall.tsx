@@ -15,24 +15,53 @@ export interface VideoSession {
   created_at: string;
 }
 
+// 🔌 Mock Zoom Integration (replace with real API call)
+const createZoomMeeting = async () => {
+  // Replace with actual call to Zoom/Twilio backend
+  return {
+    join_url: `https://zoom.us/j/${Math.floor(Math.random() * 1000000000)}`,
+    start_url: 'https://zoom.us/start',
+    meeting_id: `${Date.now()}`
+  };
+};
+
 export const useVideoCall = () => {
   const { user } = useAuth();
   const [activeSession, setActiveSession] = useState<VideoSession | null>(null);
   const [loading, setLoading] = useState(false);
   const [incomingCall, setIncomingCall] = useState<VideoSession | null>(null);
 
-  const startVideoCall = async (appointmentId: number, otherUserId: string) => {
-    if (!user) return null;
+  const startVideoCall = async (
+    appointmentId: number,
+    targetUserId: string,
+    role: 'client' | 'specialist'
+  ) => {
+    if (!user?.id || !targetUserId) {
+      toast.error('User info missing. Cannot start call.');
+      return null;
+    }
 
-    setLoading(true);
+    const appointment_id = Number(appointmentId);
+    if (isNaN(appointment_id)) {
+      toast.error('Invalid appointment ID.');
+      return null;
+    }
+
     try {
+      setLoading(true);
+
+      const zoomMeeting = await createZoomMeeting();
+
       const sessionData = {
-        appointment_id: appointmentId,
-        client_id: user.id,
-        specialist_id: otherUserId,
-        status: 'active',
+        appointment_id,
+        client_id: role === 'client' ? user.id : targetUserId,
+        specialist_id: role === 'specialist' ? user.id : targetUserId,
+        session_token: zoomMeeting.join_url,
+        status: 'pending',
         started_at: new Date().toISOString()
       };
+
+      console.log('Creating video session:', sessionData);
 
       const { data, error } = await supabase
         .from('video_sessions')
@@ -41,7 +70,7 @@ export const useVideoCall = () => {
         .single();
 
       if (error) throw error;
-      
+
       setActiveSession(data);
       toast.success('Video call started!');
       return data;
@@ -55,14 +84,20 @@ export const useVideoCall = () => {
 
   const answerCall = async (sessionId: string) => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('video_sessions')
-        .update({ status: 'active' })
-        .eq('id', sessionId);
+        .update({
+          status: 'active',
+          started_at: new Date().toISOString()
+        })
+        .eq('id', sessionId)
+        .select()
+        .single();
 
       if (error) throw error;
-      
+
       setIncomingCall(null);
+      setActiveSession(data);
       toast.success('Call answered');
     } catch (error: any) {
       toast.error(`Error answering call: ${error.message}`);
@@ -73,14 +108,14 @@ export const useVideoCall = () => {
     try {
       const { error } = await supabase
         .from('video_sessions')
-        .update({ 
+        .update({
           status: 'ended',
           ended_at: new Date().toISOString()
         })
         .eq('id', sessionId);
 
       if (error) throw error;
-      
+
       setIncomingCall(null);
       toast.success('Call declined');
     } catch (error: any) {
@@ -92,14 +127,14 @@ export const useVideoCall = () => {
     try {
       const { error } = await supabase
         .from('video_sessions')
-        .update({ 
+        .update({
           status: 'ended',
           ended_at: new Date().toISOString()
         })
         .eq('id', sessionId);
 
       if (error) throw error;
-      
+
       setActiveSession(null);
       toast.success('Video call ended');
     } catch (error: any) {
@@ -107,53 +142,61 @@ export const useVideoCall = () => {
     }
   };
 
-  // Real-time subscription for video sessions
   useEffect(() => {
-    if (!user) return;
+    if (!user || !user.id) return;
 
-    console.log('Setting up real-time subscription for video sessions');
+    console.log('Subscribing to video session events...');
 
     const channel = supabase
       .channel('video_sessions_realtime')
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'video_sessions',
-        filter: `or(client_id.eq.${user.id},specialist_id.eq.${user.id})`
-      }, (payload) => {
-        console.log('New video session:', payload);
-        const newSession = payload.new as VideoSession;
-        
-        // If this is an incoming call (user is not the one who started it)
-        if (newSession.client_id !== user.id && newSession.specialist_id === user.id) {
-          setIncomingCall(newSession);
-          toast.info('Incoming video call!');
-        } else if (newSession.client_id === user.id) {
-          setActiveSession(newSession);
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'video_sessions',
+          filter: `or(client_id.eq.${user.id},specialist_id.eq.${user.id})`,
+        },
+        (payload) => {
+          console.log('New video session received:', payload);
+          const newSession = payload.new as VideoSession;
+
+          if (
+            newSession.status === 'pending' &&
+            ((newSession.specialist_id === user.id && newSession.client_id !== user.id) ||
+              (newSession.client_id === user.id && newSession.specialist_id !== user.id))
+          ) {
+            setIncomingCall(newSession);
+            toast.info('Incoming video call!');
+          }
         }
-      })
-      .on('postgres_changes', { 
-        event: 'UPDATE', 
-        schema: 'public', 
-        table: 'video_sessions',
-        filter: `or(client_id.eq.${user.id},specialist_id.eq.${user.id})`
-      }, (payload) => {
-        console.log('Video session updated:', payload);
-        const updatedSession = payload.new as VideoSession;
-        
-        if (updatedSession.status === 'active') {
-          setActiveSession(updatedSession);
-          setIncomingCall(null);
-        } else if (updatedSession.status === 'ended') {
-          setActiveSession(null);
-          setIncomingCall(null);
-          toast.info('Video call ended');
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'video_sessions',
+          filter: `or(client_id.eq.${user.id},specialist_id.eq.${user.id})`,
+        },
+        (payload) => {
+          console.log('Video session update received:', payload);
+          const updatedSession = payload.new as VideoSession;
+
+          if (updatedSession.status === 'active') {
+            setActiveSession(updatedSession);
+            setIncomingCall(null);
+          } else if (updatedSession.status === 'ended') {
+            setActiveSession(null);
+            setIncomingCall(null);
+            toast.info('Video call ended');
+          }
         }
-      })
+      )
       .subscribe();
 
     return () => {
-      console.log('Cleaning up video session subscription');
+      console.log('Unsubscribing from video session channel...');
       supabase.removeChannel(channel);
     };
   }, [user]);
@@ -162,9 +205,9 @@ export const useVideoCall = () => {
     activeSession,
     incomingCall,
     loading,
-    startVideoCall,
+    startVideoCall, // now supports role: 'client' | 'specialist'
     answerCall,
     declineCall,
-    endVideoCall
+    endVideoCall,
   };
 };

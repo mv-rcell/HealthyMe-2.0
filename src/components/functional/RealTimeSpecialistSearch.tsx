@@ -69,7 +69,7 @@ console.log('Selected specialty:', selectedSpecialty);
     // Create a temporary appointment for the video call
     const appointmentId = Math.floor(Math.random() * 1000000);
     
-    const session = await startVideoCall(appointmentId, specialist.id);
+    const session = await startVideoCall(appointmentId, specialist.id,role);
     if (session) {
       toast.success(`Video call started with ${specialist.full_name}!`);
     }

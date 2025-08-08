@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppointments } from '@/hooks/useAppointments';
+import { useBookingRequests } from '@/hooks/useBookingRequests';
 import { useClientProgress } from '@/hooks/useClientProgress';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,6 +37,7 @@ const SpecialistClients = () => {
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
   const { appointments } = useAppointments();
+  const { bookingRequests } = useBookingRequests();
   const { progressRecords, createProgressRecord, updateProgressRecord } = useClientProgress(user?.id);
   const [clients, setClients] = useState<ClientData[]>([]);
   const [loadingClients, setLoadingClients] = useState(false);
@@ -58,18 +60,23 @@ const SpecialistClients = () => {
   }, [user, profile, loading, navigate]);
 
   useEffect(() => {
-    if (appointments && user) {
+    if ((appointments || bookingRequests) && user) {
       fetchClientData();
     }
-  }, [appointments, user, progressRecords]);
+  }, [appointments, bookingRequests, user, progressRecords]);
 
   const fetchClientData = async () => {
-    if (!appointments || !user) return;
+    if (!user) return;
     
     setLoadingClients(true);
     try {
-      const specialistAppointments = appointments.filter(apt => apt.specialist_id === user.id);
-      const clientIds = [...new Set(specialistAppointments.map(apt => apt.client_id))];
+      // Get clients from both appointments and booking requests
+      const specialistAppointments = appointments?.filter(apt => apt.specialist_id === user.id) || [];
+      const specialistBookingRequests = bookingRequests?.filter(req => req.specialist_id === user.id) || [];
+      
+      const appointmentClientIds = specialistAppointments.map(apt => apt.client_id);
+      const bookingRequestClientIds = specialistBookingRequests.map(req => req.client_id);
+      const clientIds = [...new Set([...appointmentClientIds, ...bookingRequestClientIds])];
       
       if (clientIds.length === 0) {
         setClients([]);
@@ -85,6 +92,8 @@ const SpecialistClients = () => {
 
       const clientData: ClientData[] = profiles?.map(profile => {
         const clientAppointments = specialistAppointments.filter(apt => apt.client_id === profile.id);
+        const clientBookingRequests = specialistBookingRequests.filter(req => req.client_id === profile.id);
+        
         const completedAppointments = clientAppointments.filter(apt => apt.status === 'completed');
         const futureAppointments = clientAppointments.filter(apt => 
           new Date(apt.appointment_date) > new Date() && apt.status !== 'cancelled'
@@ -98,6 +107,9 @@ const SpecialistClients = () => {
 
         const totalSpent = completedAppointments.reduce((sum, apt) => sum + (apt.price || 0), 0);
         
+        // Total interactions include both appointments and booking requests
+        const totalInteractions = clientAppointments.length + clientBookingRequests.length;
+        
         // Get latest progress record for this client
         const latestProgress = progressRecords
           .filter(record => record.client_id === profile.id)
@@ -108,7 +120,7 @@ const SpecialistClients = () => {
           full_name: profile.full_name || 'Unknown Client',
           profile_picture_url: profile.profile_picture_url,
           phone_number: profile.phone_number,
-          appointmentCount: clientAppointments.length,
+          appointmentCount: totalInteractions,
           lastAppointment: lastAppointment?.appointment_date,
           nextAppointment: nextAppointment?.appointment_date,
           totalSpent,
@@ -186,12 +198,12 @@ const SpecialistClients = () => {
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
                 <Calendar className="h-10 w-10 text-green-600" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {clients.reduce((sum, client) => sum + client.appointmentCount, 0)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Total Appointments</p>
-                </div>
+                 <div>
+                   <p className="text-2xl font-bold text-foreground">
+                     {clients.reduce((sum, client) => sum + client.appointmentCount, 0)}
+                   </p>
+                   <p className="text-sm text-muted-foreground">Total Interactions</p>
+                 </div>
               </div>
             </CardContent>
           </Card>
@@ -235,11 +247,11 @@ const SpecialistClients = () => {
                               {client.full_name?.charAt(0) || 'C'}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
-                            <h4 className="font-medium text-foreground text-lg">{client.full_name}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              {client.appointmentCount} appointment{client.appointmentCount !== 1 ? 's' : ''}
-                            </p>
+                           <div>
+                             <h4 className="font-medium text-foreground text-lg">{client.full_name}</h4>
+                             <p className="text-sm text-muted-foreground">
+                               {client.appointmentCount} interaction{client.appointmentCount !== 1 ? 's' : ''}
+                             </p>
                             {client.phone_number && (
                               <p className="text-sm text-muted-foreground flex items-center gap-1">
                                 <Phone className="h-3 w-3" />
@@ -268,9 +280,8 @@ const SpecialistClients = () => {
                               {selectedClient && user && (
                                 <MessageThread
                                   currentUserId={user.id}
-                                  partnerId={selectedClient.id}
-                                  partnerName={selectedClient.full_name}
-                                  partnerAvatar={selectedClient.profile_picture_url}
+                                  recipientId={selectedClient.id}
+                                  recipientName={selectedClient.full_name}
                                 />
                               )}
                             </DialogContent>
@@ -385,11 +396,11 @@ const SpecialistClients = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                <p>No clients yet</p>
-                <p className="text-sm">Clients will appear here once they book appointments with you</p>
-              </div>
+               <div className="text-center py-8 text-muted-foreground">
+                 <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                 <p>No clients yet</p>
+                 <p className="text-sm">Clients will appear here once they book appointments or send booking requests</p>
+               </div>
             )}
           </CardContent>
         </Card>

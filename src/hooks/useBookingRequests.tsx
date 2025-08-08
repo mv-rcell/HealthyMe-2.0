@@ -1,8 +1,9 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export interface BookingRequest {
+  client_id: any;
   patient_name: ReactNode;
   reason: ReactNode;
   service_type: ReactNode;
@@ -21,6 +22,10 @@ export interface BookingRequest {
 export const useBookingRequests = (specialistId: string | null) => {
   const [requests, setRequests] = useState<BookingRequest[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Ref to track notifications within a short time window
+  const notificationBuffer = useRef<BookingRequest[]>([]);
+  const notificationTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!specialistId) return;
@@ -41,8 +46,51 @@ export const useBookingRequests = (specialistId: string | null) => {
       } else {
         setRequests(data);
       }
-
       setLoading(false);
+    };
+
+    const sendBookingNotificationEmail = async (bookingRequest: BookingRequest) => {
+      try {
+        const { error } = await supabase.functions.invoke('send-booking-notification', {
+          body: {
+            bookingRequest,
+            specialistId: bookingRequest.specialist_id
+          }
+        });
+        if (error) {
+          console.error('Error sending booking notification email:', error);
+        }
+      } catch (error) {
+        console.error('Error invoking email function:', error);
+      }
+    };
+
+    const showBrowserNotification = (title: string, options?: NotificationOptions) => {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, {
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          ...options
+        });
+      }
+    };
+
+    const queueNotification = (newRequest: BookingRequest) => {
+      notificationBuffer.current.push(newRequest);
+
+      if (!notificationTimeout.current) {
+        notificationTimeout.current = setTimeout(() => {
+          const buffered = [...notificationBuffer.current];
+          notificationBuffer.current = [];
+          notificationTimeout.current = null;
+
+          if (buffered.length === 1) {
+            toast.info(`New booking request: ${buffered[0].service_type}`);
+          } else if (buffered.length > 1) {
+            toast.info(`${buffered.length} new booking requests`);
+          }
+        }, 3000); // Group notifications within 3s
+      }
     };
 
     const subscribeToChanges = () => {
@@ -63,11 +111,29 @@ export const useBookingRequests = (specialistId: string | null) => {
             setRequests((prev) => {
               switch (payload.eventType) {
                 case 'INSERT':
+                  // Show browser notification
+                  showBrowserNotification('New Booking Request', {
+                    body: `New ${newRecord.service_type} booking request received`,
+                    tag: 'booking-request',
+                    requireInteraction: true,
+                  });
+
+                  // Send email notification
+                  sendBookingNotificationEmail(newRecord);
+
+                  // In-app toast (grouped)
+                  queueNotification(newRecord);
+
                   return [newRecord, ...prev];
+
                 case 'UPDATE':
-                  return prev.map((req) => (req.id === newRecord.id ? newRecord : req));
+                  return prev.map((req) =>
+                    req.id === newRecord.id ? newRecord : req
+                  );
+
                 case 'DELETE':
                   return prev.filter((req) => req.id !== oldRecord.id);
+
                 default:
                   return prev;
               }
@@ -81,6 +147,14 @@ export const useBookingRequests = (specialistId: string | null) => {
         });
     };
 
+    // Ask for notification permission
+    const requestNotificationPermission = async () => {
+      if ('Notification' in window && Notification.permission === 'default') {
+        await Notification.requestPermission();
+      }
+    };
+
+    requestNotificationPermission();
     fetchRequests();
     subscribeToChanges();
 
@@ -88,6 +162,9 @@ export const useBookingRequests = (specialistId: string | null) => {
       if (channel) {
         supabase.removeChannel(channel);
         console.log(`Unsubscribed from booking_requests_${specialistId}`);
+      }
+      if (notificationTimeout.current) {
+        clearTimeout(notificationTimeout.current);
       }
     };
   }, [specialistId]);
@@ -103,9 +180,24 @@ export const useBookingRequests = (specialistId: string | null) => {
     toast.success('Booking request created');
   };
 
+  const updateBookingRequestStatus = async (id: string, status: BookingRequest['status']) => {
+    const { error } = await supabase
+      .from('booking_requests')
+      .update({ status })
+      .eq('id', id);
+  
+    if (error) {
+      toast.error('Failed to update booking request');
+      throw error;
+    }
+    toast.success(`Booking request ${status}`);
+  };
+  
+
   return {
     bookingRequests: requests,
     loading,
     createBookingRequest,
+    updateBookingRequestStatus,
   };
 };

@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useBookingRequests } from '@/hooks/useBookingRequests';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { createBookingRequest } from '@/hooks/useBookingRequests';
+import { BookingRequest } from '@/hooks/useBookingRequests';
 
 interface RealTimeSpecialistCardProps {
   specialist: {
@@ -49,7 +49,7 @@ const RealTimeSpecialistCard: React.FC<RealTimeSpecialistCardProps> = ({
   onBookAppointment,
   loading = { video: false, zoom: false }
 }) => {
-  const { createBookingRequest } = useBookingRequests();
+  const { createBookingRequest } = useBookingRequests(specialist.id);
   const { user } = useAuth();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [bookingData, setBookingData] = useState({
@@ -65,17 +65,21 @@ const RealTimeSpecialistCard: React.FC<RealTimeSpecialistCardProps> = ({
       return;
     }
 
-    const result = await createBookingRequest({
-      client_id: user.id,
-      specialist_id: specialist.id,
-      service_type: bookingData.service_type,
-      preferred_date: new Date(bookingData.preferred_date).toISOString(),
-      duration: bookingData.duration,
-      notes: bookingData.notes,
-      status: 'pending'
-    });
+  const result = await createBookingRequest({
+    client_id: user.id,
+    specialist_id: specialist.id,
+    service_type: bookingData.service_type,
+    preferred_date: new Date(bookingData.preferred_date).toISOString(),
+    duration: bookingData.duration,
+    notes: bookingData.notes,
+    status: 'pending',
+    patient_name: '',   // ← Optional field? Maybe remove this too if not needed
+    reason: '',
+    patient_id: user.id, // ✅ This was the problem
+    scheduled_time: null,
+  });
 
-    if (result) {
+     {
       setIsBookingOpen(false);
       setBookingData({
         preferred_date: '',

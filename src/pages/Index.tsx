@@ -293,32 +293,7 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Quick Transfer Section - Adapted for Health */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Quick connect - Specialists</h3>
-            </div>
-            <div className="flex gap-4 overflow-x-auto pb-2">
-              {[
-                { name: "Dr. Sarah", specialty: "Cardiology", avatar: "S", color: "bg-blue-500" },
-                { name: "Dr. Mike", specialty: "Neurology", avatar: "M", color: "bg-green-500" },
-                { name: "Dr. Lisa", specialty: "Pediatrics", avatar: "L", color: "bg-purple-500" },
-                { name: "Dr. John", specialty: "Surgery", avatar: "J", color: "bg-orange-500" }
-              ].map((doctor, index) => (
-                <motion.div key={index} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <div className="flex flex-col items-center cursor-pointer min-w-[80px]" onClick={() => navigate('/specialists')}>
-                    <div className={`w-12 h-12 ${doctor.color} rounded-full flex items-center justify-center mb-2 text-white font-semibold relative`}>
-                      {doctor.avatar}
-                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      </div>
-                    </div>
-                    <span className="text-xs text-gray-700 text-center">{doctor.name}</span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+  
 
           {/* Recent Activity Section */}
           <div className="mb-6">
