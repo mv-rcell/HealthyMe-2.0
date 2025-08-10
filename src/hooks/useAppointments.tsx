@@ -10,7 +10,7 @@ export interface Appointment {
   service_type: string;
   appointment_date: string;
   duration: number;
-  status: string;
+  status: "cancelled" | "completed" | "pending" | "confirmed";
   notes?: string;
   price?: number;
   created_at: string;

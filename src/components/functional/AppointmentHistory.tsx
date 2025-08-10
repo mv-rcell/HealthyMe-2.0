@@ -18,7 +18,8 @@ import GlobalVideoCallHandler from '../video/GlobalVideoCallHandler';
 
 const AppointmentHistory = () => {
   const { appointments, loading } = useAppointments();
-  const { bookingRequests, loading: bookingLoading } = useBookingRequests(profile?.id ?? null);  const { profile } = useAuth();
+  const { bookingRequests, loading: bookingLoading } = useBookingRequests(null);
+  const { profile } = useAuth();
   const { startVideoCall, loading: videoLoading } = useVideoCall();
   const { createZoomMeeting, loading: zoomLoading } = useZoomIntegration();
   const [selectedCommunication, setSelectedCommunication] = useState<{
@@ -34,8 +35,7 @@ const AppointmentHistory = () => {
 
   const handleStartVideoCall = async (appointmentId: number, otherUserId: string, otherUserName: string) => {
     try {
-      const session = await startVideoCall(appointmentId, otherUserId, "client")
-
+      const session = await startVideoCall(appointmentId, otherUserId,role);
       if (session) {
         toast.success(`Video call started with ${otherUserName}!`);
       }

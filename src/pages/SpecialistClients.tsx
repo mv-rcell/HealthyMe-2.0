@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
@@ -10,11 +9,11 @@ import { useClientProgress } from '@/hooks/useClientProgress';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Users, Calendar, FileText, Phone, MessageSquare, Video, Plus, Edit } from 'lucide-react';
+import { Users, Calendar, FileText, Phone, MessageSquare, Edit } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import MessageThread from '@/components/messaging/MessageThread';
@@ -33,17 +32,18 @@ interface ClientData {
   progressStatus?: string;
 }
 
+type DialogState = { type: 'message' | 'progress' | null; client: ClientData | null };
+
 const SpecialistClients = () => {
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
   const { appointments } = useAppointments();
-  const { bookingRequests } = useBookingRequests();
-  const { progressRecords, createProgressRecord, updateProgressRecord } = useClientProgress(user?.id);
+  const { bookingRequests } = useBookingRequests(user?.id);
+  const { progressRecords, createProgressRecord } = useClientProgress(user?.id);
+
   const [clients, setClients] = useState<ClientData[]>([]);
   const [loadingClients, setLoadingClients] = useState(false);
-  const [selectedClient, setSelectedClient] = useState<ClientData | null>(null);
-  const [showMessageDialog, setShowMessageDialog] = useState(false);
-  const [showProgressDialog, setShowProgressDialog] = useState(false);
+  const [dialogState, setDialogState] = useState<DialogState>({ type: null, client: null });
   const [progressForm, setProgressForm] = useState({
     issue_description: '',
     recommendations: '',
@@ -51,33 +51,28 @@ const SpecialistClients = () => {
     follow_up_date: '',
     status: 'ongoing'
   });
-  
-  // Redirect if not logged in or not a specialist
-  React.useEffect(() => {
+
+  // Redirect if not specialist
+  useEffect(() => {
     if (!loading && (!user || profile?.role !== 'specialist')) {
       navigate('/auth');
     }
   }, [user, profile, loading, navigate]);
 
-  useEffect(() => {
-    if ((appointments || bookingRequests) && user) {
-      fetchClientData();
-    }
-  }, [appointments, bookingRequests, user, progressRecords]);
-
-  const fetchClientData = async () => {
-    if (!user) return;
-    
+  // Debounced fetch
+  const fetchClientData = useCallback(async () => {
+    if (!user || (!appointments && !bookingRequests)) return;
     setLoadingClients(true);
+
     try {
-      // Get clients from both appointments and booking requests
-      const specialistAppointments = appointments?.filter(apt => apt.specialist_id === user.id) || [];
-      const specialistBookingRequests = bookingRequests?.filter(req => req.specialist_id === user.id) || [];
-      
-      const appointmentClientIds = specialistAppointments.map(apt => apt.client_id);
-      const bookingRequestClientIds = specialistBookingRequests.map(req => req.client_id);
-      const clientIds = [...new Set([...appointmentClientIds, ...bookingRequestClientIds])];
-      
+      const specialistAppointments = appointments?.filter(a => a.specialist_id === user.id) || [];
+      const specialistRequests = bookingRequests?.filter(r => r.specialist_id === user.id) || [];
+
+      const clientIds = [...new Set([
+        ...specialistAppointments.map(a => a.client_id),
+        ...specialistRequests.map(r => r.client_id)
+      ])];
+
       if (clientIds.length === 0) {
         setClients([]);
         return;
@@ -90,29 +85,20 @@ const SpecialistClients = () => {
 
       if (error) throw error;
 
-      const clientData: ClientData[] = profiles?.map(profile => {
-        const clientAppointments = specialistAppointments.filter(apt => apt.client_id === profile.id);
-        const clientBookingRequests = specialistBookingRequests.filter(req => req.client_id === profile.id);
-        
-        const completedAppointments = clientAppointments.filter(apt => apt.status === 'completed');
-        const futureAppointments = clientAppointments.filter(apt => 
-          new Date(apt.appointment_date) > new Date() && apt.status !== 'cancelled'
-        );
-        
-        const lastAppointment = completedAppointments
-          .sort((a, b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime())[0];
-        
-        const nextAppointment = futureAppointments
-          .sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime())[0];
+      const clientData: ClientData[] = profiles.map(profile => {
+        const clientAppointments = specialistAppointments.filter(a => a.client_id === profile.id);
+        const clientRequests = specialistRequests.filter(r => r.client_id === profile.id);
 
-        const totalSpent = completedAppointments.reduce((sum, apt) => sum + (apt.price || 0), 0);
-        
-        // Total interactions include both appointments and booking requests
-        const totalInteractions = clientAppointments.length + clientBookingRequests.length;
-        
-        // Get latest progress record for this client
+        const completed = clientAppointments.filter(a => a.status === 'completed');
+        const future = clientAppointments.filter(a => new Date(a.appointment_date) > new Date());
+
+        const lastAppointment = completed.sort((a, b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime())[0];
+        const nextAppointment = future.sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime())[0];
+
+        const totalSpent = completed.reduce((sum, a) => sum + (a.price || 0), 0);
+
         const latestProgress = progressRecords
-          .filter(record => record.client_id === profile.id)
+          .filter(p => p.client_id === profile.id)
           .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0];
 
         return {
@@ -120,7 +106,7 @@ const SpecialistClients = () => {
           full_name: profile.full_name || 'Unknown Client',
           profile_picture_url: profile.profile_picture_url,
           phone_number: profile.phone_number,
-          appointmentCount: totalInteractions,
+          appointmentCount: clientAppointments.length + clientRequests.length,
           lastAppointment: lastAppointment?.appointment_date,
           nextAppointment: nextAppointment?.appointment_date,
           totalSpent,
@@ -128,283 +114,177 @@ const SpecialistClients = () => {
           recommendations: latestProgress?.recommendations,
           progressStatus: latestProgress?.status
         };
-      }) || [];
+      });
 
       clientData.sort((a, b) => {
-        const aDate = new Date(a.lastAppointment || a.nextAppointment || 0);
-        const bDate = new Date(b.lastAppointment || b.nextAppointment || 0);
-        return bDate.getTime() - aDate.getTime();
+        const aDate = a.lastAppointment || a.nextAppointment;
+        const bDate = b.lastAppointment || b.nextAppointment;
+        if (!aDate) return 1;
+        if (!bDate) return -1;
+        return new Date(bDate).getTime() - new Date(aDate).getTime();
       });
 
       setClients(clientData);
-    } catch (error) {
-      console.error('Error fetching client data:', error);
+    } catch (err) {
+      console.error('Error fetching clients:', err);
     } finally {
       setLoadingClients(false);
+    }
+  }, [user, appointments, bookingRequests, progressRecords]);
+
+  useEffect(() => {
+    const timeout = setTimeout(fetchClientData, 250); // debounce
+    return () => clearTimeout(timeout);
+  }, [fetchClientData]);
+
+  const openDialog = (type: 'message' | 'progress', client: ClientData) => {
+    setDialogState({ type, client });
+    if (type === 'progress') {
+      setProgressForm({
+        issue_description: '',
+        recommendations: '',
+        progress_notes: '',
+        follow_up_date: '',
+        status: 'ongoing'
+      });
     }
   };
 
   const handleCreateProgress = async () => {
-    if (!selectedClient) return;
-    
+    if (!dialogState.client) return;
     await createProgressRecord({
-      client_id: selectedClient.id,
+      client_id: dialogState.client.id,
       ...progressForm
     });
-    
-    setShowProgressDialog(false);
-    setProgressForm({
-      issue_description: '',
-      recommendations: '',
-      progress_notes: '',
-      follow_up_date: '',
-      status: 'ongoing'
-    });
+    setDialogState({ type: null, client: null });
   };
 
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
+  const currencyFormat = (amount: number) =>
+    amount.toLocaleString('en-KE', { style: 'currency', currency: 'KES' });
+
+  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <div className="flex-grow container mx-auto px-4 py-16">
-        <div className="flex items-center justify-between mb-8">
+      <div className="container flex-grow mx-auto px-4 py-16">
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">My Clients</h1>
+            <h1 className="text-3xl font-bold">My Clients</h1>
             <p className="text-muted-foreground">Track your client relationships and progress</p>
           </div>
-          <Button variant="outline" onClick={() => navigate('/specialist-dashboard')}>
-            Back to Dashboard
-          </Button>
+          <Button variant="outline" onClick={() => navigate('/specialist-dashboard')}>Back to Dashboard</Button>
         </div>
 
-        {/* Client Statistics */}
+        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <Users className="h-10 w-10 text-blue-600" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{clients.length}</p>
-                  <p className="text-sm text-muted-foreground">Total Clients</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <Calendar className="h-10 w-10 text-green-600" />
-                 <div>
-                   <p className="text-2xl font-bold text-foreground">
-                     {clients.reduce((sum, client) => sum + client.appointmentCount, 0)}
-                   </p>
-                   <p className="text-sm text-muted-foreground">Total Interactions</p>
-                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <FileText className="h-10 w-10 text-purple-600" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">
-                    ${clients.reduce((sum, client) => sum + client.totalSpent, 0)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Total Revenue</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <Card><CardContent className="p-6 flex gap-4 items-center">
+            <Users className="h-10 w-10 text-blue-600" />
+            <div><p className="text-2xl font-bold">{clients.length}</p><p>Total Clients</p></div>
+          </CardContent></Card>
+
+          <Card><CardContent className="p-6 flex gap-4 items-center">
+            <Calendar className="h-10 w-10 text-green-600" />
+            <div><p className="text-2xl font-bold">{clients.reduce((s, c) => s + c.appointmentCount, 0)}</p><p>Total Interactions</p></div>
+          </CardContent></Card>
+
+          <Card><CardContent className="p-6 flex gap-4 items-center">
+            <FileText className="h-10 w-10 text-purple-600" />
+            <div><p className="text-2xl font-bold">{currencyFormat(clients.reduce((s, c) => s + c.totalSpent, 0))}</p><p>Total Revenue</p></div>
+          </CardContent></Card>
         </div>
 
-        {/* Clients List */}
+        {/* Client list */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-foreground">
-              <Users className="h-5 w-5" />
-              Client Directory
-            </CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle><Users className="h-5 w-5 mr-2 inline" /> Client Directory</CardTitle></CardHeader>
           <CardContent>
             {loadingClients ? (
-              <div className="text-center py-8 text-muted-foreground">Loading clients...</div>
-            ) : clients.length > 0 ? (
-              <div className="space-y-6">
-                {clients.map((client) => (
-                  <Card key={client.id} className="border border-border">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-4">
-                          <Avatar className="h-12 w-12">
-                            <AvatarImage src={client.profile_picture_url} />
-                            <AvatarFallback className="bg-primary/10 text-primary">
-                              {client.full_name?.charAt(0) || 'C'}
-                            </AvatarFallback>
-                          </Avatar>
-                           <div>
-                             <h4 className="font-medium text-foreground text-lg">{client.full_name}</h4>
-                             <p className="text-sm text-muted-foreground">
-                               {client.appointmentCount} interaction{client.appointmentCount !== 1 ? 's' : ''}
-                             </p>
-                            {client.phone_number && (
-                              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                <Phone className="h-3 w-3" />
-                                {client.phone_number}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
-                            <DialogTrigger asChild>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => setSelectedClient(client)}
-                              >
-                                <MessageSquare className="h-3 w-3 mr-1" />
-                                Message
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-lg">
-                              <DialogHeader>
-                                <DialogTitle>Chat with {selectedClient?.full_name}</DialogTitle>
-                              </DialogHeader>
-                              {selectedClient && user && (
-                                <MessageThread
-                                  currentUserId={user.id}
-                                  recipientId={selectedClient.id}
-                                  recipientName={selectedClient.full_name}
-                                />
-                              )}
-                            </DialogContent>
-                          </Dialog>
-
-                          <Dialog open={showProgressDialog} onOpenChange={setShowProgressDialog}>
-                            <DialogTrigger asChild>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => setSelectedClient(client)}
-                              >
-                                <Edit className="h-3 w-3 mr-1" />
-                                Progress
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Update Progress for {selectedClient?.full_name}</DialogTitle>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div>
-                                  <Label htmlFor="issue">Current Issues</Label>
-                                  <Textarea
-                                    id="issue"
-                                    value={progressForm.issue_description}
-                                    onChange={(e) => setProgressForm(prev => ({ ...prev, issue_description: e.target.value }))}
-                                    placeholder="Describe current health issues or concerns..."
-                                  />
-                                </div>
-                                <div>
-                                  <Label htmlFor="recommendations">Recommendations</Label>
-                                  <Textarea
-                                    id="recommendations"
-                                    value={progressForm.recommendations}
-                                    onChange={(e) => setProgressForm(prev => ({ ...prev, recommendations: e.target.value }))}
-                                    placeholder="Treatment recommendations..."
-                                  />
-                                </div>
-                                <div>
-                                  <Label htmlFor="notes">Progress Notes</Label>
-                                  <Textarea
-                                    id="notes"
-                                    value={progressForm.progress_notes}
-                                    onChange={(e) => setProgressForm(prev => ({ ...prev, progress_notes: e.target.value }))}
-                                    placeholder="Progress notes and observations..."
-                                  />
-                                </div>
-                                <div>
-                                  <Label htmlFor="followup">Follow-up Date</Label>
-                                  <Input
-                                    id="followup"
-                                    type="date"
-                                    value={progressForm.follow_up_date}
-                                    onChange={(e) => setProgressForm(prev => ({ ...prev, follow_up_date: e.target.value }))}
-                                  />
-                                </div>
-                                <Button onClick={handleCreateProgress} className="w-full">
-                                  Save Progress Update
-                                </Button>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </div>
-
-                      {/* Client Progress Information */}
-                      {(client.currentIssues || client.recommendations) && (
-                        <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-                          {client.currentIssues && (
-                            <div>
-                              <h5 className="font-medium text-sm text-foreground">Current Issues:</h5>
-                              <p className="text-sm text-muted-foreground">{client.currentIssues}</p>
-                            </div>
-                          )}
-                          {client.recommendations && (
-                            <div>
-                              <h5 className="font-medium text-sm text-foreground">Recommendations:</h5>
-                              <p className="text-sm text-muted-foreground">{client.recommendations}</p>
-                            </div>
-                          )}
-                          {client.progressStatus && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium">Status:</span>
-                              <Badge variant={client.progressStatus === 'completed' ? 'default' : 'secondary'}>
-                                {client.progressStatus}
-                              </Badge>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      <div className="mt-4 flex gap-4 text-sm">
-                        {client.lastAppointment && (
-                          <Badge variant="secondary">
-                            Last: {new Date(client.lastAppointment).toLocaleDateString()}
-                          </Badge>
-                        )}
-                        {client.nextAppointment && (
-                          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                            Next: {new Date(client.nextAppointment).toLocaleDateString()}
-                          </Badge>
-                        )}
-                        {client.totalSpent > 0 && (
-                          <Badge variant="outline">
-                            Revenue: ${client.totalSpent}
-                          </Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <p className="text-center py-8">Loading clients...</p>
+            ) : clients.length === 0 ? (
+              <p className="text-center py-8">No clients yet</p>
             ) : (
-               <div className="text-center py-8 text-muted-foreground">
-                 <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                 <p>No clients yet</p>
-                 <p className="text-sm">Clients will appear here once they book appointments or send booking requests</p>
-               </div>
+              clients.map(client => (
+                <Card key={client.id} className="mb-4">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between">
+                      <div className="flex gap-4">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={client.profile_picture_url} />
+                          <AvatarFallback>{client.full_name[0]}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h4 className="font-medium">{client.full_name}</h4>
+                          <p className="text-sm">{client.appointmentCount} interaction{client.appointmentCount !== 1 && 's'}</p>
+                          {client.phone_number && <p className="text-sm flex items-center gap-1"><Phone className="h-3 w-3" />{client.phone_number}</p>}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => openDialog('message', client)}>
+                          <MessageSquare className="h-3 w-3 mr-1" /> Message
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => openDialog('progress', client)}>
+                          <Edit className="h-3 w-3 mr-1" /> Progress
+                        </Button>
+                      </div>
+                    </div>
+
+                    {(client.currentIssues || client.recommendations) && (
+                      <div className="bg-muted/50 rounded-lg p-4 mt-4">
+                        {client.currentIssues && <p><strong>Current Issues:</strong> {client.currentIssues}</p>}
+                        {client.recommendations && <p><strong>Recommendations:</strong> {client.recommendations}</p>}
+                        {client.progressStatus && <Badge className="mt-2">{client.progressStatus}</Badge>}
+                      </div>
+                    )}
+
+                    <div className="mt-4 flex gap-2">
+                      {client.lastAppointment && <Badge variant="secondary">Last: {new Date(client.lastAppointment).toLocaleDateString()}</Badge>}
+                      {client.nextAppointment && <Badge>Next: {new Date(client.nextAppointment).toLocaleDateString()}</Badge>}
+                      {client.totalSpent > 0 && <Badge variant="outline">Revenue: {currencyFormat(client.totalSpent)}</Badge>}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
             )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Message Dialog */}
+      <Dialog open={dialogState.type === 'message'} onOpenChange={() => setDialogState({ type: null, client: null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Chat with {dialogState.client?.full_name}</DialogTitle>
+          </DialogHeader>
+          {dialogState.client && user && (
+            <MessageThread currentUserId={user.id} recipientId={dialogState.client.id} recipientName={dialogState.client.full_name} />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Progress Dialog */}
+      <Dialog open={dialogState.type === 'progress'} onOpenChange={() => setDialogState({ type: null, client: null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Progress for {dialogState.client?.full_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Label>Current Issues</Label>
+            <Textarea value={progressForm.issue_description} onChange={e => setProgressForm(p => ({ ...p, issue_description: e.target.value }))} />
+
+            <Label>Recommendations</Label>
+            <Textarea value={progressForm.recommendations} onChange={e => setProgressForm(p => ({ ...p, recommendations: e.target.value }))} />
+
+            <Label>Progress Notes</Label>
+            <Textarea value={progressForm.progress_notes} onChange={e => setProgressForm(p => ({ ...p, progress_notes: e.target.value }))} />
+
+            <Label>Follow-up Date</Label>
+            <Input type="date" value={progressForm.follow_up_date} onChange={e => setProgressForm(p => ({ ...p, follow_up_date: e.target.value }))} />
+
+            <Button onClick={handleCreateProgress} className="w-full">Save Progress Update</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </div>
   );

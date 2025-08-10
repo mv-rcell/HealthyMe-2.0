@@ -56,7 +56,7 @@ const BookingRequestsPanel = () => {
   };
 
   const handleRejectRequest = (requestId: string) => {
-    updateBookingRequestStatus(requestId, 'rejected');
+    updateBookingRequestStatus(requestId, 'declined');
   };
 
   if (loading) {

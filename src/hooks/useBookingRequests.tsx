@@ -3,12 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export interface BookingRequest {
-  client_id: any;
+  client_id: string;
   patient_name: ReactNode;
   reason: ReactNode;
-  service_type: ReactNode;
+  service_type:  string;
   preferred_date: string | number | Date;
-  duration: ReactNode;
+  duration: number;
   id: string;
   patient_id: string;
   specialist_id: string;

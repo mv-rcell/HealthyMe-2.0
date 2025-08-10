@@ -35,7 +35,7 @@ const BookingNotificationBell = () => {
   };
 
   const handleRejectRequest = async (requestId: string) => {
-    await updateBookingRequestStatus(requestId, 'rejected');
+    await updateBookingRequestStatus(requestId, 'declined');
   };
 
   const handleViewDetails = () => {

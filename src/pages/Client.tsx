@@ -1,120 +1,115 @@
-import React, { useState } from "react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import ProfileCard from "@/components/ProfileCard";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
-// Sample client data
-const clientsData = [
+import React from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Define the Client type based on your Supabase schema
+interface Client {
+  id: string;
+  name: string;
+  title?: string;
+  description?: string;
+  image_url?: string;
+}
+
+// Mock data since we don't have a clients table yet
+const mockClients: Client[] = [
   {
-    id: "1",
-    name: "Emma Wainaina",
-    title: "Active Member",
-    description: "Looking for support with anxiety management and stress reduction techniques for a high-pressure work environment.",
-    imageUrl: "https://images.unsplash.com/photo-1727791719116-39761d569f32?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8cGhvdG9zJTIwb2YlMjBibGFjayUyMCUyMHdvbWVufGVufDB8fDB8fHww",
-    isSpecialist: false
+    id: '1',
+    name: 'John Doe',
+    title: 'Wellness Program Participant',
+    description: 'John has been part of our wellness program for 3 months and has seen significant improvements in his health metrics.',
+    image_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
   },
   {
-    id: "2",
-    name: "David Muchira",
-    title: "New Member",
-    description: "Recovering from a sports injury and seeking physical therapy and a personalized exercise regimen to regain strength.",
-    imageUrl: "https://media.istockphoto.com/id/1011883798/photo/portrait-of-a-smiling-guy.webp?a=1&b=1&s=612x612&w=0&k=20&c=tilJL4bB6BrOoc4X4JOM5_elUX_wFFM9qptuBHLzdWM=",
-    isSpecialist: false
+    id: '2',
+    name: 'Jane Smith',
+    title: 'Caregiver Service User',
+    description: 'Jane has been using our caregiving services for her mother and appreciates the quality of care provided.',
+    image_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
   },
   {
-    id: "3",
-    name: "Sophia Musia",
-    title: "Premium Member",
-    description: "Interested in nutritional counseling for weight management and implementing sustainable healthy eating habits.",
-    imageUrl: "https://images.unsplash.com/photo-1645736353780-e70a7d508088?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8cGhvdG9zJTIwb2YlMjBibGFjayUyMCUyMHdvbWVufGVufDB8fDB8fHww",
-    isSpecialist: false
-  },
-  {
-    id: "4",
-    name: "Jason Lenana",
-    title: "Active Member",
-    description: "Working on preventive health strategies and looking for guidance on maintaining overall wellness as he enters his 40s.",
-    imageUrl: "https://images.unsplash.com/photo-1630838030426-4c10dc37cf53?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fHBob3RvcyUyMG9mJTIwYmxhY2slMjAlMjBtZW58ZW58MHx8MHx8fDA%3D",
-    isSpecialist: false
-  },
-  {
-    id: "5",
-    name: "Olivia Johnson",
-    title: "Premium Member",
-    description: "Seeking family therapy to improve communication with teenage children and create a more harmonious home environment.",
-    imageUrl: "https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=1372&auto=format&fit=crop",
-    isSpecialist: false
+    id: '3',
+    name: 'Robert Johnson',
+    title: 'Telehealth Patient',
+    description: 'Robert regularly uses our telehealth services for his chronic condition management.',
+    image_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
   }
 ];
 
 const Clients = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  
-  // Filter clients based on search term
-  const filteredClients = clientsData.filter(client => 
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    client.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
- 
-
-
+  // Using mock data for now until we create a clients table
+  const { data: clients, isLoading } = useQuery({
+    queryKey: ['clients'],
+    queryFn: async () => {
+      // Return mock data for now
+      return mockClients;
+    },
+  });
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      
-      <main className="flex-1 container mx-auto px-4 py-16">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Your Clients</h1>
-          <p className="text-muted-foreground mb-8">
-            View and manage your client relationships and connect with them directly.
+      <div className="container mx-auto px-4 py-16 flex-grow">
+        <div className="text-center mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">Our Clients</h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Read about the experiences of our valued clients who have benefited from our healthcare services.
           </p>
-          
-          {/* Search section */}
-          <div className="relative mb-8 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search clients..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          {/* Clients grid */}
-          {filteredClients.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredClients.map((client) => (
-                <ProfileCard 
-                  key={client.id}
-                  {...client}
-                  id={client.id}
-                  name={client.name}
-                  title={client.title || "Active Member"}
-                  description={client.description || "No description available"}
-                  imageUrl={client.imageUrl}
-                  isSpecialist={false}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16">
-              <p className="text-lg text-muted-foreground">No clients found matching your search.</p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={() => setSearchTerm("")}
-              >
-                Clear Search
-              </Button>
-            </div>
-          )}
         </div>
-      </main>
-      
+        
+        {isLoading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="overflow-hidden">
+                <CardHeader className="pb-0">
+                  <Skeleton className="h-12 w-48 mb-2" />
+                  <Skeleton className="h-4 w-32" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-24 mb-4" />
+                </CardContent>
+                <CardFooter>
+                  <Skeleton className="h-10 w-full" />
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {clients?.map((client) => (
+              <Card key={client.id} className="overflow-hidden">
+                <CardHeader>
+                  <div className="flex items-center gap-4">
+                    {client.image_url && (
+                      <img 
+                        src={client.image_url} 
+                        alt={client.name} 
+                        className="h-12 w-12 rounded-full object-cover"
+                      />
+                    )}
+                    <div>
+                      <CardTitle className="text-xl">{client.name}</CardTitle>
+                      <CardDescription>{client.title}</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">{client.description}</p>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" className="w-full">Read Full Story</Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
       <Footer />
     </div>
   );
