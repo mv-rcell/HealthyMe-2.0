@@ -2,10 +2,11 @@ import React from 'react';
 import { useVideoCall } from '@/hooks/useVideoCall';
 import { useAuth } from '@/hooks/useAuth';
 import IncomingCallAlert from './IncomingCallAlert';
+import VideoCallInterface from './VideoCallInterface';
 import { supabase } from '@/integrations/supabase/client';
 
 const GlobalVideoCallHandler: React.FC = () => {
-  const { incomingCall, answerCall, declineCall } = useVideoCall();
+  const { incomingCall, activeSession, answerCall, declineCall, endVideoCall } = useVideoCall();
   const { user } = useAuth();
   const [callerName, setCallerName] = React.useState<string>('Unknown User');
 
@@ -38,12 +39,24 @@ const GlobalVideoCallHandler: React.FC = () => {
   }, [incomingCall, user]);
 
   return (
-    <IncomingCallAlert
-      incomingCall={incomingCall}
-      onAnswer={answerCall}
-      onDecline={declineCall}
-      callerName={callerName}
-    />
+    <>
+      <IncomingCallAlert
+        incomingCall={incomingCall}
+        onAnswer={answerCall}
+        onDecline={declineCall}
+        callerName={callerName}
+      />
+      
+      {activeSession && activeSession.status === 'active' && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <VideoCallInterface
+            session={activeSession}
+            onEndCall={() => endVideoCall(activeSession.id)}
+            isInitiator={activeSession.client_id === user?.id}
+          />
+        </div>
+      )}
+    </>
   );
 };
 

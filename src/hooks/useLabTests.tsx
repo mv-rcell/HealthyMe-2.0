@@ -4,11 +4,13 @@ import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 
 export interface LabTest {
+  specialist_name: any;
   age: string;
   gender: string;
   phone_number: string;
   id: string;
   client_id: string;
+  specialist_id: string;
   test_type: string;
   test_name: string;
   scheduled_date: string;

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar, FileText, Download, Clock, CheckCircle, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useLabTests } from '@/hooks/useLabTests';
 import { useRealSpecialists } from '@/hooks/useRealSpecialists';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TestSpecialty {
   testName: string;
@@ -74,6 +74,7 @@ const LabTestWithSpecialist = () => {
       const testMapping = testSpecialtyMapping.find(t => t.testName === testType);
       const specialist = specialists.find(s => s.id === selectedSpecialist);
       
+      // Create the lab test
       await bookLabTest({
         test_type: 'diagnostic',
         test_name: testType,
@@ -87,6 +88,25 @@ const LabTestWithSpecialist = () => {
         specialist_name: specialist?.full_name || '',
         home_collection: homeCollection
       });
+
+      // Create a booking request for the specialist notification
+      const { data: bookingRequest, error: bookingError } = await supabase
+        .from('booking_requests')
+        .insert({
+          client_id: user.id,
+          specialist_id: selectedSpecialist,
+          service_type: `Lab Test: ${testType}`,
+          preferred_date: testDate,
+          duration: 60,
+          notes: `${homeCollection ? 'Home collection requested. ' : ''}Lab test booking for ${testType}. Price: $${testMapping?.price || 50}`,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (bookingError) {
+        console.error('Failed to create booking request:', bookingError);
+      }
       
       // Reset form
       setTestType('');
@@ -94,7 +114,7 @@ const LabTestWithSpecialist = () => {
       setTestDate('');
       setHomeCollection(false);
       
-      toast.success(`Lab test booked with ${specialist?.full_name || 'specialist'}!`);
+      toast.success(`Lab test booked with ${specialist?.full_name || 'specialist'}! The specialist will be notified.`);
     } catch (error: any) {
       toast.error(`Failed to book test: ${error.message}`);
     } finally {

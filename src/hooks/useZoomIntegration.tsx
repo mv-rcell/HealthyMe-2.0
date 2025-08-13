@@ -12,6 +12,8 @@ export interface ZoomMeeting {
   meeting_id: string;
 }
 
+
+
 export const useZoomIntegration = () => {
   const [loading, setLoading] = useState(false);
   const [activeMeeting, setActiveMeeting] = useState<ZoomMeeting | null>(null);
@@ -19,52 +21,40 @@ export const useZoomIntegration = () => {
   const createZoomMeeting = async (topic: string, participantEmail: string) => {
     setLoading(true);
     try {
-      console.log('Creating Zoom meeting:', { topic, participant_email: participantEmail });
+      console.log('Creating Zoom meeting:', { topic, participantEmail });
 
       const { data, error } = await supabase.functions.invoke('create-zoom-meeting', {
         body: {
           topic,
-          duration: 60,
+          duration: 60, // minutes
           participant_email: participantEmail
         }
       });
-      
+
       if (error) {
         console.error('Zoom API error:', error);
-        toast.error(error.message || 'Failed to create Zoom meeting');
-        throw error;
+        toast.error('Failed to create Zoom meeting');
+        return null;
       }
 
-      const meeting = data as ZoomMeeting;
-      setActiveMeeting(meeting);
+      const meeting: ZoomMeeting = {
+        id: data.id,
+        topic: data.topic,
+        start_time: data.start_time,
+        duration: data.duration,
+        join_url: data.join_url,
+        password: data.password,
+        meeting_id: data.id
+      };
 
+      setActiveMeeting(meeting);
       console.log('Zoom meeting created successfully:', meeting);
       toast.success('Zoom meeting created successfully!');
       return meeting;
-
-    } catch (error: any) {
-      console.error('Error creating Zoom meeting:', error);
-
-      // Optional fallback for dev/testing only
-      if (import.meta.env.DEV) {
-        const mockMeeting: ZoomMeeting = {
-          id: Math.random().toString(36).substr(2, 9),
-          topic,
-          start_time: new Date().toISOString(),
-          duration: 60,
-          join_url: `https://zoom.us/j/${Math.random().toString().substr(2, 10)}`,
-          password: Math.random().toString(36).substr(2, 6),
-          meeting_id: Math.random().toString().substr(2, 10)
-        };
-
-        setActiveMeeting(mockMeeting);
-        toast.success('Demo Zoom meeting created (DEV mode)');
-        return mockMeeting;
-      }
-
-      toast.error('Failed to create Zoom meeting');
-      throw error;
-
+    } catch (err: any) {
+      console.error('Error creating Zoom meeting:', err);
+      toast.error('Unexpected error creating Zoom meeting');
+      return null;
     } finally {
       setLoading(false);
     }
@@ -106,6 +96,6 @@ export const useZoomIntegration = () => {
     createZoomMeeting,
     joinZoomMeeting,
     endZoomMeeting,
-    shareMeetingLink,
+    shareMeetingLink
   };
 };

@@ -65,6 +65,8 @@ const IntegratedReviewsSystem = ({ specialistId }: { specialistId: string }) => 
       }
     };
 
+    
+
     fetchReviews();
   }, [specialistId, getSpecialistReviews]);
 
@@ -175,11 +177,7 @@ const SpecialistReviewsPage = () => {
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-gray-900">Healthcare Reviews</h1>
             </div>
-            <nav className="flex space-x-6">
-              <a href="#" className="text-gray-600 hover:text-gray-900">Dashboard</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900">Appointments</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900">Profile</a>
-            </nav>
+           
           </div>
         </div>
       </header>
@@ -191,24 +189,6 @@ const SpecialistReviewsPage = () => {
           <p className="text-gray-600">Share your experience and read reviews from other patients</p>
         </div>
 
-        {/* Specialist Info Card */}
-        <Card className="mb-8">
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-4">
-              <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 font-semibold text-lg">DR</span>
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900">Dr. Sarah Johnson</h3>
-                <p className="text-gray-600">Cardiologist • 15 years experience</p>
-                <div className="flex items-center mt-1">
-                  <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                  <span className="ml-1 text-sm text-gray-600">4.8 (127 reviews)</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Reviews System */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -239,7 +219,7 @@ const SpecialistReviewsPage = () => {
               <CardContent>
                 <div className="space-y-2 text-sm">
                   <p><strong>Phone:</strong> (555) 123-4567</p>
-                  <p><strong>Email:</strong> info@healthcare.com</p>
+                  <p><strong>Email:</strong> info@HealthyMe.com</p>
                   <p><strong>Address:</strong> 123 Medical Center Dr, Health City, HC 12345</p>
                 </div>
               </CardContent>
@@ -256,14 +236,7 @@ const SpecialistReviewsPage = () => {
               <h3 className="text-lg font-semibold mb-4">Healthcare Reviews</h3>
               <p className="text-gray-400">Connecting patients with quality healthcare providers.</p>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white">Find Specialists</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Book Appointment</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Patient Portal</a></li>
-              </ul>
-            </div>
+           
             <div>
               <h3 className="text-lg font-semibold mb-4">Support</h3>
               <ul className="space-y-2">

@@ -1,10 +1,12 @@
-import React from "react";
+
+import React, { useEffect, useState } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, MessageSquare, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useReviews } from "@/hooks/useReviews";
 
 interface ProfileCardProps {
   id: string;
@@ -33,6 +35,10 @@ const ProfileCard = ({
   category,
   subcategory,
 }: ProfileCardProps) => {
+  const { getSpecialistReviews } = useReviews();
+  const [actualRating, setActualRating] = useState(rating);
+  const [reviewCount, setReviewCount] = useState(0);
+
   // Generate initials from name for the avatar fallback
   const initials = name
     .split(" ")
@@ -40,12 +46,27 @@ const ProfileCard = ({
     .join("")
     .toUpperCase();
 
+  // Fetch actual reviews and rating for specialists
+  useEffect(() => {
+    if (isSpecialist && id) {
+      const fetchReviews = async () => {
+        const reviews = await getSpecialistReviews(id);
+        if (reviews.length > 0) {
+          const totalRating = reviews.reduce((sum, review) => sum + review.overall_rating, 0);
+          const avgRating = totalRating / reviews.length;
+          setActualRating(Math.round(avgRating * 10) / 10);
+          setReviewCount(reviews.length);
+        }
+      };
+      fetchReviews();
+    }
+  }, [id, isSpecialist, getSpecialistReviews]);
+
   return (
-    <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow duration-300">
-       <motion.div 
+    <motion.div 
       whileHover={{ y: -5 }}
       className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow duration-300"
-    ></motion.div>
+    >
       <div className="p-6">
         <div className="flex items-start gap-4">
           <Avatar className="h-16 w-16 rounded-full">
@@ -57,10 +78,13 @@ const ProfileCard = ({
           <div className="flex-1">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg">{name}</h3>
-              {isSpecialist && rating > 0 && (
+              {isSpecialist && actualRating > 0 && (
                 <div className="flex items-center gap-1">
                   <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                  <span className="text-sm font-medium">{rating.toFixed(1)}</span>
+                  <span className="text-sm font-medium">{actualRating.toFixed(1)}</span>
+                  {reviewCount > 0 && (
+                    <span className="text-xs text-muted-foreground">({reviewCount})</span>
+                  )}
                 </div>
               )}
             </div>
@@ -88,8 +112,13 @@ const ProfileCard = ({
           <Button
             size="sm"
             className={cn("flex-1", isSpecialist ? "bg-primary" : "")}
+            asChild
           >
-            View Profile
+            {isSpecialist ? (
+              <Link to={`/specialist/${id}`}>View Profile</Link>
+            ) : (
+              <span>View Profile</span>
+            )}
           </Button>
           <Button
             size="sm"
@@ -110,7 +139,7 @@ const ProfileCard = ({
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

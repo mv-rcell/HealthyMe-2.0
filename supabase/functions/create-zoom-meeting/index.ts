@@ -18,53 +18,70 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Parse request body
   let body: ZoomMeetingRequest;
-
   try {
     body = await req.json();
-    console.log("Request Body:", body);
-  } catch (err) {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    console.log("Incoming Request Body:", body);
+  } catch {
+    return jsonResponse({ error: "Invalid JSON body" }, 400);
   }
 
   const { topic, duration = 60, start_time } = body;
 
-  const zoomAccountId = Deno.env.get("ZOOM_ACCOUNT_ID");
-  const zoomClientId = Deno.env.get("ZOOM_CLIENT_ID");
-  const zoomClientSecret = Deno.env.get("ZOOM_CLIENT_SECRET");
+  // Load and validate environment variables
+  const zoomAccountId = (Deno.env.get("ZOOM_ACCOUNT_ID") || "").trim();
+  const zoomClientId = (Deno.env.get("ZOOM_CLIENT_ID") || "").trim();
+  const zoomClientSecret = (Deno.env.get("ZOOM_CLIENT_SECRET") || "").trim();
 
   if (!zoomAccountId || !zoomClientId || !zoomClientSecret) {
-    return new Response(JSON.stringify({ error: "Zoom credentials not configured" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ 
+      error: "Zoom credentials not configured",
+      details: { zoomAccountId, zoomClientIdPresent: !!zoomClientId, zoomClientSecretPresent: !!zoomClientSecret }
+    }, 500);
   }
 
   try {
-    const tokenResponse = await fetch("https://zoom.us/oauth/token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Basic ${btoa(`${zoomClientId}:${zoomClientSecret}`)}`,
-      },
-      body: new URLSearchParams({
-        grant_type: "account_credentials",
-        account_id: zoomAccountId,
-      }),
-    });
+    // STEP 1 — Get Zoom Access Token
+// STEP 1 — Get Zoom Access Token
+const tokenResponse = await fetch("https://zoom.us/oauth/token", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/x-www-form-urlencoded",
+    Authorization: `Basic ${btoa(`${zoomClientId}:${zoomClientSecret}`)}`,
+  },
+  body: new URLSearchParams({
+    grant_type: "account_credentials",
+    account_id: zoomAccountId,
+  }),
+});
 
-    if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error("Token error:", errorText);
-      throw new Error("Failed to get Zoom access token");
-    }
+// ✅ Read only once
+const tokenText = await tokenResponse.text();
+console.log("Zoom Token Response:", tokenText);
 
-    const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.access_token;
+if (!tokenResponse.ok) {
+  return jsonResponse({
+    error: "Failed to get Zoom access token",
+    zoomResponse: tokenText,
+  }, tokenResponse.status);
+}
 
+// ✅ Now parse
+let tokenData;
+try {
+  tokenData = JSON.parse(tokenText);
+} catch {
+  return jsonResponse({
+    error: "Invalid JSON in Zoom token response",
+    rawResponse: tokenText,
+  }, 500);
+}
+
+const accessToken = tokenData.access_token;
+
+
+    // STEP 2 — Create Meeting
     const meetingPayload = {
       topic,
       type: 1,
@@ -83,6 +100,8 @@ serve(async (req) => {
       },
     };
 
+    console.log("Meeting Payload:", meetingPayload);
+
     const meetingResponse = await fetch("https://api.zoom.us/v2/users/me/meetings", {
       method: "POST",
       headers: {
@@ -92,39 +111,37 @@ serve(async (req) => {
       body: JSON.stringify(meetingPayload),
     });
 
-    const rawMeetingText = await meetingResponse.text();
+    const meetingText = await meetingResponse.text();
+    console.log("Zoom Meeting Creation Response:", meetingText);
 
     if (!meetingResponse.ok) {
-      return new Response(
-        JSON.stringify({ error: "Failed to create Zoom meeting", details: rawMeetingText }),
-        {
-          status: meetingResponse.status,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return jsonResponse({
+        error: "Failed to create Zoom meeting",
+        zoomResponse: meetingText,
+      }, meetingResponse.status);
     }
 
-    const meeting = JSON.parse(rawMeetingText);
+    const meeting = JSON.parse(meetingText);
 
-    return new Response(
-      JSON.stringify({
-        id: meeting.id,
-        topic: meeting.topic,
-        start_time: meeting.start_time,
-        duration: meeting.duration,
-        join_url: meeting.join_url,
-        password: meeting.password,
-        meeting_id: meeting.id.toString(),
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return jsonResponse({
+      id: meeting.id,
+      topic: meeting.topic,
+      start_time: meeting.start_time,
+      duration: meeting.duration,
+      join_url: meeting.join_url,
+      password: meeting.password,
+      meeting_id: meeting.id?.toString(),
     });
+
+  } catch (err) {
+    console.error("Unexpected Error:", err);
+    return jsonResponse({ error: err.message }, 500);
   }
 });
+
+function jsonResponse(data: any, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useBookingRequests } from '@/hooks/useBookingRequests';
@@ -12,7 +13,7 @@ import { Calendar, Clock, User, Video, Phone, MessageSquare } from 'lucide-react
 import { format } from 'date-fns';
 import { specialistsData } from '@/data/specialist';
 import { toast } from 'sonner';
-import MessageThread from '@/components/messaging/MessageThread.tsx';
+import MessageThread from '@/components/messaging/MessageThread';
 import GlobalVideoCallHandler from '@/components/video/GlobalVideoCallHandler';
 
 const AppointmentHistory = () => {

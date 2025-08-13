@@ -80,7 +80,7 @@ const BookConsultation = () => {
       service_type: formData.consultationType,
       appointment_date: new Date(date.setHours(parseInt(formData.preferredTime.split(':')[0]), parseInt(formData.preferredTime.split(':')[1]))).toISOString(),
       duration: 60,
-      status: 'pending',
+      status: formData.status as "pending" | "cancelled" | "completed" | "confirmed",
       notes: `Symptoms: ${formData.symptoms}. Duration: ${formData.duration}. Severity: ${formData.severity}. Additional notes: ${formData.additionalNotes}`,
       price: selectedSpecialist?.consultationFee || 0
     };

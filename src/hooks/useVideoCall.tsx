@@ -5,25 +5,15 @@ import { toast } from 'sonner';
 
 export interface VideoSession {
   id: string;
-  appointment_id: number;
+  appointment_id?: number | null;
   client_id: string;
   specialist_id: string;
   session_token?: string;
-  status: string;
+  status: 'waiting' | 'active' | 'ended';
   started_at?: string;
   ended_at?: string;
   created_at: string;
 }
-
-// 🔌 Mock Zoom Integration (replace with real API call)
-const createZoomMeeting = async () => {
-  // Replace with actual call to Zoom/Twilio backend
-  return {
-    join_url: `https://zoom.us/j/${Math.floor(Math.random() * 1000000000)}`,
-    start_url: 'https://zoom.us/start',
-    meeting_id: `${Date.now()}`
-  };
-};
 
 export const useVideoCall = () => {
   const { user } = useAuth();
@@ -31,37 +21,23 @@ export const useVideoCall = () => {
   const [loading, setLoading] = useState(false);
   const [incomingCall, setIncomingCall] = useState<VideoSession | null>(null);
 
-  const startVideoCall = async (
-    appointmentId: number,
-    targetUserId: string,
-    role: 'client' | 'specialist'
-  ) => {
-    if (!user?.id || !targetUserId) {
-      toast.error('User info missing. Cannot start call.');
-      return null;
-    }
-
-    const appointment_id = Number(appointmentId);
-    if (isNaN(appointment_id)) {
-      toast.error('Invalid appointment ID.');
-      return null;
-    }
+  // Start a video call instantly
+  const startVideoCall = async (appointmentId: number | null, otherUserId: string) => {
+    if (!user) return null;
+    setLoading(true);
 
     try {
-      setLoading(true);
+      const isClient = user.user_metadata?.role !== 'specialist';
 
-      const zoomMeeting = await createZoomMeeting();
-
-      const sessionData = {
-        appointment_id,
-        client_id: role === 'client' ? user.id : targetUserId,
-        specialist_id: role === 'specialist' ? user.id : targetUserId,
-        session_token: zoomMeeting.join_url,
-        status: 'pending',
-        started_at: new Date().toISOString()
+      const sessionData: Partial<VideoSession> = {
+        appointment_id: appointmentId ?? null,
+        client_id: isClient ? user.id : otherUserId,
+        specialist_id: isClient ? otherUserId : user.id,
+        status: 'waiting',
+        started_at: new Date().toISOString(),
+        // Placeholder for actual SDK token generation
+        session_token: `session_${crypto.randomUUID()}`
       };
-
-      console.log('Creating video session:', sessionData);
 
       const { data, error } = await supabase
         .from('video_sessions')
@@ -72,9 +48,10 @@ export const useVideoCall = () => {
       if (error) throw error;
 
       setActiveSession(data);
-      toast.success('Video call started!');
+      toast.success('Video call initiated! Waiting for response...');
       return data;
     } catch (error: any) {
+      console.error('Error starting video call:', error);
       toast.error(`Error starting video call: ${error.message}`);
       return null;
     } finally {
@@ -84,6 +61,18 @@ export const useVideoCall = () => {
 
   const answerCall = async (sessionId: string) => {
     try {
+      // Ensure the call is still waiting
+      const { data: current } = await supabase
+        .from('video_sessions')
+        .select('status')
+        .eq('id', sessionId)
+        .single();
+
+      if (current?.status !== 'waiting') {
+        toast.error('Call is no longer available.');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('video_sessions')
         .update({
@@ -142,10 +131,9 @@ export const useVideoCall = () => {
     }
   };
 
+  // Real-time listener for new or updated calls
   useEffect(() => {
-    if (!user || !user.id) return;
-
-    console.log('Subscribing to video session events...');
+    if (!user) return;
 
     const channel = supabase
       .channel('video_sessions_realtime')
@@ -155,19 +143,20 @@ export const useVideoCall = () => {
           event: 'INSERT',
           schema: 'public',
           table: 'video_sessions',
-          filter: `or(client_id.eq.${user.id},specialist_id.eq.${user.id})`,
+          filter: `or(client_id=eq.${user.id},specialist_id=eq.${user.id})`
         },
         (payload) => {
-          console.log('New video session received:', payload);
           const newSession = payload.new as VideoSession;
 
           if (
-            newSession.status === 'pending' &&
+            newSession.status === 'waiting' &&
             ((newSession.specialist_id === user.id && newSession.client_id !== user.id) ||
               (newSession.client_id === user.id && newSession.specialist_id !== user.id))
           ) {
-            setIncomingCall(newSession);
-            toast.info('Incoming video call!');
+            if (!incomingCall || incomingCall.id !== newSession.id) {
+              setIncomingCall(newSession);
+              toast.info('Incoming video call!');
+            }
           }
         }
       )
@@ -177,10 +166,9 @@ export const useVideoCall = () => {
           event: 'UPDATE',
           schema: 'public',
           table: 'video_sessions',
-          filter: `or(client_id.eq.${user.id},specialist_id.eq.${user.id})`,
+          filter: `or(client_id=eq.${user.id},specialist_id=eq.${user.id})`
         },
         (payload) => {
-          console.log('Video session update received:', payload);
           const updatedSession = payload.new as VideoSession;
 
           if (updatedSession.status === 'active') {
@@ -196,18 +184,17 @@ export const useVideoCall = () => {
       .subscribe();
 
     return () => {
-      console.log('Unsubscribing from video session channel...');
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, incomingCall]);
 
   return {
     activeSession,
     incomingCall,
     loading,
-    startVideoCall, // now supports role: 'client' | 'specialist'
+    startVideoCall,
     answerCall,
     declineCall,
-    endVideoCall,
+    endVideoCall
   };
 };
