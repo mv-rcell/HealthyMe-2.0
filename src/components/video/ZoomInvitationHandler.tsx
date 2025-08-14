@@ -1,5 +1,12 @@
 import React from 'react';
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from '@/components/ui/alert-dialog';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Video, ExternalLink } from 'lucide-react';
@@ -43,14 +50,24 @@ const ZoomInvitationHandler: React.FC<ZoomInvitationHandlerProps> = ({
                 <p><strong>Password:</strong> {meeting.password}</p>
               )}
               <p><strong>Duration:</strong> {meeting.duration} minutes</p>
+              {meeting.join_url && (
+                <p className="mt-2">
+                  <strong>Join URL:</strong>{" "}
+                  <a
+                    href={meeting.join_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline break-all"
+                  >
+                    {meeting.join_url}
+                  </a>
+                </p>
+              )}
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex justify-center gap-4">
-          <Button
-            variant="outline"
-            onClick={onDecline}
-          >
+          <Button variant="outline" onClick={onDecline}>
             Decline
           </Button>
           <Button

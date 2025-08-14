@@ -44,21 +44,25 @@ console.log('Search term:', searchTerm);
 console.log('Selected specialty:', selectedSpecialty);
 
 
-  const startZoomCall = async (specialist: any) => {
-    if (!user) {
-      toast.error('Please log in to start a call');
-      return;
-    }
+ const startZoomCall = async (specialist: any) => {
+  if (!user) {
+    toast.error('Please log in to start a call');
+    return;
+  }
 
-    const meeting = await createZoomMeeting(
-      `Consultation with ${specialist.full_name}`,
-      user.email || 'client@example.com'
-    );
-    
-    if (meeting) {
-      toast.success(`Zoom meeting created with ${specialist.full_name}!`);
-    }
-  };
+  const meeting = await createZoomMeeting(
+    `Consultation with ${specialist.full_name}`,
+    user.email || 'client@example.com'
+  );
+
+  if (meeting && meeting.join_url) {
+    toast.success(`Redirecting to Zoom meeting with ${specialist.full_name}...`);
+    window.open(meeting.join_url, '_blank'); // Open Zoom in a new tab
+  } else {
+    toast.error('Failed to start Zoom meeting');
+  }
+};
+
 
   const startVideo = async (specialist: any) => {
     if (!user) {
