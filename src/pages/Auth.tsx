@@ -35,11 +35,11 @@ const Auth = () => {
   );
 
   useEffect(() => {
-    // Redirect if logged in
-    if (user && !authLoading) {
+    if (user && !authLoading && activeTab !== 'reset-password') {
       navigate('/');
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, activeTab, navigate]);
+  
 
   // Auto-open reset-password tab if coming from Supabase reset link
   useEffect(() => {
