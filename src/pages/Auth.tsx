@@ -39,7 +39,6 @@ const Auth = () => {
       navigate('/');
     }
   }, [user, authLoading, activeTab, navigate]);
-  
 
   // Auto-open reset-password tab if coming from Supabase reset link
   useEffect(() => {
@@ -64,23 +63,19 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
       toast.success('Successfully signed in!');
       queryClient.invalidateQueries({ queryKey: ['user'] });
-      
+
       if (data.user) {
         const { data: profileData } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', data.user.id)
           .single();
-          
+
         if (profileData?.role === 'specialist' || profileData?.role === 'fitness_trainer') {
           navigate('/specialist-dashboard');
         } else if (profileData?.role === 'client') {
@@ -103,27 +98,17 @@ const Auth = () => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            full_name: fullName,
-            role: role,
-          },
-        },
+        options: { data: { full_name: fullName, role } },
       });
-
       if (error) throw error;
 
       if (data.user) {
         await supabase
           .from('profiles')
-          .update({ 
-            phone_number: phoneNumber,
-            role: role 
-          })
+          .update({ phone_number: phoneNumber, role })
           .eq('id', data.user.id);
-        
+
         toast.success('Registration successful! Redirecting to onboarding...');
-        
         if (role === 'specialist' || role === 'fitness_trainer') {
           navigate('/specialist-onboarding');
         } else {
@@ -142,10 +127,8 @@ const Auth = () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: ` http://127.0.0.1:4040 /auth?reset=true`,
+        redirectTo: `${window.location.origin}/auth?reset=true`,
       });
-      
-
       if (error) throw error;
 
       setResetSent(true);
@@ -162,9 +145,7 @@ const Auth = () => {
     setResetting(true);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
-        throw new Error("Reset session expired. Please request a new link.");
-      }
+      if (!sessionData.session) throw new Error("Reset session expired. Please request a new link.");
 
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
@@ -270,11 +251,7 @@ const Auth = () => {
               </div>
               <div className="space-y-2">
                 <Label>I am a:</Label>
-                <RadioGroup 
-                  value={role} 
-                  onValueChange={(value) => setRole(value as 'specialist' | 'client' | 'fitness_trainer')}
-                  className="flex flex-col space-y-2"
-                >
+                <RadioGroup value={role} onValueChange={(value) => setRole(value as any)} className="flex flex-col space-y-2">
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="client" id="client" />
                     <Label htmlFor="client">Client</Label>
@@ -346,11 +323,7 @@ const Auth = () => {
                   <p className="text-xs text-gray-500">
                     Didn't receive the email? Check your spam folder or
                   </p>
-                  <Button 
-                    variant="link" 
-                    className="text-sm"
-                    onClick={() => setResetSent(false)}
-                  >
+                  <Button variant="link" className="text-sm" onClick={() => setResetSent(false)}>
                     Try again
                   </Button>
                 </div>
