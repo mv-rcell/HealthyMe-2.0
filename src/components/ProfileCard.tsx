@@ -20,6 +20,7 @@ interface ProfileCardProps {
   isSpecialist?: boolean;
   category?: string;
   subcategory?: string;
+  verificationStatus?: 'pending' | 'verified' | 'rejected';
 }
 
 const ProfileCard = ({
@@ -34,6 +35,7 @@ const ProfileCard = ({
   isSpecialist = false,
   category,
   subcategory,
+  verificationStatus = 'verified',
 }: ProfileCardProps) => {
   const { getSpecialistReviews } = useReviews();
   const [actualRating, setActualRating] = useState(rating);
@@ -77,7 +79,14 @@ const ProfileCard = ({
           </Avatar>
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg">{name}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">{name}</h3>
+                {isSpecialist && verificationStatus === 'pending' && (
+                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                    Pending Verification
+                  </span>
+                )}
+              </div>
               {isSpecialist && actualRating > 0 && (
                 <div className="flex items-center gap-1">
                   <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />

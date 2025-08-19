@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Send, Video, Phone, MessageSquare, ExternalLink, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useZoomIntegration } from '@/hooks/useZoomIntegration';
+import { useZoomNotifications } from '@/hooks/useZoomNotifications';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Message {
   id: number;
@@ -14,11 +17,22 @@ interface Message {
   timestamp: Date;
 }
 
-const VirtualChats = () => {
+interface VirtualChatProps {
+  recipientId?: string;
+  recipientName?: string;
+  recipientEmail?: string;
+}
+
+const VirtualChat: React.FC<VirtualChatProps> = ({ 
+  recipientId, 
+  recipientName = 'Healthcare Professional',
+  recipientEmail 
+}) => {
+  const { user, profile } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm Dr. Sarah Johnson. How can I help you today?",
+      text: `Hello! I'm ${recipientName}. How can I help you today?`,
       sender: 'specialist',
       timestamp: new Date()
     }
@@ -27,6 +41,7 @@ const VirtualChats = () => {
   const [isVideoCall, setIsVideoCall] = useState(false);
   
   const { loading, activeMeeting, createZoomMeeting, joinZoomMeeting, endZoomMeeting } = useZoomIntegration();
+  const { sendZoomInvitation } = useZoomNotifications();
 
   const sendMessage = () => {
     if (!newMessage.trim()) return;
@@ -55,20 +70,42 @@ const VirtualChats = () => {
 
   const startVideoCall = () => {
     setIsVideoCall(true);
-    toast.success('Video call started with Dr. Sarah Johnson');
+    toast.success(`Video call started with ${recipientName}`);
   };
 
   const startZoomMeeting = async () => {
-    const meeting = await createZoomMeeting(
-      'Virtual Consultation with Dr. Sarah Johnson',
-      'patient@example.com'
-    );
+    if (!user || !profile) {
+      toast.error('Please log in to start a meeting');
+      return;
+    }
+
+    // Determine meeting topic and participant based on user role
+    const meetingTopic = profile.role === 'specialist' 
+      ? `Virtual Consultation with ${profile.full_name || 'Specialist'}`
+      : `Client Consultation with ${recipientName}`;
     
-    if (meeting) {
+    // Use actual user email or fallback to recipient email
+    const participantEmail = recipientEmail || user.email || '';
+    
+    const meeting = await createZoomMeeting(meetingTopic, participantEmail);
+    
+    if (meeting && recipientId) {
+      // Send invitation to the other participant using real user ID
+      await sendZoomInvitation(meeting, recipientId);
+      
+      const meetingMessage: Message = {
+        id: messages.length + 1,
+        text: `Zoom meeting created and invitation sent to ${recipientName}! Meeting ID: ${meeting.meeting_id}${meeting.password ? ` | Password: ${meeting.password}` : ''}`,
+        sender: profile.role === 'specialist' ? 'specialist' : 'user',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, meetingMessage]);
+    } else if (meeting && !recipientId) {
+      // Meeting created but no specific recipient to invite
       const meetingMessage: Message = {
         id: messages.length + 1,
         text: `Zoom meeting created! Meeting ID: ${meeting.meeting_id}${meeting.password ? ` | Password: ${meeting.password}` : ''}`,
-        sender: 'specialist',
+        sender: profile.role === 'specialist' ? 'specialist' : 'user',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, meetingMessage]);
@@ -117,7 +154,7 @@ ${activeMeeting.password ? `Password: ${activeMeeting.password}` : ''}`;
         {isVideoCall && (
           <div className="mb-4 p-4 bg-muted rounded-lg text-center">
             <Video className="h-8 w-8 mx-auto mb-2" />
-            <p className="text-sm">Video call active with Dr. Sarah Johnson</p>
+            <p className="text-sm">Video call active with {recipientName}</p>
           </div>
         )}
 
@@ -194,4 +231,4 @@ ${activeMeeting.password ? `Password: ${activeMeeting.password}` : ''}`;
   );
 };
 
-export default VirtualChats;
+export default VirtualChat;

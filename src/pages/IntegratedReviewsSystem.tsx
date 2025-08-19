@@ -9,6 +9,7 @@ import { useReviews } from '@/hooks/useReviews';
 import { toast } from 'sonner';
 
 interface RatingProps {
+  specialistId: string;
   rating: number;
   setRating: (rating: number) => void;
 }
@@ -105,19 +106,19 @@ const IntegratedReviewsSystem = ({ specialistId }: { specialistId: string }) => 
         <CardContent className="space-y-4">
           <div>
             <Label htmlFor="overall">Overall Rating</Label>
-            <Rating rating={overallRating} setRating={setOverallRating} />
+            <Rating rating={overallRating} setRating={setOverallRating} specialistId={''} />
           </div>
           <div>
             <Label htmlFor="service">Service Quality</Label>
-            <Rating rating={serviceRating} setRating={setServiceRating} />
+            <Rating rating={serviceRating} setRating={setServiceRating} specialistId={''} />
           </div>
           <div>
             <Label htmlFor="communication">Communication</Label>
-            <Rating rating={communicationRating} setRating={setCommunicationRating} />
+            <Rating rating={communicationRating} setRating={setCommunicationRating} specialistId={''} />
           </div>
           <div>
             <Label htmlFor="professionalism">Professionalism</Label>
-            <Rating rating={professionalismRating} setRating={setProfessionalismRating} />
+            <Rating rating={professionalismRating} setRating={setProfessionalismRating} specialistId={''} />
           </div>
           <div>
             <Label htmlFor="comment">Comment</Label>

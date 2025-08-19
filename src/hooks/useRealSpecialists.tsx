@@ -17,6 +17,8 @@ export interface RealSpecialist {
   is_online: boolean | null;
   is_active: boolean | null;
   availability: string | null;
+  verification_status: string | null;
+
 }
 
 export const useRealSpecialists = () => {
@@ -30,6 +32,7 @@ export const useRealSpecialists = () => {
         .select('*')
         .eq('role', 'specialist')
         .eq('is_active', true)
+        .in('verification_status', ['pending', 'verified'])
         .not('full_name', 'is', null)
         .not('specialist_type', 'is', null);
 

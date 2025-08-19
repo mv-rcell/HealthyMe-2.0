@@ -181,7 +181,9 @@ const SpecialistOnboarding = () => {
           profile_picture_url,
           role: 'specialist',
           is_active: true, // Make specialist immediately visible
-          is_online: true, // Set as online when they complete onboarding
+          is_online: true, // Set as online when they complete 
+          verification_status: 'pending', // Mark as pending verification
+
           ...documentUrls
 
         })
@@ -189,7 +191,7 @@ const SpecialistOnboarding = () => {
 
       if (error) throw error;
 
-      toast.success('Profile and documents submitted successfully! Your application is under review.');
+      toast.success('Profile submitted successfully! You are now visible to clients while your credentials are being verified.');
       navigate('/specialist-dashboard');
     } catch (error: any) {
       toast.error(`Error saving profile: ${error.message}`);

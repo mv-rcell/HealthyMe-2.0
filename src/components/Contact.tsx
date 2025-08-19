@@ -226,6 +226,8 @@ const Contact = () => {
                     <p className="font-medium">Phone</p>
                     <p className="text-muted-foreground">+254 701 482 127</p>
                     <p className="text-muted-foreground">+254 701 210 698</p>
+                    <p className="text-muted-foreground">(555) 123-4567</p>
+
 
                   </div>
                 </div>
@@ -235,6 +237,8 @@ const Contact = () => {
                   <div>
                     <p className="font-medium">Email</p>
                     <p className="text-muted-foreground">support@healthyme.com</p>
+                    <p className="text-muted-foreground">info@healthyMe.com</p>
+
                   </div>
                 </div>
                 
@@ -245,6 +249,7 @@ const Contact = () => {
                     <p className="text-muted-foreground">
                       Nairobi Health Center<br />
                       Westlands, Nairobi 00100
+                      123 Medical Center Dr Health City,HC 12345
                     </p>
                   </div>
                 </div>

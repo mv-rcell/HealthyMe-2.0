@@ -21,21 +21,42 @@ export const useVideoCall = () => {
   const [loading, setLoading] = useState(false);
   const [incomingCall, setIncomingCall] = useState<VideoSession | null>(null);
 
+  // Helper: check if a string looks like a UUID
+  const isUUID = (value: string) => {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+  };
+
+  // Helper: resolve UUID from given identifier (could be numeric ID or UUID)
+  const resolveUserUUID = async (identifier: string) => {
+    if (isUUID(identifier)) return identifier;
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', identifier) // change if you have a different column for numeric IDs
+      .single();
+
+    if (error || !data) {
+      throw new Error('Could not resolve user UUID');
+    }
+    return data.id;
+  };
+
   // Start a video call instantly
   const startVideoCall = async (appointmentId: number | null, otherUserId: string) => {
     if (!user) return null;
     setLoading(true);
 
     try {
+      const resolvedOtherUserId = await resolveUserUUID(otherUserId);
       const isClient = user.user_metadata?.role !== 'specialist';
 
       const sessionData: Partial<VideoSession> = {
         appointment_id: appointmentId ?? null,
-        client_id: isClient ? user.id : otherUserId,
-        specialist_id: isClient ? otherUserId : user.id,
+        client_id: isClient ? user.id : resolvedOtherUserId,
+        specialist_id: isClient ? resolvedOtherUserId : user.id,
         status: 'waiting',
         started_at: new Date().toISOString(),
-        // Placeholder for actual SDK token generation
         session_token: `session_${crypto.randomUUID()}`
       };
 
@@ -61,7 +82,6 @@ export const useVideoCall = () => {
 
   const answerCall = async (sessionId: string) => {
     try {
-      // Ensure the call is still waiting
       const { data: current } = await supabase
         .from('video_sessions')
         .select('status')

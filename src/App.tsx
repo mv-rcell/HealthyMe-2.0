@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, RouterProvider } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -45,11 +45,11 @@ import HabitTracker from "./pages/HabitTracker.tsx";
 import IntegratedReviewsSystem from "./pages/IntegratedReviewsSystem.tsx";
 import Messages from "@/pages/Messages";
 import GlobalVideoCallHandler from "@/components/video/GlobalVideoCallHandler";
+import ZoomInvitationHandler from "@/components/video/ZoomInvitationHandler";
+import { useZoomNotifications } from "@/hooks/useZoomNotifications";
+import { useZoomIntegration } from "@/hooks/useZoomIntegration";
+import { useAuth } from "@/hooks/useAuth"; // Adjust path if needed
 
-
-
-
-// React Query setup
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -62,19 +62,42 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  const [musicStarted, setMusicStarted] = useState(false);
-
-  const handleStartMusic = () => setMusicStarted(true);
-
- 
+  const { pendingInvitation, inviterName, respondToInvitation } = useZoomNotifications();
+  const { user } = useAuth(); 
+  const { joinZoomMeeting } = useZoomIntegration(user?.id || "");
   return (
     <React.StrictMode>
       <ThemeProvider defaultTheme="system">
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
-          <div className="mobile-safe-area">              <Toaster />
+            <div className="mobile-safe-area">
+              <Toaster />
               <SonnerToaster />
               <GlobalVideoCallHandler />
+
+              <ZoomInvitationHandler
+                meeting={pendingInvitation ? {
+                  id: pendingInvitation.id,
+                  topic: pendingInvitation.topic,
+                  start_time: pendingInvitation.created_at,
+                  duration: pendingInvitation.duration,
+                  join_url: pendingInvitation.join_url,
+                  password: pendingInvitation.password,
+                  meeting_id: pendingInvitation.meeting_id
+                } : null}
+                inviterName={inviterName}
+                onJoinMeeting={(url) => {
+                  joinZoomMeeting(url);
+                  if (pendingInvitation) {
+                    respondToInvitation(pendingInvitation.id, 'accepted');
+                  }
+                } }
+                onDecline={() => {
+                  if (pendingInvitation) {
+                    respondToInvitation(pendingInvitation.id, 'declined');
+                  }
+                } } userRole={"specialist"}              />
+
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Index />} />
@@ -107,17 +130,13 @@ const App = () => {
                   <Route path="/book-consultation" element={<BookConsultation />} />
                   <Route path="/integratedspecialists" element={<IntegratedSpecialistSearch />} />
                   <Route path="/Virtualchats" element={<VirtualChat />} />
-                  <Route path="/Labtests" element={<IntegratedLabTestBooking/>} />
-                  <Route path="/Homecare" element={<IntegratedHomeCareBooking/>} />
-                  <Route path="/Programs" element={<HealthPrograms/>} />
-                  <Route path="/tracker" element={<HabitTracker/>} />
-                  <Route path="/IntegratedReviewSystem" element={<IntegratedReviewsSystem specialistId={""}/>} />
+                  <Route path="/Labtests" element={<IntegratedLabTestBooking />} />
+                  <Route path="/Homecare" element={<IntegratedHomeCareBooking />} />
+                  <Route path="/Programs" element={<HealthPrograms />} />
+                  <Route path="/tracker" element={<HabitTracker />} />
+                  <Route path="/IntegratedReviewSystem" element={<IntegratedReviewsSystem specialistId="" />} />
                   <Route path="/messages/:userId" element={<Messages />} />
-
-                  {/* Optional: Auth gate route, though "/" is already taken by <Index /> */}
                   <Route path="/gate" element={<AuthGate />} />
-
-                  {/* 404 Catch-All */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>
@@ -130,3 +149,4 @@ const App = () => {
 };
 
 export default App;
+

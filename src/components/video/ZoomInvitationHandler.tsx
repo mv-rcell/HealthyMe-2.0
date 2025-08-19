@@ -15,6 +15,7 @@ import { ZoomMeeting } from '@/hooks/useZoomIntegration';
 interface ZoomInvitationHandlerProps {
   meeting: ZoomMeeting | null;
   inviterName: string;
+  userRole: "specialist" | "client"; // 👈 who’s viewing this
   onJoinMeeting: (meetingUrl: string) => void;
   onDecline: () => void;
 }
@@ -22,10 +23,17 @@ interface ZoomInvitationHandlerProps {
 const ZoomInvitationHandler: React.FC<ZoomInvitationHandlerProps> = ({
   meeting,
   inviterName,
+  userRole,
   onJoinMeeting,
   onDecline
 }) => {
   if (!meeting) return null;
+
+  // 👇 Decide which URL this user should use
+  const meetingUrl =
+    userRole === "specialist" && meeting.start_url
+      ? meeting.start_url
+      : meeting.join_url;
 
   return (
     <AlertDialog open={!!meeting}>
@@ -42,7 +50,9 @@ const ZoomInvitationHandler: React.FC<ZoomInvitationHandlerProps> = ({
             Zoom Meeting Invitation
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-2">
-            <p><strong>{inviterName}</strong> has invited you to a Zoom meeting:</p>
+            <p>
+              <strong>{inviterName}</strong> has invited you to a Zoom meeting:
+            </p>
             <div className="bg-muted p-3 rounded-lg text-left">
               <p><strong>Topic:</strong> {meeting.topic}</p>
               <p><strong>Meeting ID:</strong> {meeting.meeting_id}</p>
@@ -50,16 +60,16 @@ const ZoomInvitationHandler: React.FC<ZoomInvitationHandlerProps> = ({
                 <p><strong>Password:</strong> {meeting.password}</p>
               )}
               <p><strong>Duration:</strong> {meeting.duration} minutes</p>
-              {meeting.join_url && (
+              {meetingUrl && (
                 <p className="mt-2">
-                  <strong>Join URL:</strong>{" "}
+                  <strong>{userRole === "specialist" ? "Start URL" : "Join URL"}:</strong>{" "}
                   <a
-                    href={meeting.join_url}
+                    href={meetingUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 underline break-all"
                   >
-                    {meeting.join_url}
+                    {meetingUrl}
                   </a>
                 </p>
               )}
@@ -70,13 +80,15 @@ const ZoomInvitationHandler: React.FC<ZoomInvitationHandlerProps> = ({
           <Button variant="outline" onClick={onDecline}>
             Decline
           </Button>
-          <Button
-            onClick={() => onJoinMeeting(meeting.join_url)}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <ExternalLink className="h-4 w-4 mr-2" />
-            Join Meeting
-          </Button>
+          {meetingUrl && (
+            <Button
+              onClick={() => onJoinMeeting(meetingUrl)}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              {userRole === "specialist" ? "Start Meeting" : "Join Meeting"}
+            </Button>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

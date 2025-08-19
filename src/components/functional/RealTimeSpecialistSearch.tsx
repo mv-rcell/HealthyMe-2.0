@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, Star, MapPin, Clock, Users, Brain, Stethoscope, Video, MessageSquare, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,12 +14,12 @@ import { toast } from 'sonner';
 import VirtualChat from './VirtualChats';
 import MessageThread from '../messaging/MessageThread';
 import RealTimeSpecialistCard from './RealTimeSpecialistCard';
+import { supabase } from '@/integrations/supabase/client';
 
 const RealTimeSpecialistSearch = () => {
   const { user } = useAuth();
   const { specialists, loading } = useRealSpecialists();
-  const { createZoomMeeting, loading: zoomLoading } = useZoomIntegration();
-  const { startVideoCall, loading: videoLoading } = useVideoCall();
+  const { createZoomMeeting, loading: zoomLoading } = useZoomIntegration(user?.id || '');  const { startVideoCall, loading: videoLoading } = useVideoCall();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('');
@@ -89,6 +89,7 @@ console.log('Selected specialty:', selectedSpecialty);
     setCommunicationType(type);
   };
 
+ 
   
 
   return (
@@ -197,5 +198,35 @@ console.log('Selected specialty:', selectedSpecialty);
     </div>
   );
 };
+
+export function useIncomingCalls() {
+  useEffect(() => {
+    const channel = supabase
+      .channel("calls-listener")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "calls" },
+        (payload) => {
+          const call = payload.new;
+          const userId = supabase.auth.getUser().then(({ data }) => {
+            if (call.recipient_id === data.user?.id) {
+              toast(`📞 Incoming call: ${call.topic}`, {
+                action: {
+                  label: "Join Zoom",
+                  onClick: () => window.open(call.join_url, "_blank"),
+                },
+              });
+            }
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+}
+
 
 export default RealTimeSpecialistSearch;

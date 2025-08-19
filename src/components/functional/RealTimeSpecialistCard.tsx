@@ -26,6 +26,8 @@ interface RealTimeSpecialistCardProps {
     is_online: boolean | null;
     experience: string | null;
     profile_picture_url: string | null;
+    verification_status: string | null;
+
   };
   rating?: number;
   reviewCount?: number;
@@ -117,9 +119,16 @@ const RealTimeSpecialistCard: React.FC<RealTimeSpecialistCardProps> = ({
           
           <div className="flex-1 space-y-2">
             <div>
-              <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                {specialist.full_name}
-              </h3>
+            <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                  {specialist.full_name}
+                </h3>
+                {specialist.verification_status === 'pending' && (
+                  <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+                    Pending Verification
+                  </Badge>
+                )}
+              </div>
               <p className="text-primary font-medium">{specialist.specialist_type}</p>
             </div>
             
