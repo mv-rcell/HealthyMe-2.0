@@ -142,7 +142,7 @@ const Auth = () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `http://192.168.1.68:8080/auth?reset=true`,
+        redirectTo: ` http://127.0.0.1:4040 /auth?reset=true`,
       });
       
 
