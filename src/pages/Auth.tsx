@@ -138,9 +138,10 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: "https://healthy-me-2-0-marcells-projects-c92f7e38.vercel.app/auth?reset=true",
       });
+      
 
       if (error) throw error;
 
