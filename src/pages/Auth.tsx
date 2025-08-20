@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,60 +23,58 @@ const Auth = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [role, setRole] = useState<'specialist' | 'client' | 'fitness_trainer'>('client');
   const [loading, setLoading] = useState(false);
-
-  // Forgot / Reset states
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
   const [newPassword, setNewPassword] = useState('');
-  const [resetting, setResetting] = useState(false);
-
-  // Tabs
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isResetting, setIsResetting] = useState(searchParams.get('reset') === 'true');
   const [activeTab, setActiveTab] = useState(
-    searchParams.get('tab') === 'signup' ? 'signup' : 'signin'
+    searchParams.get('tab') === 'signup' ? 'signup' : 
+    searchParams.get('reset') === 'true' ? 'forgot' : 'signin'
   );
 
   useEffect(() => {
-    if (user && !authLoading && activeTab !== 'reset-password') {
-      navigate('/');
-    }
-  }, [user, authLoading, activeTab, navigate]);
-
-  // Auto-open reset-password tab if coming from Supabase reset link
-  useEffect(() => {
-    if (searchParams.get('reset') === 'true') {
-      setActiveTab('reset-password');
-    }
-  }, [searchParams]);
-
-  // Check reset session validity when on reset-password tab
-  useEffect(() => {
-    if (activeTab === 'reset-password') {
-      supabase.auth.getSession().then(({ data }) => {
-        if (!data.session) {
-          toast.error("Your reset link has expired. Please request a new one.");
+    // Handle password reset from email link
+    const handleAuthStateChange = () => {
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsResetting(true);
           setActiveTab('forgot');
         }
       });
+    };
+
+    handleAuthStateChange();
+
+    // Redirect to home if already logged in (but not during password reset)
+    if (user && !authLoading && !isResetting) {
+      navigate('/');
     }
-  }, [activeTab]);
+  }, [user, authLoading, navigate, isResetting]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
       if (error) throw error;
 
       toast.success('Successfully signed in!');
       queryClient.invalidateQueries({ queryKey: ['user'] });
-
+      
+      // Redirect based on user role after sign in
       if (data.user) {
+        // Fetch the user's profile to determine their role
         const { data: profileData } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', data.user.id)
           .single();
-
+          
         if (profileData?.role === 'specialist' || profileData?.role === 'fitness_trainer') {
           navigate('/specialist-dashboard');
         } else if (profileData?.role === 'client') {
@@ -98,17 +97,30 @@ const Auth = () => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName, role } },
+        options: {
+          data: {
+            full_name: fullName,
+            role: role,
+          },
+        },
       });
+
       if (error) throw error;
 
       if (data.user) {
+        // Update the user's profile with phone number and role
         await supabase
           .from('profiles')
-          .update({ phone_number: phoneNumber, role })
+          .update({ 
+            phone_number: phoneNumber,
+            role: role 
+          })
           .eq('id', data.user.id);
-
+        
+        // Show success message
         toast.success('Registration successful! Redirecting to onboarding...');
+        
+        // Redirect to role-specific onboarding page after signup
         if (role === 'specialist' || role === 'fitness_trainer') {
           navigate('/specialist-onboarding');
         } else {
@@ -129,6 +141,7 @@ const Auth = () => {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/auth?reset=true`,
       });
+
       if (error) throw error;
 
       setResetSent(true);
@@ -140,23 +153,33 @@ const Auth = () => {
     }
   };
 
-  const handleResetPassword = async (e: React.FormEvent) => {
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setResetting(true);
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) throw new Error("Reset session expired. Please request a new link.");
+    
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
 
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
       if (error) throw error;
 
-      toast.success('Password updated! Please log in.');
-      setActiveTab('signin');
+      toast.success('Password updated successfully!');
+      navigate('/');
     } catch (error: any) {
-      toast.error(error.message || 'Error updating password.');
-      setActiveTab('forgot');
+      toast.error(`Error updating password: ${error.message}`);
     } finally {
-      setResetting(false);
+      setLoading(false);
     }
   };
 
@@ -165,148 +188,279 @@ const Auth = () => {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-lg">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-primary">HealthyMe</h1>
-          <p className="mt-2 text-gray-600">Sign in to your account or create a new one</p>
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="w-full max-w-sm p-8 space-y-8">
+        {/* Logo */}
+        <div className="text-center mb-12">
+          <div className="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 transform rotate-45 flex items-center justify-center">
+              <div className="text-white font-bold text-xl transform -rotate-45">H</div>
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold text-foreground">HealthyMe</h1>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            <TabsTrigger value="forgot">Forgot</TabsTrigger>
-          </TabsList>
+        {activeTab === 'signin' && (
+          <form onSubmit={handleSignIn} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="signin-email" className="text-sm text-muted-foreground">Email Address</Label>
+              <Input
+                id="signin-email"
+                type="email"
+                placeholder=""
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-12 rounded-lg border border-border bg-background"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="signin-password" className="text-sm text-muted-foreground">Password</Label>
+              <Input
+                id="signin-password"
+                type="password"
+                placeholder=""
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-12 rounded-lg border border-border bg-background"
+                required
+              />
+            </div>
 
-          {/* Sign In */}
-          <TabsContent value="signin">
-            <form onSubmit={handleSignIn} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="signin-email">Email</Label>
-                <Input
-                  id="signin-email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="signin-password">Password</Label>
-                <Input
-                  id="signin-password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Signing in...' : 'Sign In'}
+            <div className="text-right">
+              <Button 
+                variant="link" 
+                className="text-sm text-purple-600 hover:text-purple-700 p-0 h-auto"
+                onClick={() => setActiveTab('forgot')}
+                type="button"
+              >
+                Forgot Password?
               </Button>
-              <div className="text-center">
-                <Button variant="link" className="text-sm" onClick={() => setActiveTab('forgot')}>
-                  Forgot your password?
-                </Button>
-              </div>
-            </form>
-          </TabsContent>
+            </div>
 
-          {/* Sign Up */}
-          <TabsContent value="signup">
-            <form onSubmit={handleSignUp} className="space-y-6">
+            <div className="pt-4">
+              <p className="text-xs text-muted-foreground text-center mb-4">
+                By signing up you agree to our{' '}
+                <Button variant="link" className="text-purple-600 text-xs p-0 h-auto">
+                  privacy policy
+                </Button>
+              </p>
+              
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium"
+                disabled={loading}
+              >
+                {loading ? 'Signing in...' : 'Login'}
+              </Button>
+            </div>
+
+            <div className="text-center pt-4">
+              <span className="text-sm text-muted-foreground">Don't have an account? </span>
+              <Button 
+                variant="link" 
+                className="text-purple-600 hover:text-purple-700 text-sm p-0 h-auto font-medium"
+                onClick={() => setActiveTab('signup')}
+                type="button"
+              >
+                Sign Up
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {activeTab === 'signup' && (
+          <form onSubmit={handleSignUp} className="space-y-6">
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-semibold">Create Account</h2>
+            </div>
+            
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="signup-email">Email</Label>
+                <Label htmlFor="signup-email" className="text-sm text-muted-foreground">Email Address</Label>
                 <Input
                   id="signup-email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder=""
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="h-12 rounded-lg border border-border bg-background"
                   required
                 />
               </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="full-name">Full Name</Label>
+                <Label htmlFor="full-name" className="text-sm text-muted-foreground">Full Name</Label>
                 <Input
                   id="full-name"
-                  placeholder="John Doe"
+                  placeholder=""
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
+                  className="h-12 rounded-lg border border-border bg-background"
                   required
                 />
               </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="phone-number">Phone Number</Label>
+                <Label htmlFor="phone-number" className="text-sm text-muted-foreground">Phone Number</Label>
                 <Input
                   id="phone-number"
                   type="tel"
                   placeholder="+254712345678"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="h-12 rounded-lg border border-border bg-background"
                 />
               </div>
+              
               <div className="space-y-2">
-                <Label>I am a:</Label>
-                <RadioGroup value={role} onValueChange={(value) => setRole(value as any)} className="flex flex-col space-y-2">
+                <Label className="text-sm text-muted-foreground">I am a:</Label>
+                <RadioGroup 
+                  value={role} 
+                  onValueChange={(value) => setRole(value as 'specialist' | 'client' | 'fitness_trainer')}
+                  className="flex flex-col space-y-2"
+                >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="client" id="client" />
-                    <Label htmlFor="client">Client</Label>
+                    <Label htmlFor="client" className="text-sm">Client</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="specialist" id="specialist" />
-                    <Label htmlFor="specialist">Health Specialist</Label>
+                    <Label htmlFor="specialist" className="text-sm">Health Specialist</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="fitness_trainer" id="fitness_trainer" />
-                    <Label htmlFor="fitness_trainer">Fitness Trainer</Label>
+                    <Label htmlFor="fitness_trainer" className="text-sm">Fitness Trainer</Label>
                   </div>
                 </RadioGroup>
               </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="signup-password">Password</Label>
+                <Label htmlFor="signup-password" className="text-sm text-muted-foreground">Password</Label>
                 <Input
                   id="signup-password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder=""
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="h-12 rounded-lg border border-border bg-background"
                   required
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
+            </div>
+
+            <div className="pt-4">
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium"
+                disabled={loading}
+              >
                 {loading ? 'Creating account...' : 'Sign Up'}
               </Button>
-            </form>
-          </TabsContent>
+            </div>
 
-          {/* Forgot Password */}
-          <TabsContent value="forgot">
-            {!resetSent ? (
+            <div className="text-center pt-4">
+              <span className="text-sm text-muted-foreground">Already have an account? </span>
+              <Button 
+                variant="link" 
+                className="text-purple-600 hover:text-purple-700 text-sm p-0 h-auto font-medium"
+                onClick={() => setActiveTab('signin')}
+                type="button"
+              >
+                Sign In
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {activeTab === 'forgot' && (
+          <div className="space-y-6">
+            {isResetting ? (
+              <form onSubmit={handlePasswordUpdate} className="space-y-6">
+                <div className="text-center mb-6">
+                  <h2 className="text-xl font-semibold">Set New Password</h2>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Enter your new password below.
+                  </p>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password" className="text-sm text-muted-foreground">New Password</Label>
+                    <Input
+                      id="new-password"
+                      type="password"
+                      placeholder=""
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="h-12 rounded-lg border border-border bg-background"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password" className="text-sm text-muted-foreground">Confirm New Password</Label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      placeholder=""
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="h-12 rounded-lg border border-border bg-background"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium"
+                  disabled={loading}
+                >
+                  {loading ? 'Updating...' : 'Update Password'}
+                </Button>
+              </form>
+            ) : !resetSent ? (
               <form onSubmit={handleForgotPassword} className="space-y-6">
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold">Reset Your Password</h3>
-                  <p className="text-sm text-gray-600 mt-2">
+                <div className="text-center mb-6">
+                  <h2 className="text-xl font-semibold">Reset Your Password</h2>
+                  <p className="text-sm text-muted-foreground mt-2">
                     Enter your email address and we'll send you a link to reset your password.
                   </p>
                 </div>
+                
                 <div className="space-y-2">
-                  <Label htmlFor="reset-email">Email</Label>
+                  <Label htmlFor="reset-email" className="text-sm text-muted-foreground">Email Address</Label>
                   <Input
                     id="reset-email"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder=""
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
+                    className="h-12 rounded-lg border border-border bg-background"
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium"
+                  disabled={loading}
+                >
                   {loading ? 'Sending...' : 'Send Reset Link'}
                 </Button>
+
+                <div className="text-center">
+                  <Button 
+                    variant="link" 
+                    className="text-purple-600 hover:text-purple-700 text-sm p-0 h-auto"
+                    onClick={() => setActiveTab('signin')}
+                    type="button"
+                  >
+                    Back to Sign In
+                  </Button>
+                </div>
               </form>
             ) : (
               <div className="text-center space-y-4">
@@ -319,41 +473,30 @@ const Auth = () => {
                     Check your email and click the link to reset your password.
                   </p>
                 </div>
+                
                 <div className="space-y-2">
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Didn't receive the email? Check your spam folder or
                   </p>
-                  <Button variant="link" className="text-sm" onClick={() => setResetSent(false)}>
+                  <Button 
+                    variant="link" 
+                    className="text-purple-600 text-sm p-0 h-auto"
+                    onClick={() => setResetSent(false)}
+                  >
                     Try again
                   </Button>
                 </div>
               </div>
             )}
-          </TabsContent>
+          </div>
+        )}
 
-          {/* Reset Password (after clicking email link) */}
-          <TabsContent value="reset-password">
-            <form onSubmit={handleResetPassword} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input
-                  id="new-password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={resetting}>
-                {resetting ? 'Updating...' : 'Update Password'}
-              </Button>
-            </form>
-          </TabsContent>
-        </Tabs>
-
-        <div className="text-center mt-6">
-          <Button variant="link" onClick={() => navigate('/')}>
+        <div className="text-center pt-6">
+          <Button 
+            variant="link" 
+            onClick={() => navigate('/')}
+            className="text-muted-foreground text-sm p-0 h-auto"
+          >
             Back to Home
           </Button>
         </div>
