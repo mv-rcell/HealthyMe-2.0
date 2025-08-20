@@ -139,8 +139,7 @@ const Auth = () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: "http://192.168.1.68:8080/auth?reset=true",
-      });
+        redirectTo: "https://175f976d887c.ngrok-free.app/auth?reset=true",      });
       
 
       if (error) throw error;
