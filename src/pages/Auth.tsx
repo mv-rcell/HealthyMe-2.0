@@ -139,7 +139,7 @@ const Auth = () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: "https://healthy-me-2-0-marcells-projects-c92f7e38.vercel.app/auth?reset=true",
+        redirectTo: "http://192.168.1.68:8080/auth?reset=true",
       });
       
 
