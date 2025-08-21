@@ -10,13 +10,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { Eye, EyeOff } from 'lucide-react'; 
 
 const Auth = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
-  
+ 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -32,6 +33,12 @@ const Auth = () => {
     searchParams.get('tab') === 'signup' ? 'signup' : 
     searchParams.get('reset') === 'true' ? 'forgot' : 'signin'
   );
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
 
   useEffect(() => {
     // Handle password reset from email link
@@ -51,6 +58,8 @@ const Auth = () => {
       navigate('/');
     }
   }, [user, authLoading, navigate, isResetting]);
+
+  
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,9 +147,13 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: "https://175f976d887c.ngrok-free.app/auth?reset=true",      });
-      
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${
+          process.env.NODE_ENV === 'production'
+            ? 'https://healthy-me-2-0-marcells-projects-c92f7e38.vercel.app'
+            : 'http://localhost:3000'
+        }/auth?reset=true`
+      });
 
       if (error) throw error;
 
@@ -219,13 +232,19 @@ const Auth = () => {
               <Label htmlFor="signin-password" className="text-sm text-muted-foreground">Password</Label>
               <Input
                 id="signin-password"
-                type="password"
-                placeholder=""
+                type={showPassword ? 'text' : 'password'}                placeholder=""
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-12 rounded-lg border border-border bg-background"
                 required
               />
+                <button
+                type="button"
+                className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
 
             <div className="text-right">
@@ -340,13 +359,19 @@ const Auth = () => {
                 <Label htmlFor="signup-password" className="text-sm text-muted-foreground">Password</Label>
                 <Input
                   id="signup-password"
-                  type="password"
-                  placeholder=""
+                  type={showSignupPassword ? 'text' : 'password'}                  placeholder=""
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="h-12 rounded-lg border border-border bg-background"
                   required
                 />
+                  <button
+                type="button"
+                className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+                onClick={() => setShowSignupPassword(!showSignupPassword)}
+              >
+                {showSignupPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
               </div>
             </div>
 
@@ -390,8 +415,7 @@ const Auth = () => {
                     <Label htmlFor="new-password" className="text-sm text-muted-foreground">New Password</Label>
                     <Input
                       id="new-password"
-                      type="password"
-                      placeholder=""
+                      type={showNewPassword ? 'text' : 'password'}                      placeholder=""
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       className="h-12 rounded-lg border border-border bg-background"
@@ -403,13 +427,19 @@ const Auth = () => {
                     <Label htmlFor="confirm-password" className="text-sm text-muted-foreground">Confirm New Password</Label>
                     <Input
                       id="confirm-password"
-                      type="password"
-                      placeholder=""
+                      type={showConfirmPassword ? 'text' : 'password'}                      placeholder=""
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className="h-12 rounded-lg border border-border bg-background"
                       required
                     />
+                     <button
+                      type="button"
+                      className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
                   </div>
                 </div>
 
