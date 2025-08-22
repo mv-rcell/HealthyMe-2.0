@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -30,7 +30,6 @@ import Auth from "./pages/Auth";
 import Payments from "./pages/Payments.tsx";
 import Profile from "./pages/Profile";
 import { ThemeProvider } from "./hooks/use-theme";
-import AuthGate from "@/components/AuthGate.tsx";
 import AppointmentRequest from "@/pages/AppointmentRequest.tsx";
 import AppointmentHistory from "@/pages/AppointmentHistory";
 import Features from "@/pages/Features.tsx";
@@ -48,7 +47,7 @@ import GlobalVideoCallHandler from "@/components/video/GlobalVideoCallHandler";
 import ZoomInvitationHandler from "@/components/video/ZoomInvitationHandler";
 import { useZoomNotifications } from "@/hooks/useZoomNotifications";
 import { useZoomIntegration } from "@/hooks/useZoomIntegration";
-import { useAuth } from "@/hooks/useAuth"; // Adjust path if needed
+import { useAuth } from "@/hooks/useAuth"; 
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,10 +60,60 @@ const queryClient = new QueryClient({
   },
 });
 
+// Wrapper to protect all routes
+const ProtectedApp = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  if (!user) return <Navigate to="/auth" replace />;
+
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/specialists" element={<Specialists />} />
+      <Route path="/clients" element={<Clients />} />
+      <Route path="/specialist/:id" element={<SpecialistProfile />} />
+      <Route path="/BackgroundMusic" element={<BackgroundMusic isPlaying={false} isMuted={false} />} />
+      <Route path="/Home" element={<Home />} />
+      <Route path="/NutritionPage" element={<NutritionPage />} />
+      <Route path="/FitnessPage" element={<FitnessPage />} />
+      <Route path="/HealthCarePage" element={<HealthCarePage />} />
+      <Route path="/TrackingPage" element={<TrackingPage />} />
+      <Route path="/AdVideo" element={<AdVideo />} />
+      <Route path="/service/:serviceId" element={<ServiceDetails />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/specialist-onboarding" element={<SpecialistOnboarding />} />
+      <Route path="/client-onboarding" element={<ClientOnboarding />} />
+      <Route path="/specialist-dashboard" element={<SpecialistDashboard />} />
+      <Route path="/specialist/appointments" element={<SpecialistAppointments />} />
+      <Route path="/specialist/clients" element={<SpecialistClients />} />
+      <Route path="/specialist/services" element={<SpecialistServices />} />
+      <Route path="/client-dashboard" element={<ClientDashboard />} />
+      <Route path="/payments" element={<Payments />} />
+      <Route path="/memberships" element={<MembershipPage />} />
+      <Route path="/appointment" element={<AppointmentRequest />} />
+      <Route path="/appointments" element={<AppointmentHistory />} />
+      <Route path="/features" element={<Features />} />
+      <Route path="/smart-features" element={<SmartFeatures />} />
+      <Route path="/book-consultation" element={<BookConsultation />} />
+      <Route path="/integratedspecialists" element={<IntegratedSpecialistSearch />} />
+      <Route path="/Virtualchats" element={<VirtualChat />} />
+      <Route path="/Labtests" element={<IntegratedLabTestBooking />} />
+      <Route path="/Homecare" element={<IntegratedHomeCareBooking />} />
+      <Route path="/Programs" element={<HealthPrograms />} />
+      <Route path="/tracker" element={<HabitTracker />} />
+      <Route path="/IntegratedReviewSystem" element={<IntegratedReviewsSystem specialistId="" />} />
+      <Route path="/messages/:userId" element={<Messages />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
 const App = () => {
   const { pendingInvitation, inviterName, respondToInvitation } = useZoomNotifications();
-  const { user } = useAuth(); 
+  const { user } = useAuth();
   const { joinZoomMeeting } = useZoomIntegration(user?.id || "");
+
   return (
     <React.StrictMode>
       <ThemeProvider defaultTheme="system">
@@ -89,55 +138,23 @@ const App = () => {
                 onJoinMeeting={(url) => {
                   joinZoomMeeting(url);
                   if (pendingInvitation) {
-                    respondToInvitation(pendingInvitation.id, 'accepted');
+                    respondToInvitation(pendingInvitation.id, "accepted");
                   }
-                } }
+                }}
                 onDecline={() => {
                   if (pendingInvitation) {
-                    respondToInvitation(pendingInvitation.id, 'declined');
+                    respondToInvitation(pendingInvitation.id, "declined");
                   }
-                } } userRole={"specialist"}              />
+                }}
+                userRole="specialist"
+              />
 
               <BrowserRouter>
                 <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/specialists" element={<Specialists />} />
-                  <Route path="/clients" element={<Clients />} />
-                  <Route path="/specialist/:id" element={<SpecialistProfile />} />
-                  <Route path="/BackgroundMusic" element={<BackgroundMusic isPlaying={false} isMuted={false} />} />
-                  <Route path="/Home" element={<Home />} />
-                  <Route path="/NutritionPage" element={<NutritionPage />} />
-                  <Route path="/FitnessPage" element={<FitnessPage />} />
-                  <Route path="/HealthCarePage" element={<HealthCarePage />} />
-                  <Route path="/TrackingPage" element={<TrackingPage />} />
-                  <Route path="/AdVideo" element={<AdVideo />} />
-                  <Route path="/service/:serviceId" element={<ServiceDetails />} />
+                  {/* Auth page stays public */}
                   <Route path="/auth" element={<Auth />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/specialist-onboarding" element={<SpecialistOnboarding />} />
-                  <Route path="/client-onboarding" element={<ClientOnboarding />} />
-                  <Route path="/specialist-dashboard" element={<SpecialistDashboard />} />
-                  <Route path="/specialist/appointments" element={<SpecialistAppointments />} />
-                  <Route path="/specialist/clients" element={<SpecialistClients />} />
-                  <Route path="/specialist/services" element={<SpecialistServices />} />
-                  <Route path="/client-dashboard" element={<ClientDashboard />} />
-                  <Route path="/payments" element={<Payments />} />
-                  <Route path="/memberships" element={<MembershipPage />} />
-                  <Route path="/appointment" element={<AppointmentRequest />} />
-                  <Route path="/appointments" element={<AppointmentHistory />} />
-                  <Route path="/features" element={<Features />} />
-                  <Route path="/smart-features" element={<SmartFeatures />} />
-                  <Route path="/book-consultation" element={<BookConsultation />} />
-                  <Route path="/integratedspecialists" element={<IntegratedSpecialistSearch />} />
-                  <Route path="/Virtualchats" element={<VirtualChat />} />
-                  <Route path="/Labtests" element={<IntegratedLabTestBooking />} />
-                  <Route path="/Homecare" element={<IntegratedHomeCareBooking />} />
-                  <Route path="/Programs" element={<HealthPrograms />} />
-                  <Route path="/tracker" element={<HabitTracker />} />
-                  <Route path="/IntegratedReviewSystem" element={<IntegratedReviewsSystem specialistId="" />} />
-                  <Route path="/messages/:userId" element={<Messages />} />
-                  <Route path="/gate" element={<AuthGate />} />
-                  <Route path="*" element={<NotFound />} />
+                  {/* Everything else is behind authentication */}
+                  <Route path="/*" element={<ProtectedApp />} />
                 </Routes>
               </BrowserRouter>
             </div>
@@ -149,4 +166,3 @@ const App = () => {
 };
 
 export default App;
-
