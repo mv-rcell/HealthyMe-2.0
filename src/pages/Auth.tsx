@@ -11,6 +11,9 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Eye, EyeOff } from 'lucide-react'; 
+// At the top with your imports
+import Logo from '@/assets/logo.png'; // adjust path based on where you save the uploaded logo
+
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -205,12 +208,16 @@ const Auth = () => {
       <div className="w-full max-w-sm p-8 space-y-8">
         {/* Logo */}
         <div className="text-center mb-12">
-          <div className="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 transform rotate-45 flex items-center justify-center">
-              <div className="text-white font-bold text-xl transform -rotate-45">H</div>
+            <div className="text-center mb-12">
+            <div className="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
+              <img 
+                src={Logo} 
+                alt="HealthyMe Logo" 
+                className="w-16 h-16 object-contain"
+              />
             </div>
-          </div>
           <h1 className="text-2xl font-bold text-foreground">HealthyMe</h1>
+        </div>
         </div>
 
         {activeTab === 'signin' && (
