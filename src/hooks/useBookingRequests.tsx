@@ -6,7 +6,7 @@ export interface BookingRequest {
   client_id: string;
   patient_name: ReactNode;
   reason: ReactNode;
-  service_type:  string;
+  service_type: string;
   preferred_date: string | number | Date;
   duration: number;
   id: string;
@@ -23,7 +23,6 @@ export const useBookingRequests = (specialistId: string | null) => {
   const [requests, setRequests] = useState<BookingRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Ref to track notifications within a short time window
   const notificationBuffer = useRef<BookingRequest[]>([]);
   const notificationTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -44,25 +43,9 @@ export const useBookingRequests = (specialistId: string | null) => {
         toast.error('Failed to fetch booking requests');
         console.error(error);
       } else {
-        setRequests(data);
+        setRequests(data || []);
       }
       setLoading(false);
-    };
-
-    const sendBookingNotificationEmail = async (bookingRequest: BookingRequest) => {
-      try {
-        const { error } = await supabase.functions.invoke('send-booking-notification', {
-          body: {
-            bookingRequest,
-            specialistId: bookingRequest.specialist_id
-          }
-        });
-        if (error) {
-          console.error('Error sending booking notification email:', error);
-        }
-      } catch (error) {
-        console.error('Error invoking email function:', error);
-      }
     };
 
     const showBrowserNotification = (title: string, options?: NotificationOptions) => {
@@ -70,7 +53,7 @@ export const useBookingRequests = (specialistId: string | null) => {
         new Notification(title, {
           icon: '/favicon.ico',
           badge: '/favicon.ico',
-          ...options
+          ...options,
         });
       }
     };
@@ -89,7 +72,7 @@ export const useBookingRequests = (specialistId: string | null) => {
           } else if (buffered.length > 1) {
             toast.info(`${buffered.length} new booking requests`);
           }
-        }, 3000); // Group notifications within 3s
+        }, 3000);
       }
     };
 
@@ -111,19 +94,12 @@ export const useBookingRequests = (specialistId: string | null) => {
             setRequests((prev) => {
               switch (payload.eventType) {
                 case 'INSERT':
-                  // Show browser notification
                   showBrowserNotification('New Booking Request', {
                     body: `New ${newRecord.service_type} booking request received`,
                     tag: 'booking-request',
                     requireInteraction: true,
                   });
-
-                  // Send email notification
-                  sendBookingNotificationEmail(newRecord);
-
-                  // In-app toast (grouped)
                   queueNotification(newRecord);
-
                   return [newRecord, ...prev];
 
                 case 'UPDATE':
@@ -147,7 +123,6 @@ export const useBookingRequests = (specialistId: string | null) => {
         });
     };
 
-    // Ask for notification permission
     const requestNotificationPermission = async () => {
       if ('Notification' in window && Notification.permission === 'default') {
         await Notification.requestPermission();
@@ -171,28 +146,37 @@ export const useBookingRequests = (specialistId: string | null) => {
 
   const createBookingRequest = async (
     request: Omit<BookingRequest, 'id' | 'created_at' | 'updated_at'>
-  ) => {
-    const { error } = await supabase.from('booking_requests').insert(request);
+  ): Promise<BookingRequest | null> => {
+    const { data, error } = await supabase
+      .from('booking_requests')
+      .insert(request)
+      .select()
+      .single();
+
     if (error) {
       toast.error('Failed to create booking request');
       throw error;
     }
+
     toast.success('Booking request created');
+    return data;
   };
 
-  const updateBookingRequestStatus = async (id: string, status: BookingRequest['status']) => {
+  const updateBookingRequestStatus = async (
+    id: string,
+    status: BookingRequest['status']
+  ) => {
     const { error } = await supabase
       .from('booking_requests')
       .update({ status })
       .eq('id', id);
-  
+
     if (error) {
       toast.error('Failed to update booking request');
       throw error;
     }
     toast.success(`Booking request ${status}`);
   };
-  
 
   return {
     bookingRequests: requests,
