@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Star, MapPin, Clock, Users, Brain, Stethoscope, Video, MessageSquare, Phone } from 'lucide-react';
+import { Search, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useRealSpecialists } from '@/hooks/useRealSpecialists';
 import { useZoomIntegration } from '@/hooks/useZoomIntegration';
@@ -14,55 +11,96 @@ import { toast } from 'sonner';
 import VirtualChat from './VirtualChats';
 import MessageThread from '../messaging/MessageThread';
 import RealTimeSpecialistCard from './RealTimeSpecialistCard';
+import IntegratedReviewsSystem from '@/pages/IntegratedReviewsSystem';
 import { supabase } from '@/integrations/supabase/client';
+import { useReviews } from '@/hooks/useReviews';
 
 const RealTimeSpecialistSearch = () => {
   const { user } = useAuth();
   const { specialists, loading } = useRealSpecialists();
-  const { createZoomMeeting, loading: zoomLoading } = useZoomIntegration(user?.id || '');  const { startVideoCall, loading: videoLoading } = useVideoCall();
-  
+  const { createZoomMeeting, loading: zoomLoading } = useZoomIntegration(user?.id || '');
+  const { startVideoCall, loading: videoLoading } = useVideoCall();
+  const { getAverageRating } = useReviews();
+
+  const [ratings, setRatings] = useState<{ [id: string]: { avg: number; count: number } }>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('');
   const [selectedSpecialist, setSelectedSpecialist] = useState<any>(null);
-  const [communicationType, setCommunicationType] = useState<'chat' | 'message' | null>(null);
+  const [communicationType, setCommunicationType] = useState<'chat' | 'message' | 'reviews' | null>(null);
 
-  const specialties = Array.from(new Set(specialists.map(s => s.specialist_type).filter(Boolean))).sort();
+  // specialties filter
+  const specialties = Array.from(
+    new Set(specialists.map((s) => s.specialist_type).filter(Boolean))
+  ).sort();
 
-  const filteredSpecialists = specialists.filter(specialist => {
-    const matchesSearch = !searchTerm || 
+  const filteredSpecialists = specialists.filter((specialist) => {
+    const matchesSearch =
+      !searchTerm ||
       specialist.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       specialist.specialist_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       specialist.bio?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesSpecialty = !selectedSpecialty || specialist.specialist_type === selectedSpecialty;
-    
+
+    const matchesSpecialty =
+      !selectedSpecialty || specialist.specialist_type === selectedSpecialty;
+
     return matchesSearch && matchesSpecialty;
   });
 
-  console.log('All specialists:', specialists);
-console.log('Search term:', searchTerm);
-console.log('Selected specialty:', selectedSpecialty);
+  // fetch ratings when specialists change
+  useEffect(() => {
+    const fetchRatings = async () => {
+      const newRatings: Record<string, { avg: number; count: number }> = {};
+      for (const specialist of specialists) {
+        const { avg, count } = await getAverageRating(specialist.id);
+        newRatings[specialist.id] = { avg, count };
+      }
+      setRatings(newRatings);
+    };
 
+    if (specialists.length > 0) {
+      fetchRatings();
+    }
+  }, [specialists, getAverageRating]);
 
- const startZoomCall = async (specialist: any) => {
-  if (!user) {
-    toast.error('Please log in to start a call');
-    return;
-  }
+  const startZoomCall = async (specialist: any) => {
+    if (!user) {
+      toast.error('Please log in to start a call');
+      return;
+    }
 
-  const meeting = await createZoomMeeting(
-    `Consultation with ${specialist.full_name}`,
-    user.email || 'client@example.com'
-  );
+    // Get specialist's email from their profile
+    const { data: specialistProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', specialist.id)
+      .single();
 
-  if (meeting && meeting.join_url) {
-    toast.success(`Redirecting to Zoom meeting with ${specialist.full_name}...`);
-    window.open(meeting.join_url, '_blank'); // Open Zoom in a new tab
-  } else {
-    toast.error('Failed to start Zoom meeting');
-  }
-};
+    if (!specialistProfile) {
+      toast.error('Could not find specialist profile');
+      return;
+    }
 
+    // Get specialist's auth email
+    const { data: authUser } = await supabase.auth.admin.getUserById(specialist.id);
+    const specialistEmail = authUser.user?.email;
+
+    if (!specialistEmail) {
+      toast.error('Specialist email not found');
+      return;
+    }
+
+    const meeting = await createZoomMeeting(
+      `Consultation with ${specialist.full_name}`,
+      [specialistEmail] // Send invitation to specialist
+    );
+
+    if (meeting && meeting.join_url) {
+      toast.success(`Zoom meeting created! Invitation sent to ${specialist.full_name}`);
+      window.open(meeting.join_url, '_blank');
+    } else {
+      toast.error('Failed to start Zoom meeting');
+    }
+  };
 
   const startVideo = async (specialist: any) => {
     if (!user) {
@@ -70,30 +108,46 @@ console.log('Selected specialty:', selectedSpecialty);
       return;
     }
 
-    // Create a temporary appointment for the video call
     const appointmentId = Math.floor(Math.random() * 1000000);
-    
+
     const session = await startVideoCall(appointmentId, specialist.id);
     if (session) {
       toast.success(`Video call started with ${specialist.full_name}!`);
     }
   };
 
-  const openCommunication = (specialist: any, type: 'chat' | 'message') => {
-    if (!user) {
+  const openCommunication = (specialist: any, type: 'chat' | 'message' | 'reviews') => {
+    if (type !== 'reviews' && !user) {
       toast.error('Please log in to communicate');
       return;
     }
-    
+
     setSelectedSpecialist(specialist);
     setCommunicationType(type);
   };
 
- 
-  
-
   return (
     <div className="space-y-6">
+      {/* Header with Review System Button */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Find Specialists</h2>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <Star className="h-4 w-4" />
+              Review Specialists
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Specialist Reviews</DialogTitle>
+            </DialogHeader>
+            <IntegratedReviewsSystem />
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Search input */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1">
           <Input
@@ -109,14 +163,17 @@ console.log('Selected specialty:', selectedSpecialty);
         </Button>
       </div>
 
+      {/* Specialty filter */}
       {specialties.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
           {specialties.map((specialty) => (
             <Button
               key={specialty}
-              variant={selectedSpecialty === specialty ? "default" : "outline"}
+              variant={selectedSpecialty === specialty ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setSelectedSpecialty(selectedSpecialty === specialty ? '' : specialty)}
+              onClick={() =>
+                setSelectedSpecialty(selectedSpecialty === specialty ? '' : specialty)
+              }
               className="text-xs justify-start"
             >
               {specialty}
@@ -129,39 +186,45 @@ console.log('Selected specialty:', selectedSpecialty);
         Showing {filteredSpecialists.length} of {specialists.length} specialists
       </div>
 
+      {/* Specialist cards */}
       <div className="grid gap-4">
         {filteredSpecialists.map((specialist) => (
           <RealTimeSpecialistCard
             key={specialist.id}
             specialist={{
               ...specialist,
-              subsequent_visits_fee: specialist.subsequent_visits_fee || 0
+              subsequent_visits_fee: specialist.subsequent_visits_fee || 0,
             }}
+            rating={ratings[specialist.id]?.avg || 0}
+            reviewCount={ratings[specialist.id]?.count || 0}
             onStartMessage={() => openCommunication(specialist, 'message')}
             onStartVideo={() => startVideo(specialist)}
             onStartZoom={() => startZoomCall(specialist)}
+            onViewReviews={() => openCommunication(specialist, 'reviews')}
             loading={{
               video: videoLoading,
-              zoom: zoomLoading
+              zoom: zoomLoading,
             }}
           />
         ))}
       </div>
-      
+
       {filteredSpecialists.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
-          {specialists.length === 0 
-            ? "No specialists have registered yet." 
-            : "No specialists found matching your criteria. Try adjusting your search."
-          }
+          {specialists.length === 0
+            ? 'No specialists have registered yet.'
+            : 'No specialists found matching your criteria. Try adjusting your search.'}
         </div>
       )}
 
       {/* Communication Dialogs */}
-      <Dialog open={!!selectedSpecialist && communicationType === 'chat'} onOpenChange={() => {
-        setSelectedSpecialist(null);
-        setCommunicationType(null);
-      }}>
+      <Dialog
+        open={!!selectedSpecialist && communicationType === 'chat'}
+        onOpenChange={() => {
+          setSelectedSpecialist(null);
+          setCommunicationType(null);
+        }}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
@@ -174,15 +237,16 @@ console.log('Selected specialty:', selectedSpecialty);
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!selectedSpecialist && communicationType === 'message'} onOpenChange={() => {
-        setSelectedSpecialist(null);
-        setCommunicationType(null);
-      }}>
+      <Dialog
+        open={!!selectedSpecialist && communicationType === 'message'}
+        onOpenChange={() => {
+          setSelectedSpecialist(null);
+          setCommunicationType(null);
+        }}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>
-              Message {selectedSpecialist?.full_name}
-            </DialogTitle>
+            <DialogTitle>Message {selectedSpecialist?.full_name}</DialogTitle>
           </DialogHeader>
           <div className="mt-4">
             {user && selectedSpecialist && (
@@ -195,6 +259,23 @@ console.log('Selected specialty:', selectedSpecialty);
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog
+        open={!!selectedSpecialist && communicationType === 'reviews'}
+        onOpenChange={() => {
+          setSelectedSpecialist(null);
+          setCommunicationType(null);
+        }}
+      >
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Reviews for {selectedSpecialist?.full_name}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <IntegratedReviewsSystem />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -202,18 +283,18 @@ console.log('Selected specialty:', selectedSpecialty);
 export function useIncomingCalls() {
   useEffect(() => {
     const channel = supabase
-      .channel("calls-listener")
+      .channel('calls-listener')
       .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "calls" },
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'calls' },
         (payload) => {
           const call = payload.new;
           const userId = supabase.auth.getUser().then(({ data }) => {
             if (call.recipient_id === data.user?.id) {
               toast(`📞 Incoming call: ${call.topic}`, {
                 action: {
-                  label: "Join Zoom",
-                  onClick: () => window.open(call.join_url, "_blank"),
+                  label: 'Join Zoom',
+                  onClick: () => window.open(call.join_url, '_blank'),
                 },
               });
             }
@@ -227,6 +308,5 @@ export function useIncomingCalls() {
     };
   }, []);
 }
-
 
 export default RealTimeSpecialistSearch;

@@ -4,48 +4,49 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Clock, User, Stethoscope, MapPin, Brain } from 'lucide-react';
-import { format } from 'date-fns';
+import { CalendarIcon, Stethoscope, User, Brain } from 'lucide-react';
 import { useAIRecommendations } from '@/hooks/useAIRecommendations';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { specialistsData } from '@/data/specialist';
+import RealTimeSpecialistSearch from '@/components/functional/RealTimeSpecialistSearch';
 
 const BookConsultation = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { createAppointment } = useAppointments();
   const { recommendSpecialist, loading: aiLoading } = useAIRecommendations();
-  
+
   const [step, setStep] = useState(1);
   const [date, setDate] = useState<Date>();
+  const [selectedSpecialist, setSelectedSpecialist] = useState<any>(null);
+
   const [formData, setFormData] = useState({
     symptoms: '',
     duration: '',
     severity: '',
     consultationType: '',
     preferredTime: '',
-    specialistId: '',
     urgency: 'routine',
-    additionalNotes: ''
+    additionalNotes: '',
+    status: 'pending',
+    specialistId: '',
   });
+
   const [aiRecommendation, setAiRecommendation] = useState('');
 
   const consultationTypes = [
     { value: 'general', label: 'General Consultation' },
     { value: 'follow-up', label: 'Follow-up Visit' },
     { value: 'specialist', label: 'Specialist Consultation' },
-    { value: 'emergency', label: 'Urgent Consultation' }
+    { value: 'emergency', label: 'Urgent Consultation' },
   ];
 
   const timeSlots = [
-    '08:00', '09:00', '10:00', '11:00', '12:00', 
+    '08:00', '09:00', '10:00', '11:00', '12:00',
     '14:00', '15:00', '16:00', '17:00', '18:00'
   ];
 
@@ -67,26 +68,28 @@ const BookConsultation = () => {
       return;
     }
 
-    if (!date || !formData.preferredTime || !formData.specialistId) {
+    if (!date || !formData.preferredTime || !selectedSpecialist) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    const selectedSpecialist = specialistsData.find(s => s.id === formData.specialistId);
-    
+    const [hours, minutes] = formData.preferredTime.split(':').map(Number);
+    const appointmentDate = new Date(date);
+    appointmentDate.setHours(hours, minutes, 0, 0);
+
     const appointmentData = {
       client_id: user.id,
-      specialist_id: formData.specialistId,
+      specialist_id: selectedSpecialist.id,
       service_type: formData.consultationType,
-      appointment_date: new Date(date.setHours(parseInt(formData.preferredTime.split(':')[0]), parseInt(formData.preferredTime.split(':')[1]))).toISOString(),
+      appointment_date: appointmentDate.toISOString(),
       duration: 60,
       status: formData.status as "pending" | "cancelled" | "completed" | "confirmed",
       notes: `Symptoms: ${formData.symptoms}. Duration: ${formData.duration}. Severity: ${formData.severity}. Additional notes: ${formData.additionalNotes}`,
-      price: selectedSpecialist?.consultationFee || 0
+      price: selectedSpecialist.consultationFee || 0,
     };
 
     const result = await createAppointment(appointmentData);
-    
+
     if (result) {
       toast.success('Consultation booked successfully!');
       navigate('/client-dashboard');
@@ -96,7 +99,7 @@ const BookConsultation = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-2">Book Consultation</h1>
@@ -130,7 +133,7 @@ const BookConsultation = () => {
                   <Textarea
                     placeholder="Please describe your symptoms in detail..."
                     value={formData.symptoms}
-                    onChange={(e) => setFormData({...formData, symptoms: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, symptoms: e.target.value })}
                     className="min-h-[100px]"
                   />
                 </div>
@@ -138,7 +141,7 @@ const BookConsultation = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">How long have you had these symptoms?</label>
-                    <Select value={formData.duration} onValueChange={(value) => setFormData({...formData, duration: value})}>
+                    <Select value={formData.duration} onValueChange={(value) => setFormData({ ...formData, duration: value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select duration" />
                       </SelectTrigger>
@@ -155,7 +158,7 @@ const BookConsultation = () => {
 
                   <div>
                     <label className="text-sm font-medium mb-2 block">How would you rate the severity?</label>
-                    <Select value={formData.severity} onValueChange={(value) => setFormData({...formData, severity: value})}>
+                    <Select value={formData.severity} onValueChange={(value) => setFormData({ ...formData, severity: value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select severity" />
                       </SelectTrigger>
@@ -170,7 +173,7 @@ const BookConsultation = () => {
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">Type of Consultation</label>
-                  <Select value={formData.consultationType} onValueChange={(value) => setFormData({...formData, consultationType: value})}>
+                  <Select value={formData.consultationType} onValueChange={(value) => setFormData({ ...formData, consultationType: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select consultation type" />
                     </SelectTrigger>
@@ -217,40 +220,19 @@ const BookConsultation = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid gap-4">
-                    {specialistsData.slice(0, 6).map((specialist) => (
-                      <div
-                        key={specialist.id}
-                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                          formData.specialistId === specialist.id 
-                            ? 'border-primary bg-primary/5' 
-                            : 'border-border hover:border-primary/50'
-                        }`}
-                        onClick={() => setFormData({...formData, specialistId: specialist.id})}
-                      >
-                        <div className="flex items-center gap-4">
-                          <img 
-                            src={specialist.imageUrl} 
-                            alt={specialist.name}
-                            className="w-16 h-16 rounded-full object-cover"
-                          />
-                          <div className="flex-1">
-                            <h3 className="font-semibold">{specialist.name}</h3>
-                            <p className="text-sm text-primary">{specialist.specialty}</p>
-                            <p className="text-sm text-muted-foreground">{specialist.experience} experience</p>
-                            <p className="text-sm font-medium">KES {specialist.consultationFee}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <RealTimeSpecialistSearch
+                    onSelect={(specialist) => {
+                      setSelectedSpecialist(specialist);
+                      setFormData({ ...formData, specialistId: specialist.id });
+                    }}
+                  />
 
                   <div className="flex gap-4 mt-6">
                     <Button variant="outline" onClick={() => setStep(1)}>
                       Back
                     </Button>
-                    <Button 
-                      onClick={() => setStep(3)} 
+                    <Button
+                      onClick={() => setStep(3)}
                       disabled={!formData.specialistId}
                       className="flex-1"
                     >
@@ -279,7 +261,7 @@ const BookConsultation = () => {
                       mode="single"
                       selected={date}
                       onSelect={setDate}
-                      disabled={(date) => date < new Date()}
+                      disabled={(d) => d < new Date()}
                       className="rounded-md border"
                     />
                   </div>
@@ -293,7 +275,7 @@ const BookConsultation = () => {
                             key={time}
                             variant={formData.preferredTime === time ? "default" : "outline"}
                             size="sm"
-                            onClick={() => setFormData({...formData, preferredTime: time})}
+                            onClick={() => setFormData({ ...formData, preferredTime: time })}
                           >
                             {time}
                           </Button>
@@ -306,7 +288,7 @@ const BookConsultation = () => {
                       <Textarea
                         placeholder="Any additional information you'd like to share..."
                         value={formData.additionalNotes}
-                        onChange={(e) => setFormData({...formData, additionalNotes: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, additionalNotes: e.target.value })}
                       />
                     </div>
                   </div>

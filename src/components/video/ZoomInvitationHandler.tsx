@@ -15,7 +15,7 @@ import { ZoomMeeting } from '@/hooks/useZoomIntegration';
 interface ZoomInvitationHandlerProps {
   meeting: ZoomMeeting | null;
   inviterName: string;
-  userRole: "specialist" | "client"; // 👈 who’s viewing this
+  userRole: "specialist" | "client"; // 👈 who's viewing this
   onJoinMeeting: (meetingUrl: string) => void;
   onDecline: () => void;
 }

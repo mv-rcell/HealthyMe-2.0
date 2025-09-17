@@ -113,95 +113,142 @@ const IntegratedHomeCareBooking = () => {
   const selectedSpecialistData = specialists.find((s) => s.id === selectedSpecialist);
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MapPin className="h-5 w-5" />
-          Home Care Services
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Service Selection */}
-        <div>
-          <label className="text-sm font-medium">Select Service</label>
-          <Select value={selectedService} onValueChange={setSelectedService}>
-            <SelectTrigger>
-              <SelectValue placeholder="Choose service type" />
-            </SelectTrigger>
-            <SelectContent>
-              {services.map((service) => (
-                <SelectItem key={service.id} value={service.id}>
-                  {service.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Decorative background elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-64 h-64 bg-blue-100 rounded-full opacity-20 blur-xl"></div>
+        <div className="absolute top-40 right-20 w-96 h-96 bg-indigo-100 rounded-full opacity-15 blur-2xl"></div>
+        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-purple-100 rounded-full opacity-10 blur-xl"></div>
+      </div>
 
-        {/* Specialist Selection */}
-        <div>
-          <label className="text-sm font-medium">Available Specialists</label>
-          <Select value={selectedSpecialist} onValueChange={setSelectedSpecialist}>
-            <SelectTrigger>
-              <SelectValue placeholder="Choose specialist" />
-            </SelectTrigger>
-            <SelectContent>
-              {specialists.map((specialist) => (
-                <SelectItem key={specialist.id} value={specialist.id}>
-                  {specialist.full_name} - {specialist.specialist_type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Specialist Info */}
-        {selectedSpecialistData && (
-          <div className="p-3 border rounded-lg">
-            <div className="font-medium">{selectedSpecialistData.full_name}</div>
-            <div className="text-sm text-muted-foreground">
-              {selectedSpecialistData.specialist_type}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {selectedSpecialistData.experience}
-            </div>
-            <div className="text-xs mt-2">{selectedSpecialistData.bio}</div>
-          </div>
-        )}
-
-        {/* Video Call Indicator */}
-        {activeSession && (
-          <div className="p-3 bg-green-50 rounded-lg">
-            <div className="flex items-center gap-2 text-green-700">
-              <Video className="h-4 w-4" />
-              <span className="text-sm font-medium">Video call active</span>
+      {/* Header */}
+      <div className="relative bg-white/80 backdrop-blur-sm border-b border-gray-200/50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-center">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <MapPin className="h-8 w-8 text-blue-600" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  Home Care Services
+                </h1>
+                <p className="text-gray-600 text-sm">Professional care in the comfort of your home</p>
+              </div>
             </div>
           </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-2">
-          <Button
-            onClick={handleBooking}
-            className="flex-1"
-            disabled={loading || !user}
-          >
-            Book Home Visit
-          </Button>
-          <Button
-            onClick={handleVideoCall}
-            variant="outline"
-            size="icon"
-            disabled={!selectedSpecialist || !user}
-          >
-            <Video className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" disabled>
-            <Phone className="h-4 w-4" />
-          </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* Main Content */}
+      <div className="relative flex items-center justify-center min-h-[calc(100vh-120px)] px-6 py-12">
+        <div className="w-full max-w-md">
+          <Card className="w-full max-w-md mx-auto shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader className="relative">
+              {/* Decorative gradient bar */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-t-lg"></div>
+              
+              <CardTitle className="flex items-center gap-2 pt-2">
+                <div className="p-1.5 bg-blue-100 rounded-lg">
+                  <MapPin className="h-5 w-5 text-blue-600" />
+                </div>
+                Home Care Services
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Service Selection */}
+              <div>
+                <label className="text-sm font-medium">Select Service</label>
+                <Select value={selectedService} onValueChange={setSelectedService}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose service type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {services.map((service) => (
+                      <SelectItem key={service.id} value={service.id}>
+                        {service.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Specialist Selection */}
+              <div>
+                <label className="text-sm font-medium">Available Specialists</label>
+                <Select value={selectedSpecialist} onValueChange={setSelectedSpecialist}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose specialist" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {specialists.map((specialist) => (
+                      <SelectItem key={specialist.id} value={specialist.id}>
+                        {specialist.full_name} - {specialist.specialist_type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Specialist Info */}
+              {selectedSpecialistData && (
+                <div className="p-3 border rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+                  <div className="font-medium">{selectedSpecialistData.full_name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {selectedSpecialistData.specialist_type}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {selectedSpecialistData.experience}
+                  </div>
+                  <div className="text-xs mt-2">{selectedSpecialistData.bio}</div>
+                </div>
+              )}
+
+              {/* Video Call Indicator */}
+              {activeSession && (
+                <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <div className="relative">
+                      <Video className="h-4 w-4" />
+                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    </div>
+                    <span className="text-sm font-medium">Video call active</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleBooking}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg"
+                  disabled={loading || !user}
+                >
+                  Book Home Visit
+                </Button>
+                <Button
+                  onClick={handleVideoCall}
+                  variant="outline"
+                  size="icon"
+                  className="shadow-md hover:shadow-lg transition-shadow border-blue-200 hover:bg-blue-50"
+                  disabled={!selectedSpecialist || !user}
+                >
+                  <Video className="h-4 w-4 text-blue-600" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="shadow-md border-gray-200" 
+                  disabled
+                >
+                  <Phone className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -1,42 +1,37 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 
-export interface Review {
-  id: string;
+interface ReviewData {
   client_id: string;
   specialist_id: string;
-  appointment_id?: number;
   overall_rating: number;
   service_rating: number;
   communication_rating: number;
   professionalism_rating: number;
   comment?: string;
-  is_verified: boolean;
-  created_at: string;
+  appointment_id?: number;
 }
 
 export const useReviews = () => {
-  const { user } = useAuth();
-  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchReviews = async (specialistId?: string) => {
+  const createReview = async (reviewData: ReviewData) => {
     setLoading(true);
     try {
-      let query = supabase.from('reviews').select('*');
-      
-      if (specialistId) {
-        query = query.eq('specialist_id', specialistId);
-      }
-      
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('reviews')
+        .insert([reviewData])
+        .select()
+        .single();
 
       if (error) throw error;
-      setReviews((data || []) as Review[]);
+
+      toast.success('Review submitted successfully!');
+      return data;
     } catch (error: any) {
-      toast.error(`Error fetching reviews: ${error.message}`);
+      toast.error(`Error submitting review: ${error.message}`);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -51,56 +46,38 @@ export const useReviews = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return (data || []) as Review[];
+      return data || [];
     } catch (error: any) {
-      console.error('Error fetching specialist reviews:', error);
+      console.error('Error fetching reviews:', error);
       return [];
     }
   };
 
-  const createReview = async (reviewData: Omit<Review, 'id' | 'created_at' | 'is_verified'>) => {
-    if (!user) return null;
-
+  const getAverageRating = async (specialistId: string) => {
     try {
       const { data, error } = await supabase
         .from('reviews')
-        .insert([{
-          ...reviewData,
-          client_id: user.id,
-          is_verified: true
-        }])
-        .select()
-        .single();
+        .select('overall_rating')
+        .eq('specialist_id', specialistId);
 
       if (error) throw error;
-      
-      toast.success('Review submitted successfully!');
-      fetchReviews();
-      return data;
+
+      if (!data || data.length === 0) {
+        return { avg: 0, count: 0 };
+      }
+
+      const avg = data.reduce((sum, review) => sum + review.overall_rating, 0) / data.length;
+      return { avg: Number(avg.toFixed(1)), count: data.length };
     } catch (error: any) {
-      toast.error(`Error submitting review: ${error.message}`);
-      return null;
+      console.error('Error calculating average rating:', error);
+      return { avg: 0, count: 0 };
     }
   };
 
-  const getSpecialistRating = (specialistId: string) => {
-    const specialistReviews = reviews.filter(r => r.specialist_id === specialistId);
-    if (specialistReviews.length === 0) return 0;
-    
-    const totalRating = specialistReviews.reduce((sum, review) => sum + review.overall_rating, 0);
-    return Math.round((totalRating / specialistReviews.length) * 10) / 10;
-  };
-
-  useEffect(() => {
-    fetchReviews();
-  }, []);
-
   return {
-    reviews,
     loading,
     createReview,
-    fetchReviews,
     getSpecialistReviews,
-    getSpecialistRating
+    getAverageRating
   };
 };
