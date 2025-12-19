@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useBookingRequests } from '@/hooks/useBookingRequests';
@@ -18,10 +17,10 @@ import GlobalVideoCallHandler from '../video/GlobalVideoCallHandler';
 
 const AppointmentHistory = () => {
   const { appointments, loading } = useAppointments();
-  const { bookingRequests, loading: bookingLoading } = useBookingRequests(null);
+  const { bookingRequests, loading: bookingLoading } = useBookingRequests();
   const { profile } = useAuth();
   const { startVideoCall, loading: videoLoading } = useVideoCall();
-  const { createZoomMeeting, loading: zoomLoading } = useZoomIntegration();
+  const { startZoomCall, loading: zoomLoading } = useZoomIntegration();
   const [selectedCommunication, setSelectedCommunication] = useState<{
     type: 'message' | null;
     recipientId: string;
@@ -35,7 +34,7 @@ const AppointmentHistory = () => {
 
   const handleStartVideoCall = async (appointmentId: number, otherUserId: string, otherUserName: string) => {
     try {
-      const session = await startVideoCall(appointmentId, otherUserId,role);
+      const session = await startVideoCall(appointmentId, otherUserId);
       if (session) {
         toast.success(`Video call started with ${otherUserName}!`);
       }
@@ -44,16 +43,12 @@ const AppointmentHistory = () => {
     }
   };
 
-  const handleStartZoomCall = async (otherUserName: string, otherUserEmail: string) => {
+  const handleStartZoomCall = async (otherUserName: string, otherUserId: string) => {
     try {
-      const meeting = await createZoomMeeting(
+      await startZoomCall(
         `Consultation with ${otherUserName}`,
-        otherUserEmail
+        otherUserId
       );
-      if (meeting) {
-        toast.success('Zoom meeting created! Opening meeting...');
-        window.open(meeting.join_url, '_blank');
-      }
     } catch (error) {
       toast.error('Failed to create Zoom meeting');
     }
@@ -240,10 +235,7 @@ const AppointmentHistory = () => {
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                onClick={() => handleStartZoomCall(
-                                  item.otherUserName,
-                                  'user@example.com'
-                                )}
+                                onClick={() => handleStartZoomCall(item.otherUserName, item.otherUserId)}
                                 disabled={zoomLoading}
                               >
                                 <Phone className="h-3 w-3 mr-1" />

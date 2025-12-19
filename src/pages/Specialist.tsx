@@ -78,7 +78,7 @@ const specialtyCategories = [
 const Specialists = () => {
   const { user } = useAuth();
   const { specialists, loading } = useRealSpecialists();
-  const { createZoomMeeting, loading: zoomLoading } = useZoomIntegration();
+  const { startZoomCall, loading: zoomLoading } = useZoomIntegration();
   const { startVideoCall, loading: videoLoading } = useVideoCall();
   
   const [searchParams] = useSearchParams();
@@ -122,20 +122,16 @@ const Specialists = () => {
 
   const currentCategory = specialtyCategories.find(cat => cat.id === selectedCategory);
 
-  const startZoomCall = async (specialist: any) => {
+  const handleStartZoomCall = async (specialist: any) => {
     if (!user) {
       toast.error('Please log in to start a call');
       return;
     }
 
-    const meeting = await createZoomMeeting(
+    await startZoomCall(
       `Virtual Consultation with ${specialist.full_name}`,
-      user.email || 'client@example.com'
+      specialist.id
     );
-    
-    if (meeting) {
-      toast.success(`Zoom meeting created with ${specialist.full_name}!`);
-    }
   };
 
   const startVideo = async (specialist: any) => {
@@ -268,7 +264,7 @@ const Specialists = () => {
                         specialist={specialist}
                         onStartMessage={(s) => openCommunication(s, 'message')}
                         onStartVideo={startVideo}
-                        onStartZoom={startZoomCall}
+                        onStartZoom={handleStartZoomCall}
                         onBookAppointment={handleBookAppointment}
                         loading={{
                           video: videoLoading,

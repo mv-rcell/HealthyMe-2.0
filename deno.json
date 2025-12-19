@@ -1,0 +1,7 @@
+{
+    "compilerOptions": {
+      "lib": ["deno.window", "deno.unstable", "dom"]
+    },
+    "importMap": "./supabase/functions/import_map.json"
+  }
+  

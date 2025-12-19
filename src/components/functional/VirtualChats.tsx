@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Send, Video, Phone, MessageSquare, ExternalLink, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,7 +39,7 @@ const VirtualChat: React.FC<VirtualChatProps> = ({
   const [newMessage, setNewMessage] = useState('');
   const [isVideoCall, setIsVideoCall] = useState(false);
   
-  const { loading, activeMeeting, createZoomMeeting, joinZoomMeeting, endZoomMeeting } = useZoomIntegration();
+  const { loading, activeMeeting, startZoomCall, joinZoomMeeting, endZoomMeeting } = useZoomIntegration();
   const { sendZoomInvitation } = useZoomNotifications();
 
   const sendMessage = () => {
@@ -73,38 +72,28 @@ const VirtualChat: React.FC<VirtualChatProps> = ({
     toast.success(`Video call started with ${recipientName}`);
   };
 
-  const startZoomMeeting = async () => {
+  const handleStartZoomMeeting = async () => {
     if (!user || !profile) {
       toast.error('Please log in to start a meeting');
       return;
     }
 
-    // Determine meeting topic and participant based on user role
+    if (!recipientId) {
+      toast.error('No recipient specified for the call');
+      return;
+    }
+
+    // Determine meeting topic based on user role
     const meetingTopic = profile.role === 'specialist' 
       ? `Virtual Consultation with ${profile.full_name || 'Specialist'}`
       : `Client Consultation with ${recipientName}`;
     
-    // Use actual user email or fallback to recipient email
-    const participantEmail = recipientEmail || user.email || '';
+    const meeting = await startZoomCall(meetingTopic, recipientId);
     
-    const meeting = await createZoomMeeting(meetingTopic, participantEmail);
-    
-    if (meeting && recipientId) {
-      // Send invitation to the other participant using real user ID
-      await sendZoomInvitation(meeting, recipientId);
-      
+    if (meeting) {
       const meetingMessage: Message = {
         id: messages.length + 1,
         text: `Zoom meeting created and invitation sent to ${recipientName}! Meeting ID: ${meeting.meeting_id}${meeting.password ? ` | Password: ${meeting.password}` : ''}`,
-        sender: profile.role === 'specialist' ? 'specialist' : 'user',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, meetingMessage]);
-    } else if (meeting && !recipientId) {
-      // Meeting created but no specific recipient to invite
-      const meetingMessage: Message = {
-        id: messages.length + 1,
-        text: `Zoom meeting created! Meeting ID: ${meeting.meeting_id}${meeting.password ? ` | Password: ${meeting.password}` : ''}`,
         sender: profile.role === 'specialist' ? 'specialist' : 'user',
         timestamp: new Date()
       };
@@ -142,7 +131,7 @@ ${activeMeeting.password ? `Password: ${activeMeeting.password}` : ''}`;
             <Button 
               size="sm" 
               variant="outline" 
-              onClick={startZoomMeeting}
+              onClick={handleStartZoomMeeting}
               disabled={loading}
             >
               Zoom

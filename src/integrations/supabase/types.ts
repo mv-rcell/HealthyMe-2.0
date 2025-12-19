@@ -7,16 +7,17 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
       appointments: {
         Row: {
           appointment_type: string | null
+          appointments_id: string | null
           consultation_reason: string | null
           created_at: string
           disclaimer: string | null
@@ -34,6 +35,7 @@ export type Database = {
         }
         Insert: {
           appointment_type?: string | null
+          appointments_id?: string | null
           consultation_reason?: string | null
           created_at?: string
           disclaimer?: string | null
@@ -51,6 +53,7 @@ export type Database = {
         }
         Update: {
           appointment_type?: string | null
+          appointments_id?: string | null
           consultation_reason?: string | null
           created_at?: string
           disclaimer?: string | null
@@ -117,7 +120,11 @@ export type Database = {
           duration: number | null
           id: string
           notes: string | null
+          patient_id: string | null
+          patient_name: string | null
           preferred_date: string
+          reason: string | null
+          scheduled_time: string | null
           service_type: string
           specialist_id: string
           status: string
@@ -129,7 +136,11 @@ export type Database = {
           duration?: number | null
           id?: string
           notes?: string | null
+          patient_id?: string | null
+          patient_name?: string | null
           preferred_date: string
+          reason?: string | null
+          scheduled_time?: string | null
           service_type: string
           specialist_id: string
           status?: string
@@ -141,11 +152,45 @@ export type Database = {
           duration?: number | null
           id?: string
           notes?: string | null
+          patient_id?: string | null
+          patient_name?: string | null
           preferred_date?: string
+          reason?: string | null
+          scheduled_time?: string | null
           service_type?: string
           specialist_id?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      calls: {
+        Row: {
+          caller_id: string | null
+          created_at: string | null
+          id: string
+          join_url: string
+          recipient_id: string | null
+          status: string | null
+          topic: string | null
+        }
+        Insert: {
+          caller_id?: string | null
+          created_at?: string | null
+          id?: string
+          join_url: string
+          recipient_id?: string | null
+          status?: string | null
+          topic?: string | null
+        }
+        Update: {
+          caller_id?: string | null
+          created_at?: string | null
+          id?: string
+          join_url?: string
+          recipient_id?: string | null
+          status?: string | null
+          topic?: string | null
         }
         Relationships: []
       }
@@ -343,7 +388,7 @@ export type Database = {
           message_text: string
           message_type: string | null
           recipient_id: string
-          sender_id: string
+          sender_id: string | null
         }
         Insert: {
           appointment_id?: number | null
@@ -353,7 +398,7 @@ export type Database = {
           message_text: string
           message_type?: string | null
           recipient_id: string
-          sender_id: string
+          sender_id?: string | null
         }
         Update: {
           appointment_id?: number | null
@@ -363,17 +408,9 @@ export type Database = {
           message_text?: string
           message_type?: string | null
           recipient_id?: string
-          sender_id?: string
+          sender_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "messages_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: false
-            referencedRelation: "appointments_new"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       newsletter_subscriptions: {
         Row: {
@@ -435,12 +472,15 @@ export type Database = {
           bio: string | null
           consultation_fee: number | null
           created_at: string
+          education_certificate_url: string | null
           experience: string | null
           full_name: string | null
+          government_id_url: string | null
           id: string
           is_active: boolean | null
           is_online: boolean | null
           languages: string | null
+          license_url: string | null
           location: string | null
           membership_tier: string | null
           payment_method: string | null
@@ -450,18 +490,22 @@ export type Database = {
           specialist_type: string | null
           subsequent_visits_fee: number | null
           updated_at: string
+          verification_status: string | null
         }
         Insert: {
           availability?: string | null
           bio?: string | null
           consultation_fee?: number | null
           created_at?: string
+          education_certificate_url?: string | null
           experience?: string | null
           full_name?: string | null
+          government_id_url?: string | null
           id: string
           is_active?: boolean | null
           is_online?: boolean | null
           languages?: string | null
+          license_url?: string | null
           location?: string | null
           membership_tier?: string | null
           payment_method?: string | null
@@ -471,18 +515,22 @@ export type Database = {
           specialist_type?: string | null
           subsequent_visits_fee?: number | null
           updated_at?: string
+          verification_status?: string | null
         }
         Update: {
           availability?: string | null
           bio?: string | null
           consultation_fee?: number | null
           created_at?: string
+          education_certificate_url?: string | null
           experience?: string | null
           full_name?: string | null
+          government_id_url?: string | null
           id?: string
           is_active?: boolean | null
           is_online?: boolean | null
           languages?: string | null
+          license_url?: string | null
           location?: string | null
           membership_tier?: string | null
           payment_method?: string | null
@@ -492,6 +540,7 @@ export type Database = {
           specialist_type?: string | null
           subsequent_visits_fee?: number | null
           updated_at?: string
+          verification_status?: string | null
         }
         Relationships: []
       }
@@ -660,15 +709,7 @@ export type Database = {
           started_at?: string | null
           status?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "video_sessions_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       WorkoutPlans: {
         Row: {
@@ -688,6 +729,48 @@ export type Database = {
           id?: number
           reps?: number | null
           sets?: number | null
+        }
+        Relationships: []
+      }
+      zoom_invitations: {
+        Row: {
+          created_at: string
+          duration: number
+          id: string
+          invitee_id: string
+          inviter_id: string
+          join_url: string
+          meeting_id: string
+          password: string | null
+          status: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration?: number
+          id?: string
+          invitee_id: string
+          inviter_id: string
+          join_url: string
+          meeting_id: string
+          password?: string | null
+          status?: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration?: number
+          id?: string
+          invitee_id?: string
+          inviter_id?: string
+          join_url?: string
+          meeting_id?: string
+          password?: string | null
+          status?: string
+          topic?: string
+          updated_at?: string
         }
         Relationships: []
       }

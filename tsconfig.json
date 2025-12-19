@@ -20,6 +20,7 @@
     "skipLibCheck": true,
     "allowJs": true,
     "noUnusedLocals": false,
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "lib": ["deno.ns", "dom"]   // ✅ add deno + dom libs here
   }
 }

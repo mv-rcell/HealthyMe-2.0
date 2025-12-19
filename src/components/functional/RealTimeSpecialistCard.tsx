@@ -208,10 +208,7 @@ const RealTimeSpecialistCard: React.FC<RealTimeSpecialistCardProps> = ({
                   <MessageSquare className="h-3 w-3 mr-1" />
                   Message
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => onStartVideo?.(specialist)} disabled={loading.video}>
-                  <Video className="h-3 w-3 mr-1" />
-                  {loading.video ? 'Starting...' : 'Video'}
-                </Button>
+               
                 <Button size="sm" variant="outline" onClick={() => onStartZoom?.(specialist)} disabled={loading.zoom}>
                   <Phone className="h-3 w-3 mr-1" />
                   {loading.zoom ? 'Creating...' : 'Zoom'}

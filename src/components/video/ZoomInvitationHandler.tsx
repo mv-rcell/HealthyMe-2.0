@@ -1,21 +1,13 @@
-import React from 'react';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter
-} from '@/components/ui/alert-dialog';
+import React, { useEffect } from 'react';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Video, ExternalLink } from 'lucide-react';
+import { Video, ExternalLink, Phone, X } from 'lucide-react';
 import { ZoomMeeting } from '@/hooks/useZoomIntegration';
 
 interface ZoomInvitationHandlerProps {
   meeting: ZoomMeeting | null;
   inviterName: string;
-  userRole: "specialist" | "client"; // 👈 who's viewing this
   onJoinMeeting: (meetingUrl: string) => void;
   onDecline: () => void;
 }
@@ -23,72 +15,75 @@ interface ZoomInvitationHandlerProps {
 const ZoomInvitationHandler: React.FC<ZoomInvitationHandlerProps> = ({
   meeting,
   inviterName,
-  userRole,
   onJoinMeeting,
   onDecline
 }) => {
-  if (!meeting) return null;
+  // Play notification sound when invitation arrives
+  useEffect(() => {
+    if (meeting) {
+      // Try to play a notification sound
+      try {
+        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleEIYUp7H1rZuLxU8i7u0qIJMJVOKprCtjVYxVIqjn6KFWE1QjJ+bnX5fVUWFmZWVeGJaQ36TkY13Y2JHd42Jh3VmZ01yjYaBcGxvV2yIgHxudHRga4F7dHB6eWVqfHZxcX59aWh7c25vfn9tbHhxbG6AgXFuem9rbIGBcm96bWtsgYFybnpua2yBgXJuem5rbIGBcm56bmtsgYFybnpua2yBgXJuem5rbIGBcm56bmtsgYE=');
+        audio.volume = 0.5;
+        audio.play().catch(() => {
+          // Audio play failed, ignore silently
+        });
+      } catch (e) {
+        // Audio not supported, ignore
+      }
+    }
+  }, [meeting]);
 
-  // 👇 Decide which URL this user should use
-  const meetingUrl =
-    userRole === "specialist" && meeting.start_url
-      ? meeting.start_url
-      : meeting.join_url;
+  if (!meeting) return null;
 
   return (
     <AlertDialog open={!!meeting}>
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className="max-w-md border-2 border-primary/20 shadow-2xl">
         <AlertDialogHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Avatar className="w-16 h-16">
-              <AvatarFallback className="text-2xl bg-blue-100">
-                <Video className="h-8 w-8 text-blue-600" />
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping" />
+              <Avatar className="w-20 h-20 relative z-10 border-4 border-primary/30">
+                <AvatarFallback className="text-2xl bg-primary/10">
+                  <Phone className="h-10 w-10 text-primary animate-pulse" />
+                </AvatarFallback>
+              </Avatar>
+            </div>
           </div>
-          <AlertDialogTitle className="text-lg">
-            Zoom Meeting Invitation
+          <AlertDialogTitle className="text-xl font-bold">
+            Incoming Zoom Call
           </AlertDialogTitle>
-          <AlertDialogDescription className="space-y-2">
-            <p>
-              <strong>{inviterName}</strong> has invited you to a Zoom meeting:
+          <AlertDialogDescription className="space-y-3">
+            <p className="text-lg font-medium text-foreground">
+              {inviterName} is calling you
             </p>
-            <div className="bg-muted p-3 rounded-lg text-left">
-              <p><strong>Topic:</strong> {meeting.topic}</p>
-              <p><strong>Meeting ID:</strong> {meeting.meeting_id}</p>
+            <div className="bg-muted p-4 rounded-lg text-left space-y-1">
+              <p className="text-sm"><strong>Topic:</strong> {meeting.topic}</p>
+              <p className="text-sm"><strong>Meeting ID:</strong> {meeting.meeting_id}</p>
               {meeting.password && (
-                <p><strong>Password:</strong> {meeting.password}</p>
-              )}
-              <p><strong>Duration:</strong> {meeting.duration} minutes</p>
-              {meetingUrl && (
-                <p className="mt-2">
-                  <strong>{userRole === "specialist" ? "Start URL" : "Join URL"}:</strong>{" "}
-                  <a
-                    href={meetingUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline break-all"
-                  >
-                    {meetingUrl}
-                  </a>
-                </p>
+                <p className="text-sm"><strong>Password:</strong> {meeting.password}</p>
               )}
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="flex justify-center gap-4">
-          <Button variant="outline" onClick={onDecline}>
+        <AlertDialogFooter className="flex justify-center gap-4 mt-4">
+          <Button
+            variant="destructive"
+            size="lg"
+            onClick={onDecline}
+            className="flex-1 gap-2"
+          >
+            <X className="h-5 w-5" />
             Decline
           </Button>
-          {meetingUrl && (
-            <Button
-              onClick={() => onJoinMeeting(meetingUrl)}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              {userRole === "specialist" ? "Start Meeting" : "Join Meeting"}
-            </Button>
-          )}
+          <Button
+            size="lg"
+            onClick={() => onJoinMeeting(meeting.join_url)}
+            className="flex-1 gap-2 bg-green-600 hover:bg-green-700"
+          >
+            <ExternalLink className="h-5 w-5" />
+            Join Call
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

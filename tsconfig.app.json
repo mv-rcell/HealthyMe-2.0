@@ -26,5 +26,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "supabase/functions/stk-push", "supabase/functions/pesapal-callback", "supabase/functions/pesapal-payment", "supabase/functions/newsletter-subscribe", "supabase"]
+  "include": ["src", "supabase/functions/stk-push", "supabase/functions/pesapal-callback", "supabase/functions/pesapal-payment", "supabase/functions/newsletter-subscribe", "supabase", "supabase"]
 }

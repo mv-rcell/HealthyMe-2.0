@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -81,101 +80,107 @@ const Payments = () => {
     return plan || '';
   };
 
-  // Real M-Pesa payment processing
+  // Poll payment status for real-time updates
+  const pollPaymentStatus = (transactionId: string) => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const { data: payment, error } = await supabase
+          .from('payments')
+          .select('payment_status')
+          .eq('transaction_id', transactionId)
+          .single();
+
+        if (error) {
+          console.error('Polling error:', error);
+          return;
+        }
+
+        if (payment.payment_status === 'successful') {
+          toast.success('Payment completed successfully!');
+          queryClient.invalidateQueries({ queryKey: ['payments', user?.id] });
+          clearInterval(pollInterval);
+        } else if (payment.payment_status === 'failed') {
+          toast.error('Payment failed. Please try again.');
+          clearInterval(pollInterval);
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+    }, 3000);
+
+    setTimeout(() => clearInterval(pollInterval), 120000); // Stop after 2 minutes
+  };
+
+  // 🔹 Handle M-Pesa payment
   const handleMpesaPayment = async () => {
-    if (!user) {
-      toast.error('You must be logged in to make a payment');
-      return;
-    }
+    if (!user) return toast.error('You must be logged in');
 
-    if (!phoneNumber || phoneNumber.length < 10) {
-      toast.error('Please enter a valid phone number');
-      return;
-    }
+    if (!phoneNumber || phoneNumber.length < 10)
+      return toast.error('Enter a valid phone number');
 
-    if (amount < 1) {
-      toast.error('Amount must be at least 1 KES');
-      return;
-    }
-    
+    if (amount < 1) return toast.error('Amount must be at least 1 KES');
+
     try {
       setProcessingPayment(true);
-      
       toast.info('Initiating M-Pesa payment...');
-      
+
       const { data, error } = await supabase.functions.invoke('mpesa-payment', {
         body: {
-          amount: amount,
-          phoneNumber: phoneNumber,
+          amount,
+          phoneNumber,
           userId: user.id,
-          membershipTier: planId ? getPlanName(planId) : null
-        }
+          membershipTier: planId ? getPlanName(planId) : null,
+        },
       });
 
-      if (error) {
-        throw new Error(error.message);
-      }
+      if (error) throw new Error(error.message);
+      if (!data.success) throw new Error(data.error || 'Payment failed');
 
-      if (data.success) {
-        toast.success(`Payment request sent! Check your phone for M-Pesa prompt.`);
-        toast.info(data.message);
-        
-        // Start polling for payment status
-        pollPaymentStatus(data.checkoutRequestId);
-        queryClient.invalidateQueries({ queryKey: ['payments', user.id] });
-        setDialogOpen(false);
-      } else {
-        throw new Error(data.error || 'Payment failed');
-      }
-    } catch (error: any) {
-      console.error('M-Pesa payment error:', error);
-      toast.error(`Payment failed: ${error.message}`);
+      toast.success('Payment request sent! Check your phone for prompt');
+      pollPaymentStatus(data.checkoutRequestId);
+      queryClient.invalidateQueries({ queryKey: ['payments', user.id] });
+      setDialogOpen(false);
+    } catch (err: any) {
+      console.error('M-Pesa payment error:', err);
+      toast.error(`Payment failed: ${err.message}`);
     } finally {
       setProcessingPayment(false);
     }
   };
 
-  // Poll payment status for real-time updates
-  const pollPaymentStatus = (checkoutRequestId: string) => {
-    const pollInterval = setInterval(async () => {
-      try {
-        const { data: payments, error } = await supabase
-          .from('payments')
-          .select('payment_status')
-          .eq('transaction_id', checkoutRequestId)
-          .single();
+  // 🔹 Handle PesaPal payment
+  const handlePesaPalPayment = async () => {
+    if (!user) return toast.error('You must be logged in');
 
-        if (error) {
-          console.error('Error polling payment status:', error);
-          return;
-        }
+    try {
+      setProcessingPayment(true);
+      toast.info('Redirecting to PesaPal...');
 
-        if (payments.payment_status === 'successful') {
-          toast.success('Payment completed successfully!');
-          queryClient.invalidateQueries({ queryKey: ['payments', user?.id] });
-          clearInterval(pollInterval);
-        } else if (payments.payment_status === 'failed') {
-          toast.error('Payment failed. Please try again.');
-          clearInterval(pollInterval);
-        }
-      } catch (error) {
-        console.error('Polling error:', error);
-      }
-    }, 3000);
+      const { data, error } = await supabase.functions.invoke('pesapal-payment', {
+        body: {
+          amount,
+          userId: user.id,
+          membershipTier: planId ? getPlanName(planId) : null,
+        },
+      });
 
-    // Clear interval after 2 minutes
-    setTimeout(() => {
-      clearInterval(pollInterval);
-    }, 120000);
+      if (error) throw new Error(error.message);
+      if (!data.checkoutUrl) throw new Error('PesaPal initialization failed');
+
+      window.location.href = data.checkoutUrl;
+    } catch (err: any) {
+      console.error('PesaPal payment error:', err);
+      toast.error(`Payment failed: ${err.message}`);
+    } finally {
+      setProcessingPayment(false);
+    }
   };
 
-  // Handle different payment methods
+  // 🔹 Unified handler based on selected tab
   const handlePayment = async () => {
-    if (paymentMethod === 'mpesa') {
-      await handleMpesaPayment();
-    } else {
-      toast.info('Other payment methods coming soon!');
-    }
+    if (paymentMethod === 'mpesa') await handleMpesaPayment();
+    else if (paymentMethod === 'pesapal') await handlePesaPalPayment();
+    else toast.error('Payment method not supported');
   };
 
   if (loading) {
@@ -197,51 +202,54 @@ const Payments = () => {
     <div className="min-h-screen flex flex-col mobile-safe-area">
       <Navbar />
       <div className="container mx-auto mobile-padding py-8 sm:py-16 flex-grow">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col space-y-4 mb-8">
-            <div className="text-center sm:text-left">
-              <h1 className="text-2xl sm:text-3xl font-bold">Payments</h1>
-              <p className="text-muted-foreground mt-2">Make secure payments with M-Pesa</p>
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="text-center sm:text-left space-y-2">
+            <h1 className="text-2xl sm:text-3xl font-bold">Payments</h1>
+            <p className="text-muted-foreground mt-1">Make secure payments with M-Pesa or PesaPal</p>
+          </div>
+
+          {/* Payment Dialog with Tabs */}
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <div className="flex justify-center">
+              <DialogTrigger asChild>
+                <Button className="mobile-button w-full sm:w-auto">
+                  {planId ? `Pay for ${getPlanName(planId)}` : 'Make a Payment'}
+                </Button>
+              </DialogTrigger>
             </div>
-            
-            {/* Payment Dialog */}
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <div className="flex justify-center">
-                <DialogTrigger asChild>
-                  <Button className="mobile-button w-full sm:w-auto">
-                    {planId ? `Pay for ${getPlanName(planId)}` : 'Make M-Pesa Payment'}
-                  </Button>
-                </DialogTrigger>
-              </div>
-              
-              <DialogContent className="payment-modal-content">
-                <DialogHeader>
-                  <DialogTitle className="text-center">
-                    {planId ? `Pay for ${getPlanName(planId)}` : 'M-Pesa Payment'}
-                  </DialogTitle>
-                  <DialogDescription className="text-center">
-                    {planId 
-                      ? `You're paying for ${getPlanName(planId)} plan`
-                      : 'Enter your M-Pesa details to complete the payment'
-                    }
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <div className="space-y-6 py-4">
+
+            <DialogContent className="payment-modal-content">
+              <DialogHeader>
+                <DialogTitle className="text-center">
+                  {planId ? `Pay for ${getPlanName(planId)}` : 'Select Payment Method'}
+                </DialogTitle>
+                <DialogDescription className="text-center">
+                  {planId
+                    ? `You're paying for ${getPlanName(planId)} plan`
+                    : 'Choose your preferred payment method'}
+                </DialogDescription>
+              </DialogHeader>
+
+              <Tabs value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-4">
+                <TabsList className="justify-center">
+                  <TabsTrigger value="mpesa">M-Pesa</TabsTrigger>
+                  <TabsTrigger value="pesapal">PesaPal</TabsTrigger>
+                </TabsList>
+
+                {/* M-Pesa Tab */}
+                <TabsContent value="mpesa" className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="amount">Amount (KES)</Label>
                     <Input
                       id="amount"
                       type="number"
-                      min="1"
+                      min={1}
                       value={amount}
                       onChange={(e) => setAmount(Number(e.target.value))}
-                      className="mobile-input"
                       placeholder="Enter amount"
                       disabled={!!planId}
                     />
                   </div>
-                  
                   <div className="space-y-2">
                     <Label htmlFor="phone-number">M-Pesa Phone Number</Label>
                     <Input
@@ -249,47 +257,66 @@ const Payments = () => {
                       placeholder="07XXXXXXXX or 254XXXXXXXXX"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="mobile-input"
                     />
                     <p className="text-xs text-muted-foreground">
                       Enter your M-Pesa registered phone number
                     </p>
                   </div>
-                </div>
-                
-                <DialogFooter className="flex flex-col sm:flex-row gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setDialogOpen(false)}
-                    className="mobile-button w-full sm:w-auto"
-                    disabled={processingPayment}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handlePayment} 
-                    disabled={processingPayment}
-                    className="mobile-button w-full sm:w-auto"
-                  >
-                    {processingPayment ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Processing...
-                      </div>
-                    ) : (
-                      `Pay KES ${amount}`
-                    )}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-          
-          {/* Payment History Card */}
+                </TabsContent>
+
+                {/* PesaPal Tab */}
+                <TabsContent value="pesapal" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="amount-pesapal">Amount (KES)</Label>
+                    <Input
+                      id="amount-pesapal"
+                      type="number"
+                      min={1}
+                      value={amount}
+                      onChange={(e) => setAmount(Number(e.target.value))}
+                      placeholder="Enter amount"
+                      disabled={!!planId}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    You will be redirected to PesaPal to complete your payment.
+                  </p>
+                </TabsContent>
+              </Tabs>
+
+              <DialogFooter className="flex flex-col sm:flex-row gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setDialogOpen(false)}
+                  className="mobile-button w-full sm:w-auto"
+                  disabled={processingPayment}
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  onClick={handlePayment}
+                  disabled={processingPayment}
+                  className="mobile-button w-full sm:w-auto"
+                >
+                  {processingPayment ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Processing...
+                    </div>
+                  ) : (
+                    `Pay KES ${amount}`
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Payment History */}
           <Card className="card-enhanced">
             <CardHeader>
               <CardTitle>Payment History</CardTitle>
-              <CardDescription>View all your M-Pesa transactions</CardDescription>
+              <CardDescription>View all your transactions</CardDescription>
             </CardHeader>
             <CardContent>
               {loadingPayments ? (
@@ -306,83 +333,77 @@ const Payments = () => {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <div className="min-w-full">
-                    {/* Mobile-friendly payment history */}
-                    <div className="space-y-4 sm:hidden">
-                      {payments.map((payment) => (
-                        <Card key={payment.id} className="p-4">
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="font-medium">KES {payment.amount}</span>
-                              <span className={`inline-block px-2 py-1 rounded-full text-xs ${
-                                payment.payment_status === 'successful' 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : payment.payment_status === 'pending'
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}>
-                                {payment.payment_status}
-                              </span>
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              <p>{new Date(payment.created_at).toLocaleDateString()}</p>
-                              <p>M-Pesa Payment</p>
-                              {payment.transaction_id && (
-                                <p className="text-xs">ID: {payment.transaction_id}</p>
-                              )}
-                              {payment.membership_plan && (
-                                <p className="text-xs">Plan: {getPlanName(payment.membership_plan)}</p>
-                              )}
-                            </div>
+                  {/* Mobile-friendly */}
+                  <div className="space-y-4 sm:hidden">
+                    {payments.map((payment) => (
+                      <Card key={payment.id} className="p-4">
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">KES {payment.amount}</span>
+                            <span className={`inline-block px-2 py-1 rounded-full text-xs ${
+                              payment.payment_status === 'successful' 
+                                ? 'bg-green-100 text-green-800' 
+                                : payment.payment_status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {payment.payment_status}
+                            </span>
                           </div>
-                        </Card>
-                      ))}
-                    </div>
-                    
-                    {/* Desktop table */}
-                    <table className="w-full border-collapse hidden sm:table">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-2">Date</th>
-                          <th className="text-left py-2">Amount</th>
-                          <th className="text-left py-2">Method</th>
-                          <th className="text-left py-2">Status</th>
-                          <th className="text-left py-2">Plan</th>
-                          <th className="text-left py-2">Transaction ID</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {payments.map((payment) => (
-                          <tr key={payment.id} className="border-b hover:bg-muted/50">
-                            <td className="py-3">
-                              {new Date(payment.created_at).toLocaleDateString()}
-                            </td>
-                            <td className="py-3">
-                              KES {payment.amount}
-                            </td>
-                            <td className="py-3">M-Pesa</td>
-                            <td className="py-3">
-                              <span className={`inline-block px-2 py-1 rounded-full text-xs ${
-                                payment.payment_status === 'successful' 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : payment.payment_status === 'pending'
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}>
-                                {payment.payment_status}
-                              </span>
-                            </td>
-                            <td className="py-3 text-sm text-muted-foreground">
-                              {payment.membership_plan ? getPlanName(payment.membership_plan) : 'N/A'}
-                            </td>
-                            <td className="py-3 text-xs text-muted-foreground">
-                              {payment.transaction_id || 'N/A'}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                          <div className="text-sm text-muted-foreground">
+                            <p>{new Date(payment.created_at).toLocaleDateString()}</p>
+                            <p>{payment.payment_method.toUpperCase()} Payment</p>
+                            {payment.transaction_id && (
+                              <p className="text-xs">ID: {payment.transaction_id}</p>
+                            )}
+                            {payment.membership_plan && (
+                              <p className="text-xs">Plan: {getPlanName(payment.membership_plan)}</p>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
                   </div>
+
+                  {/* Desktop table */}
+                  <table className="w-full border-collapse hidden sm:table">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-2">Date</th>
+                        <th className="text-left py-2">Amount</th>
+                        <th className="text-left py-2">Method</th>
+                        <th className="text-left py-2">Status</th>
+                        <th className="text-left py-2">Plan</th>
+                        <th className="text-left py-2">Transaction ID</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payments.map((payment) => (
+                        <tr key={payment.id} className="border-b hover:bg-muted/50">
+                          <td className="py-3">{new Date(payment.created_at).toLocaleDateString()}</td>
+                          <td className="py-3">KES {payment.amount}</td>
+                          <td className="py-3">{payment.payment_method.toUpperCase()}</td>
+                          <td className="py-3">
+                            <span className={`inline-block px-2 py-1 rounded-full text-xs ${
+                              payment.payment_status === 'successful' 
+                                ? 'bg-green-100 text-green-800' 
+                                : payment.payment_status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {payment.payment_status}
+                            </span>
+                          </td>
+                          <td className="py-3 text-sm text-muted-foreground">
+                            {payment.membership_plan ? getPlanName(payment.membership_plan) : 'N/A'}
+                          </td>
+                          <td className="py-3 text-xs text-muted-foreground">
+                            {payment.transaction_id || 'N/A'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </CardContent>
